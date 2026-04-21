@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.*?>
+
+<VBox spacing="10"
+   xmlns:fx="http://javafx.com/fxml"
+   fx:controller="com.swna.javafx.view.product.ProductController">
+
+   <HBox spacing="10">
+      <TextField fx:id="searchField" promptText="검색어" />
+      <Button text="검색" onAction="#onSearch" />
+   </HBox>
+
+   <HBox spacing="10">
+      <ProgressIndicator fx:id="progress" visible="false" />
+      <Label fx:id="pageLabel" text="1" />
+   </HBox>
+
+   <TableView fx:id="table" editable="true">
+      <columns>
+         <TableColumn fx:id="colName" text="Name" />
+         <TableColumn fx:id="colPrice" text="Price" />
+      </columns>
+   </TableView>
+
+   <HBox spacing="10">
+      <Button text="◀" onAction="#onPrev" />
+      <Button text="▶" onAction="#onNext" />
+   </HBox>
+
+   <HBox spacing="10">
+      <Button text="주문 추가" onAction="#onAdd" />
+      <Button text="주문 화면 이동" onAction="#onMoveOrder" />
+   </HBox>
+
+</VBox>
