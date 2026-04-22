@@ -21,17 +21,17 @@ public class ProductQueryUseCase {
 
     public PageResult<Product> getProducts(String keyword, int page, int size) {
 
-      //   String key = keyword + ":" + page + ":" + size;
+        String key = keyword + ":" + page + ":" + size;
 
-      //   // ================= CACHE =================
-      //   if (cache.exists(key)) {
-      //       return cache.get(key);
-      //   }
+        // ================= CACHE =================
+        if (cache.exists(key)) {
+            return cache.get(key);
+        }
 
-      //   PageResult<Product> result = repository.fetchProducts(keyword, page, size);
+        PageResult<Product> result = repository.fetchProducts(keyword, page, size);
 
-      //   cache.put(key, result);
+        cache.put(key, result);
 
-        return null;
+        return result;
     }
 }

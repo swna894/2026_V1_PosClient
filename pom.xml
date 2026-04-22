@@ -24,6 +24,13 @@
 
 	<dependencies>
 
+		<!-- @ConfigurationProperties 메타데이터 생성 및 IDE 자동완성 지원용 (런타임 미포함) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- WebFlux (비동기 REST 호출용) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

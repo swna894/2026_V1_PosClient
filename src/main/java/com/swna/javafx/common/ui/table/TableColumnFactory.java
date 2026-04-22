@@ -5,6 +5,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 public class TableColumnFactory {
 
+    private TableColumnFactory() {}
+
     // 기본 컬럼 생성
     public static <T, R> TableColumn<T, R> createColumn(String title, String property) {
 
@@ -24,9 +26,9 @@ public class TableColumnFactory {
     }
 
     // 가운데 정렬 (공통 스타일)
-    public static <T> TableColumn<T, ?> createCenteredColumn(String title, String property) {
+    public static <T, V> TableColumn<T, V> createCenteredColumn(String title, String property) {
 
-        TableColumn<T, ?> column = new TableColumn<>(title);
+        TableColumn<T, V> column = new TableColumn<>(title);
         column.setCellValueFactory(new PropertyValueFactory<>(property));
 
         column.setStyle("-fx-alignment: CENTER;");

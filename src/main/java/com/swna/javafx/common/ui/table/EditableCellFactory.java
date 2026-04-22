@@ -5,6 +5,10 @@ import javafx.util.Callback;
 
 public class EditableCellFactory {
 
+    private EditableCellFactory() {
+        // 유틸리티 클래스이므로 인스턴스 생성 방지
+    }
+
     public static <T> Callback<TableColumn<T, String>, TableCell<T, String>>
     textCell() {
 
@@ -15,7 +19,7 @@ public class EditableCellFactory {
             {
                 textField.setOnAction(e -> commitEdit(textField.getText()));
                 textField.focusedProperty().addListener((obs, oldV, newV) -> {
-                    if (!newV) {
+                    if (Boolean.FALSE.equals(newV)) {
                         commitEdit(textField.getText());
                     }
                 });

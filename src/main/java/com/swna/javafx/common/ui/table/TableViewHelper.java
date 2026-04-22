@@ -7,6 +7,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 public class TableViewHelper {
 
+    private TableViewHelper() {}
+    
     // 컬럼 바인딩
     public static <T> void bindColumn(TableColumn<T, ?> column, String property) {
         column.setCellValueFactory(new PropertyValueFactory<>(property));
