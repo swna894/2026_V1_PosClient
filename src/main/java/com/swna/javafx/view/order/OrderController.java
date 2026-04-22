@@ -38,6 +38,7 @@ public class OrderController extends BaseController {
     @FXML private TableColumn<Order, Long> colId;
     @FXML private TableColumn<Order, String> colCustomer;
     @FXML private TableColumn<Order, LocalDateTime> colDate;
+    @FXML private TableColumn<Order, LocalDateTime> colDatePicker;
 
     @FXML
     public void initialize() {
@@ -49,6 +50,7 @@ public class OrderController extends BaseController {
         TableColumnUtil.makeReadOnlyIntegerColumn( colId, Order::idProperty);
         TableColumnUtil.makeStringColumn(colCustomer,Order::customerNameProperty, Order::setCustomerName, true,viewModel::markDirty );
         TableColumnUtil.<Order>makeDateTimeColumn( colDate, Order::getOrderDate, Order::setOrderDate, false, viewModel::markDirty );
+        TableColumnUtil.makeDatePickerColumn(colDate, Order::orderDateProperty, Order::setOrderDate,viewModel::markDirty);
 
         setupTable();
         setupPriceColumn();

@@ -13,7 +13,6 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -175,6 +174,28 @@ public class TableColumnUtil {
             });
         }
     }
+
+    // ========================
+    // LocalDateTime
+    // ========================
+    public static <T> void makeDatePickerColumn(
+            TableColumn<T, LocalDateTime> column,
+            Function<T, ObjectProperty<LocalDateTime>> getter,
+            BiConsumer<T, LocalDateTime> setter,
+            DirtyConsumer<T> dirtyConsumer
+    ) {
+
+        column.setCellValueFactory(cell ->
+                getter.apply(cell.getValue())
+        );
+
+        column.setCellFactory(col ->
+                new DatePickerTableCell<T>(setter, dirtyConsumer) // ✅ 핵심
+        );
+
+        column.setEditable(true);
+    }
+
     // ========================
     // Boolean
     // ========================

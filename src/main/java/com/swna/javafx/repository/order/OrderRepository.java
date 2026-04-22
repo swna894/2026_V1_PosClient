@@ -7,7 +7,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.swna.javafx.domain.order.Order;
 
-import javafx.application.Platform;
 import reactor.core.publisher.Flux;
 
 @Repository
