@@ -10,8 +10,11 @@ import com.swna.javafx.domain.order.OrderItem;
 @Repository
 public class OrderItemApiRepository {
 
-    private final WebClient client =
-            WebClient.create("http://localhost:8080");
+    private final WebClient client;
+
+    public OrderItemApiRepository(WebClient client) {
+        this.client = client;
+    }
 
     public List<OrderItem> fetchByOrderId(Long orderId) {
 

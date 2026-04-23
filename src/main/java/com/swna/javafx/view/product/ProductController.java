@@ -16,8 +16,10 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import net.rgielen.fxweaver.core.FxmlView;
 
 @Component
+@FxmlView("/view/product/ProductView.fxml")
 public class ProductController extends BaseController {
 
     private final ProductViewModel viewModel;

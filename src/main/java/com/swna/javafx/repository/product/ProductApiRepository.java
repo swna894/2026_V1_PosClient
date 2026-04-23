@@ -9,14 +9,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.swna.javafx.domain.product.PageResult;
 import com.swna.javafx.domain.product.Product;
 
+import lombok.RequiredArgsConstructor;
+
 @Repository
+@RequiredArgsConstructor
 public class ProductApiRepository {
 
     private final WebClient client;
-
-    public ProductApiRepository() {
-        this.client = WebClient.builder().baseUrl("http://localhost:8080").build();
-    }
 
     public List<Product> fetchProducts() {
         return client.get()

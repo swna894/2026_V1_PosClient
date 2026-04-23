@@ -12,8 +12,11 @@ import reactor.core.publisher.Flux;
 @Repository
 public class OrderRepository {
 
-    private final WebClient client =
-            WebClient.create("http://localhost:8080");
+    private final WebClient client;
+
+    public OrderRepository(WebClient client) {
+        this.client = client;
+    }
 
     public List<Order> fetchOrders() {
 
