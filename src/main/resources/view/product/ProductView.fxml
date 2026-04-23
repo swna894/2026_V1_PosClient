@@ -6,7 +6,7 @@
 
 <VBox spacing="10"
    xmlns:fx="http://javafx.com/fxml"
-   fx:controller="com.swna.javafx.view.product.ProductController">
+   fx:controller="com.swna.javafx.view.product.ProductView">
 
    <HBox spacing="10">
       <TextField fx:id="searchField" promptText="검색어" />

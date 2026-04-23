@@ -20,13 +20,13 @@ import net.rgielen.fxweaver.core.FxmlView;
 
 @Component
 @FxmlView("/view/product/ProductView.fxml")
-public class ProductController extends BaseController {
+public class ProductView extends BaseController {
 
     private final ProductViewModel viewModel;
     private final EventBus eventBus;
 
 
-    public ProductController(SceneManager sceneManager, ProductViewModel viewModel,  EventBus eventBus) {
+    public ProductView(SceneManager sceneManager, ProductViewModel viewModel,  EventBus eventBus) {
         super(sceneManager);
         this.viewModel = viewModel;
         this.eventBus = eventBus;

@@ -1,0 +1,39 @@
+/* 주 버튼: 깊은 보라색 */
+.btn-primary {
+   background-color: #6F4CBB;
+   -fx-background-color: #6F4CBB;
+   -fx-text-fill: #FFFFFF;
+}
+
+.btn-primary:hover {
+   background-color: #5A3E99;
+   -fx-background-color: #5A3E99;
+   -fx-text-fill: #FFFFFF;
+}
+
+.btn-primary:pressed {
+   background-color: #2F2B43;
+   -fx-background-color: #2F2B43;
+   -fx-text-fill: white;
+   -fx-background-radius: 30 0 0 30;
+}
+
+/* 보조 버튼: 연한 보라색 */
+.btn-secondary {
+   background-color: #D5CBEB;
+   -fx-background-color: #D5CBEB;
+   -fx-background-radius: 5;
+}
+
+.btn-secondary:hover {
+   background-color: #524A7B;
+   -fx-background-color: #524A7B;
+   -fx-text-fill: white;
+}
+
+.btn-secondary:pressed {
+   background-color: #2F2B43;
+   -fx-background-color: #2F2B43;
+   -fx-text-fill: white;
+   -fx-background-radius: 0 30 30 0;
+}

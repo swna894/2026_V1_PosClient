@@ -1,6 +1,12 @@
 package com.swna.javafx.viewmodel;
 
-import javafx.beans.property.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 
 public abstract class BaseViewModel {
@@ -25,11 +31,21 @@ public abstract class BaseViewModel {
     }
 
 
-    protected <T> void runAsync(Task<T> task) {
+    protected <T> void runAsync(Supplier<T> supplier, Consumer<T> onSuccess) {
+
+        Task<T> task = new Task<>() {
+            @Override
+            protected T call() {
+                return supplier.get();
+            }
+        };
 
         loading.set(true);
 
-        task.setOnSucceeded(e -> loading.set(false));
+        task.setOnSucceeded(e -> {
+            loading.set(false);
+            onSuccess.accept(task.getValue());
+        });
 
         task.setOnFailed(e -> {
             loading.set(false);

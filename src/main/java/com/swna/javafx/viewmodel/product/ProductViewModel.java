@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.domain.product.PageResult;
 import com.swna.javafx.domain.product.Product;
 import com.swna.javafx.repository.product.ProductApiRepository;
 import com.swna.javafx.service.product.ProductQueryUseCase;
@@ -16,7 +15,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 
 @Component
 public class ProductViewModel extends BaseViewModel {
@@ -56,34 +54,17 @@ public class ProductViewModel extends BaseViewModel {
  // ================= ERP 핵심: Paging API =================
     public void load() {
 
-        setLoading(true);
-
-        Task<PageResult<Product>> task = new Task<>() {
-            @Override
-            protected PageResult<Product> call() {
-                return useCase.getProducts(
-                        keyword.get(),
-                        page.get(),
-                        size.get()
-                );
+        runAsync(
+            () -> useCase.getProducts(
+                    keyword.get(),
+                    page.get(),
+                    size.get()
+            ),
+            result -> {
+                products.setAll(result.getContent());
+                setError(null);
             }
-        };
-
-        task.setOnSucceeded(e -> {
-            PageResult<Product> result = task.getValue();
-
-            products.setAll(result.getContent());
-
-            setLoading(false);
-            setError(null);
-        });
-
-        task.setOnFailed(e -> {
-            setLoading(false);
-            setError(task.getException().getMessage());
-        });
-
-        runAsync(task);
+        );
     }
 
     public void nextPage() {
@@ -98,39 +79,23 @@ public class ProductViewModel extends BaseViewModel {
         }
     }
     // ================= API 호출 =================
+    // ================= 전체 조회 =================
     public void loadProducts() {
 
-        setLoading(true);
-
-        Task<List<Product>> task = new Task<>() {
-            @Override
-            protected List<Product> call() {
-                return repository.fetchProducts();
-            }
-        };
-
-        task.setOnSucceeded(e -> {
-            products.setAll(task.getValue());
-            setLoading(false);
-        });
-
-        task.setOnFailed(e -> {
-            setLoading(false);
-            setError(task.getException().getMessage());
-        });
-
-        runAsync(task);
+        runAsync(
+            repository::fetchProducts,
+            products::setAll
+        );
     }
 
+
     // ================= 검색 (클라이언트 필터 or API 확장) =================
+
+    // ================= 검색 =================
     public void search() {
 
-        setLoading(true);
-
-        Task<List<Product>> task = new Task<>() {
-            @Override
-            protected List<Product> call() {
-
+        runAsync(
+            () -> {
                 List<Product> all = repository.fetchProducts();
 
                 if (keyword.get() == null || keyword.get().isBlank()) {
@@ -142,19 +107,8 @@ public class ProductViewModel extends BaseViewModel {
                 return all.stream()
                         .filter(p -> p.getName().toLowerCase().contains(kw))
                         .toList();
-            }
-        };
-
-        task.setOnSucceeded(e -> {
-            products.setAll(task.getValue());
-            setLoading(false);
-        });
-
-        task.setOnFailed(e -> {
-            setLoading(false);
-            setError(task.getException().getMessage());
-        });
-
-        runAsync(task);
+            },
+            products::setAll
+        );
     }
 }
