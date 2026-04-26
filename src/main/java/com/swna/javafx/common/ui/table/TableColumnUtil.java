@@ -310,7 +310,7 @@ public class TableColumnUtil {
             EventHandler<MouseEvent> actionEvent
     ) {
         if (title != null) { column.setText(title); }
-        column.setStyle(STYLE_RIGHT);
+        column.setStyle(STYLE_CENTER);
         column.setGraphic(loadIconView(iconPath));
         column.setSortable(false);
         column.setStyle("-fx-background-color: transparent; -fx-padding: 0px 0px 0px 5px;");

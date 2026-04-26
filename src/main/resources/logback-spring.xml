@@ -1,0 +1,30 @@
+<configuration>
+   <property name="LOG_PATH" value="./logs" />
+
+   <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>${LOG_PATH}/app.log</file>
+
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+         <fileNamePattern>${LOG_PATH}/archived/app.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+
+         <maxHistory>7</maxHistory>
+
+         <totalSizeCap>2GB</totalSizeCap>
+      </rollingPolicy>
+
+      <encoder>
+         <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+      </encoder>
+   </appender>
+
+   <appender name="STDOUT" class="ch.qos.logback.core.rolling.ConsoleAppender">
+      <encoder>
+         <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+      </encoder>
+   </appender>
+
+   <root level="INFO">
+      <appender-ref ref="ROLLING" />
+      <appender-ref ref="STDOUT" />
+   </root>
+</configuration>

@@ -42,13 +42,13 @@ public class NavigationService {
 
         // 🔥 핵심: 로그인 상태 감지
         authStore.authStateProperty().addListener((obs, oldVal, newVal) -> 
-        Platform.runLater(() -> {
-                if (newVal == AuthState.AUTHENTICATED) {
-                    navigate(PosViewController.class);
-                } else {
-                    navigate(LoginViewController.class);
-                }
-            })
+            Platform.runLater(() -> {
+                    if (newVal == AuthState.AUTHENTICATED) {
+                        navigate(PosViewController.class);
+                    } else {
+                        navigate(LoginViewController.class);
+                    }
+                })
         );
 
             // 🔥 핵심: 현재 상태 즉시 반영
@@ -80,6 +80,7 @@ public class NavigationService {
            stage.initStyle(StageStyle.UNDECORATED); 
         } else {
             Object controller = fxWeaver.getBean(viewClass);
+            stage.setFullScreen(true);
             if (controller instanceof ViewInfo viewInfo) {
                 stage.setTitle(viewInfo.getTitle());
             }
