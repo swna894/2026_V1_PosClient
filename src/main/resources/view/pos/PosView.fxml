@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+   fx:controller="com.swna.javafx.view_ui.pos.PosViewController">
+
+   <!-- =========================
+         TOP : 총액 / 상태
+    ========================== -->
+   <top>
+      <VBox spacing="5" style="-fx-background-color: #dcdcdc; -fx-padding: 10;">
+
+         <HBox spacing="20" alignment="CENTER_LEFT">
+            <Label fx:id="lblTotal"
+               text="Total: 0.00"
+               style="-fx-font-size: 48px; -fx-font-weight: bold;" />
+
+            <VBox spacing="5">
+               <Label fx:id="lblQty"
+                  text="Qty: 0"
+                  style="-fx-font-size: 18px; -fx-text-fill: green;" />
+
+               <Label fx:id="lblScanStatus"
+                  text="Scan ready"
+                  style="-fx-font-size: 14px;" />
+            </VBox>
+         </HBox>
+
+         <!-- 스캔 입력 -->
+         <TextField fx:id="txtScan"
+            promptText="Scan barcode..."
+            onAction="#onScan"
+            style="-fx-font-size: 16px;" />
+      </VBox>
+   </top>
+
+   <!-- =========================
+         CENTER : 상품 테이블
+    ========================== -->
+   <center>
+      <TableView fx:id="table" prefHeight="500">
+
+         <columns>
+
+            <TableColumn fx:id="colDelete" prefWidth="80" />
+            <TableColumn fx:id="colBarcode" text="BARCODE" prefWidth="180" />
+            <TableColumn fx:id="colDesc" text="DESCRIPTION" prefWidth="300" />
+
+            <TableColumn fx:id="colMinus" prefWidth="80" />
+            <TableColumn fx:id="colQty" text="QTY" prefWidth="80" />
+            <TableColumn fx:id="colPlus" prefWidth="80" />
+
+            <TableColumn fx:id="colPrice" text="PRICE" prefWidth="100" />
+            <TableColumn fx:id="colTotal" text="TOTAL" prefWidth="120" />
+
+            <TableColumn fx:id="colStock" text="STOCK" prefWidth="80" />
+
+            <!-- 액션 버튼 -->
+            <TableColumn fx:id="colAction" prefWidth="120" />
+            <TableColumn fx:id="colDiscount" prefWidth="120" />
+
+         </columns>
+      </TableView>
+   </center>
+
+   <!-- =========================
+         RIGHT : 금액 버튼 패드
+    ========================== -->
+   <right>
+      <GridPane hgap="10" vgap="10" style="-fx-padding: 10; -fx-background-color: #eeeeee;">
+
+         <!-- 버튼 2열 구성 -->
+         <Button text="0.5" GridPane.rowIndex="0" GridPane.columnIndex="0"
+            onAction="#onQuickAmount" />
+         <Button text="0.7" GridPane.rowIndex="0" GridPane.columnIndex="1"
+            onAction="#onQuickAmount" />
+
+         <Button text="1.0" GridPane.rowIndex="1" GridPane.columnIndex="0"
+            onAction="#onQuickAmount" />
+         <Button text="1.2" GridPane.rowIndex="1" GridPane.columnIndex="1"
+            onAction="#onQuickAmount" />
+
+         <Button text="1.5" GridPane.rowIndex="2" GridPane.columnIndex="0"
+            onAction="#onQuickAmount" />
+         <Button text="2.0" GridPane.rowIndex="2" GridPane.columnIndex="1"
+            onAction="#onQuickAmount" />
+
+         <Button text="2.5" GridPane.rowIndex="3" GridPane.columnIndex="0"
+            onAction="#onQuickAmount" />
+         <Button text="3.0" GridPane.rowIndex="3" GridPane.columnIndex="1"
+            onAction="#onQuickAmount" />
+
+         <Button text="3.5" GridPane.rowIndex="4" GridPane.columnIndex="0"
+            onAction="#onQuickAmount" />
+         <Button text="4.0" GridPane.rowIndex="4" GridPane.columnIndex="1"
+            onAction="#onQuickAmount" />
+
+         <Button text="5.0" GridPane.rowIndex="5" GridPane.columnIndex="0"
+            onAction="#onQuickAmount" />
+         <Button text="10.0" GridPane.rowIndex="5" GridPane.columnIndex="1"
+            onAction="#onQuickAmount" />
+
+      </GridPane>
+   </right>
+
+   <!-- =========================
+         BOTTOM : 기능 버튼
+    ========================== -->
+   <bottom>
+      <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10; -fx-background-color: #cccccc;">
+
+         <Button text="[F2] Add" onAction="#onAdd" />
+         <Button text="[F3] Remove" onAction="#onRemove" />
+         <Button text="[F4] Clear" onAction="#onClear" />
+
+         <Button text="[F8] Payment" onAction="#onPayment"
+            style="-fx-background-color: green; -fx-text-fill: white; -fx-font-weight: bold;" />
+
+      </HBox>
+   </bottom>
+
+</BorderPane>

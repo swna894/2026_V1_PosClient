@@ -5,11 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.JavafxApplication;
 import com.swna.javafx.common.store.AuthState;
 import com.swna.javafx.common.store.AuthStore;
-import com.swna.javafx.view.login.LoginView;
-import com.swna.javafx.view.product.ProductView;
+import com.swna.javafx.view_ui.login.LoginViewController;
+import com.swna.javafx.view_ui.pos.PosViewController;
 
 import atlantafx.base.theme.PrimerLight;
 import javafx.application.Application;
@@ -39,31 +38,26 @@ public class NavigationService {
     public void setStage(Stage stage) {
         this.stage = stage;
 
-        //stage.getIcons().add(new Image("/icon/app.png"));
+        stage.getIcons().add(new Image("/images/24_server.png"));
 
         // 🔥 핵심: 로그인 상태 감지
-        authStore.authStateProperty().addListener((obs, oldVal, newVal) -> {
-
-            Platform.runLater(() -> {
-
+        authStore.authStateProperty().addListener((obs, oldVal, newVal) -> 
+        Platform.runLater(() -> {
                 if (newVal == AuthState.AUTHENTICATED) {
-                    navigate(ProductView.class);
+                    navigate(PosViewController.class);
                 } else {
-                    navigate(LoginView.class);
+                    navigate(LoginViewController.class);
                 }
-
-            });
-
-            
-        });
+            })
+        );
 
             // 🔥 핵심: 현재 상태 즉시 반영
         AuthState current = authStore.getAuthState();
         if (current == AuthState.AUTHENTICATED) {
-            navigate(ProductView.class);
+            navigate(PosViewController.class);
         } else {
             Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
-            navigate(LoginView.class);
+            navigate(LoginViewController.class);
         }
     }
 
@@ -82,7 +76,7 @@ public class NavigationService {
         stage.setScene(new Scene(root));
 
 
-        if (viewClass.equals(LoginView.class)) {
+        if (viewClass.equals(LoginViewController.class)) {
            stage.initStyle(StageStyle.UNDECORATED); 
         } else {
             Object controller = fxWeaver.getBean(viewClass);

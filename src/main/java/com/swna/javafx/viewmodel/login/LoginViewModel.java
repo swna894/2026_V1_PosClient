@@ -2,6 +2,12 @@ package com.swna.javafx.viewmodel.login;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.common.exception.ApiException;
+import com.swna.javafx.common.exception.ErrorHandler;
+import com.swna.javafx.common.exception.ErrorPolicy;
+import com.swna.javafx.common.exception.ErrorPolicyResolver;
+import com.swna.javafx.common.exception.NetworkException;
+import com.swna.javafx.common.response.ApiResponse;
 import com.swna.javafx.common.store.AuthState;
 import com.swna.javafx.common.store.AuthStore;
 import com.swna.javafx.common.store.Role;
@@ -17,58 +23,182 @@ import javafx.beans.property.StringProperty;
 public class LoginViewModel extends BaseViewModel {
 
     private final AuthService authService;
-    private final AuthStore authStore;   
-    private final TokenStore tokenStore; 
+    private final AuthStore authStore;
+    private final TokenStore tokenStore;
 
-    // 입력 상태
-    private final StringProperty username = new SimpleStringProperty();
+    private final StringProperty email = new SimpleStringProperty();
     private final StringProperty password = new SimpleStringProperty();
-
-    // UI 상태
     private final StringProperty status = new SimpleStringProperty();
+
+    private static final String LOGIN_FAILED = "Login Failed";
+    private static final String LOGIN_SUCCESS = "Login Success";
+    private static final String SERVER_ERROR = "Server is not responding.";
+    private static final String UNKNOWN_ERROR = "Unknown error.";
+    private static final String NO_RESPONSE_SERVER = "No response from the server.";
 
     public LoginViewModel(AuthService authService,
                           AuthStore authStore,
                           TokenStore tokenStore) {
+
         this.authService = authService;
         this.authStore = authStore;
         this.tokenStore = tokenStore;
+
+        email.addListener((o, a, b) -> clearMessages());
+        password.addListener((o, a, b) -> clearMessages());
+ 
+        email.set("admin@gmail.com");
+        password.set("1234");
     }
 
+    // =========================
+    // MAIN FLOW (Complexity LOW)
+    // =========================
     public void login() {
 
         setError(null);
+
+        if (!validateInput()) return;
+
         status.set("Logging in...");
 
         runAsync(
-                () -> {
-                    LoginResponse res = authService.login(username.get(), password.get()).block();
-
-                    String role = res.role();
-
-                     switch (role) {
-                        case "ADMIN" -> authStore.setAuthenticated(Role.ADMIN);
-                        case "MANAGER" -> authStore.setAuthenticated(Role.MANAGER);
-                        default -> authStore.setAuthenticated(Role.USER);
-                    }
-                    return null;
-                },
-                result -> {
-                    status.set("Login Success");
-
-                    // 🔥 핵심: 상태 변경
-                    authStore.setAuthState(AuthState.AUTHENTICATED);
-                }
+                this::requestLogin,
+                this::handleSuccess,
+                this::handleError
         );
     }
 
-    public void logout() {
-        tokenStore.clear();
-        authStore.logout();
+    // =========================
+    // API CALL
+    // =========================
+    private ApiResponse<LoginResponse> requestLogin() {
+        return authService.login(email.get(), password.get()).block();
     }
 
-    // getter
-    public StringProperty usernameProperty() { return username; }
+    // =========================
+    // SUCCESS FLOW
+    // =========================
+    private Void handleSuccess(ApiResponse<LoginResponse> response) {
+
+        if (response == null) {
+            fail(NO_RESPONSE_SERVER);
+            return null;
+        }
+
+        if (!response.success()) {
+            handleBusinessError(response);
+            fail(LOGIN_FAILED);
+            return null;
+        }
+
+        applyLoginSuccess(response.data());
+
+        status.set(LOGIN_SUCCESS);
+        authStore.setAuthState(AuthState.AUTHENTICATED);
+
+        return null;
+    }
+
+    private void applyLoginSuccess(LoginResponse res) {
+
+        tokenStore.save(res.accessToken(), res.refreshToken());
+
+        authStore.setAuthenticated(mapRole(res.role()));
+    }
+
+    private void handleBusinessError(ApiResponse<LoginResponse> response) {
+
+        ErrorPolicy policy = ErrorHandler.resolve(response);
+
+        setError(policy.message());
+
+        if (policy.logout()) {
+            authStore.logout();
+        }
+    }
+
+    // =========================
+    // ERROR FLOW
+    // =========================
+    @Override
+    protected void handleError(Throwable error) {
+
+        if (error instanceof NetworkException) {
+            fail(SERVER_ERROR);
+            return;
+        }
+
+        if (error instanceof ApiException apiEx) {
+            ErrorPolicy policy = ErrorPolicyResolver.resolve(apiEx.getCode());
+            setError(policy.message());
+
+            if (policy.logout()) { authStore.logout(); }
+            fail(LOGIN_FAILED);
+            return;
+        }
+
+        fail(UNKNOWN_ERROR);
+    }
+
+    // =========================
+    // VALIDATION
+    // =========================
+    private boolean validateInput() {
+
+        if (isBlank(email.get())) {
+            return failBool("Email is required.");
+        }
+
+        if (isBlank(password.get())) {
+            return failBool("Password is required.");
+        }
+
+        return true;
+    }
+
+    private boolean isBlank(String v) {
+        return v == null || v.isBlank();
+    }
+
+    // =========================
+    // COMMON FAIL HANDLERS
+    // =========================
+    private boolean failBool(String message) {
+        setError(message);
+        status.set(null);
+        return false;
+    }
+
+    private void fail(String message) {
+        setError(message);
+        status.set(LOGIN_FAILED);
+    }
+
+    // =========================
+    // ROLE MAPPING
+    // =========================
+    private Role mapRole(String role) {
+        try {
+            return Role.valueOf(role);
+        } catch (Exception e) {
+            return Role.USER;
+        }
+    }
+
+    // =========================
+    // CLEANUP
+    // =========================
+    private void clearMessages() {
+        setError(null);
+        status.set("");
+    }
+
+    // =========================
+    // GETTERS
+    // =========================
+    public StringProperty emailProperty() { return email; }
     public StringProperty passwordProperty() { return password; }
     public StringProperty statusProperty() { return status; }
+
 }

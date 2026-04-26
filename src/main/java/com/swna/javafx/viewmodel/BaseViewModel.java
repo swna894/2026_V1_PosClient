@@ -1,8 +1,16 @@
 package com.swna.javafx.viewmodel;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.swna.javafx.common.exception.ApiException;
+import com.swna.javafx.common.exception.ErrorPolicy;
+import com.swna.javafx.common.exception.ErrorPolicyResolver;
+import com.swna.javafx.common.exception.NetworkException;
+
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -11,6 +19,7 @@ import javafx.concurrent.Task;
 
 public abstract class BaseViewModel {
 
+    // ================= UI STATE =================
     private final BooleanProperty loading = new SimpleBooleanProperty(false);
     private final StringProperty error = new SimpleStringProperty();
 
@@ -22,6 +31,7 @@ public abstract class BaseViewModel {
         return error;
     }
 
+    // ================= STATE CONTROL =================
     protected void setLoading(boolean value) {
         loading.set(value);
     }
@@ -30,8 +40,61 @@ public abstract class BaseViewModel {
         error.set(message);
     }
 
+    protected void clearError() {
+        error.set(null);
+    }
 
-    protected <T> void runAsync(Supplier<T> supplier, Consumer<T> onSuccess) {
+    // ================= THREAD EXECUTOR =================
+    private final ExecutorService executor =
+            Executors.newCachedThreadPool();
+
+    // ================= ERROR HANDLING CORE =================
+    protected void handleError(Throwable ex) {
+
+        if (ex == null) {
+            setError("Unknown error");
+            return;
+        }
+
+        // 🔥 Network layer
+        if (ex instanceof NetworkException) {
+            setError("서버에 연결할 수 없습니다.");
+            return;
+        }
+
+        // 🔥 API layer (code 기반)
+        if (ex instanceof ApiException apiEx) {
+
+            ErrorPolicy policy = ErrorPolicyResolver.resolve(apiEx.getCode());
+
+            setError(policy.message());
+
+            return;
+        }
+
+        // 🔥 fallback
+        setError(ex.getMessage() != null ? ex.getMessage() : "Unknown error");
+    }
+
+    // ================= ASYNC EXECUTION =================
+
+    // 기본형
+    protected <T> void runAsync(
+            Supplier<T> supplier,
+            Consumer<T> onSuccess
+    ) {
+        runAsync(supplier, onSuccess, null);
+    }
+
+    // 확장형 (error handler 포함)
+    protected <T> void runAsync(
+            Supplier<T> supplier,
+            Consumer<T> onSuccess,
+            Consumer<Throwable> onError
+    ) {
+
+        setLoading(true);
+        clearError();
 
         Task<T> task = new Task<>() {
             @Override
@@ -40,19 +103,28 @@ public abstract class BaseViewModel {
             }
         };
 
-        loading.set(true);
-
         task.setOnSucceeded(e -> {
-            loading.set(false);
-            onSuccess.accept(task.getValue());
+            Platform.runLater(() -> {
+                setLoading(false);
+                onSuccess.accept(task.getValue());
+            });
         });
 
         task.setOnFailed(e -> {
-            loading.set(false);
+
             Throwable ex = task.getException();
-            error.set(ex != null ? ex.getMessage() : "Unknown error");
+
+            Platform.runLater(() -> {
+                setLoading(false);
+
+                if (onError != null) {
+                    onError.accept(ex);
+                } else {
+                    handleError(ex);
+                }
+            });
         });
 
-        new Thread(task).start();
+        executor.execute(task);
     }
 }

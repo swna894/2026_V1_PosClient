@@ -45,6 +45,11 @@
 			<version>${javafx-weaver.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+		</dependency>
+
 		<!-- Lombok (선택) -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>

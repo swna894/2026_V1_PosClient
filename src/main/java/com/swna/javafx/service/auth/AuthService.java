@@ -6,8 +6,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.swna.javafx.common.response.ApiResponse;
 import com.swna.javafx.common.store.AuthStore;
-import com.swna.javafx.common.store.Role;
 import com.swna.javafx.common.store.TokenStore;
 import com.swna.javafx.dto.auth.LoginResponse;
 import com.swna.javafx.dto.auth.TokenResponse;
@@ -30,29 +30,19 @@ public class AuthService {
     }
 
     // LOGIN
-    public Mono<LoginResponse> login(String username, String password) {
+    public Mono<ApiResponse<LoginResponse>> login(String email, String password) {
 
         return webClient.post()
                 .uri("/auth/login")
                 .bodyValue(Map.of(
-                        "username", username,
+                        "email", email,
                         "password", password
                 ))
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {})
-                .map(res -> {
-
-                    String access = res.get("accessToken");
-                    String refresh = res.get("refreshToken");
-                    String role = res.get("role");
-
-                    tokenStore.save(access, refresh);
-                    authStore.setAuthenticated(Role.valueOf(role));
-
-                    return new LoginResponse(access, refresh, role);
-                });
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<LoginResponse>>() {});
+                
     }
-
+    
     // REFRESH (🔥 reactive only)
     public Mono<TokenResponse> refreshToken(String refreshToken) {
 
