@@ -114,7 +114,7 @@ public class PosViewModel {
                     .format(DateTimeFormatter.ofPattern("MMddHHmm"));
             
             target.setBarcode("M-" + timestamp + "-" + amount);
-            target.setDescription(String.format("Open Item ($%.2f)", amount));
+            target.setDescription(String.format("Open Quick Item ($%.2f)", amount));
             target.setSellingPrice(amount);
             target.setOriginalPrice(amount);
             target.increaseQty();
@@ -122,8 +122,22 @@ public class PosViewModel {
             items.add(target);
         }
 
+        // [변경 부분] 정렬 로직 적용
+        sortItems(target);
+
         selectedItem.set(target);
         scanStatus.set(String.format("Added: $%.2f", amount));
+    }
+
+    private void sortItems(PosItem topItem) {
+        items.sort((a, b) -> {
+            // 1. 방금 입력/수정된 아이템(topItem)을 최상단으로
+            if (a == topItem) return -1;
+            if (b == topItem) return 1;
+
+            // 2. 나머지는 바코드 알파벳 순으로 정렬
+            return a.getBarcode().compareTo(b.getBarcode());
+        });
     }
 
     // =========================

@@ -84,7 +84,7 @@ public class TableColumnUtil {
             Function<T, StringProperty> propertyGetter,
             BiConsumer<T, String> setter,
             boolean editable,
-            String alignment,           // 정렬 추가
+            String alignment,           
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()));

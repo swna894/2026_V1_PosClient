@@ -107,30 +107,18 @@
 
             <TableColumn fx:id="colNo" prefWidth="80" />
             <TableColumn fx:id="colDelete" prefWidth="80" />
-
             <TableColumn fx:id="colBarcode" prefWidth="180" text="BARCODE" />
-
             <TableColumn fx:id="colDesc" prefWidth="400" text="DESCRIPTION" />
-
             <TableColumn fx:id="colMinus" prefWidth="80" />
-
             <TableColumn fx:id="colQty" prefWidth="80" text="QTY" />
-
             <TableColumn fx:id="colPlus" prefWidth="80" />
-
             <TableColumn fx:id="colPrice" prefWidth="100" text="PRICE" />
-
             <TableColumn fx:id="colTotal" prefWidth="120" text="TOTAL" />
-
             <TableColumn fx:id="colDiscount" prefWidth="100" text="D/C" />
-
             <TableColumn fx:id="colStock" prefWidth="80" text="STOCK" />
-
             <TableColumn fx:id="colDiscountPrice" prefWidth="120" />
-
             <TableColumn fx:id="colChangePrice" prefWidth="120" />
-
-            <TableColumn fx:id="colComment" prefWidth="300" text="COMMENT" />
+            <TableColumn fx:id="colComment" prefWidth="260" text="COMMENT" />
 
          </columns>
 
