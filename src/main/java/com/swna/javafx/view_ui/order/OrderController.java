@@ -46,10 +46,17 @@ public class OrderController extends BaseController {
         orderTable.setItems(viewModel.getOrders());
 
         // ================= Columns =================
-        TableColumnUtil.makeReadOnlyIntegerColumn( colId, Order::idProperty);
-        TableColumnUtil.makeStringColumn(colCustomer,Order::customerNameProperty, Order::setCustomerName, true,viewModel::markDirty );
-        TableColumnUtil.<Order>makeDateTimeColumn( colDate, Order::getOrderDate, Order::setOrderDate, false, viewModel::markDirty );
-        TableColumnUtil.makeDatePickerColumn(colDate, Order::orderDateProperty, Order::setOrderDate,viewModel::markDirty);
+        // 1. ID 컬럼 (읽기 전용 Long, 중앙 정렬)
+        TableColumnUtil.makeReadOnlyLongColumn(colId, Order::idProperty, TableColumnUtil.CENTER);
+
+        // 2. 고객명 컬럼 (문자열, 편집 가능, 왼쪽 정렬)
+        TableColumnUtil.makeStringColumn(colCustomer, Order::customerNameProperty, Order::setCustomerName, true, TableColumnUtil.LEFT, viewModel::markDirty);
+
+        // 3. 주문 날짜 컬럼 (표시 전용 LocalDateTime, 중앙 정렬)
+        TableColumnUtil.makeDateTimeColumn(colDate, Order::getOrderDate, Order::setOrderDate, false, TableColumnUtil.CENTER, viewModel::markDirty);
+
+        // 4. 주문 날짜 선택 컬럼 (DatePicker 사용, 중앙 정렬)
+        TableColumnUtil.makeDatePickerColumn(colDate, Order::orderDateProperty, Order::setOrderDate, TableColumnUtil.CENTER, viewModel::markDirty);
 
         setupTable();
         setupPriceColumn();

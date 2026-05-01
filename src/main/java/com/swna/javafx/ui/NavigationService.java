@@ -85,7 +85,7 @@ public class NavigationService {
             stage.close();
 
             Stage newStage = new Stage();
-            newStage.getIcons().add( new Image("/images/24_server.png") );
+            newStage.getIcons().add( new Image("/images/pos_system.png") );
 
             newStage.initStyle(StageStyle.DECORATED);
 

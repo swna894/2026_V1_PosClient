@@ -1,9 +1,10 @@
 package com.swna.javafx.common.ui.table;
 
 import java.net.URL;
+import java.text.NumberFormat;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.ObjIntConsumer;
@@ -30,37 +31,48 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.util.Callback;
-import javafx.util.StringConverter;
 import javafx.util.converter.DoubleStringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
 public class TableColumnUtil {
 
-        // 정렬을 위한 상수를 정의하여 가독성을 높입니다.
+    // 정렬 상수를 정의하여 외부에서 가독성 있게 호출하도록 합니다.
     public static final String CENTER = "CENTER";
     public static final String RIGHT = "RIGHT";
     public static final String LEFT = "LEFT";
 
-    // CSS 스타일링 상수를 정의하여 중복을 피하고 유지보수를 용이하게 합니다.
+    // CSS 스타일링 상수
     private static final String STYLE_CENTER = "-fx-alignment: CENTER;";
     private static final String STYLE_RIGHT = "-fx-alignment: CENTER-RIGHT;";
     private static final String STYLE_LEFT = "-fx-alignment: CENTER-LEFT;";
     private static final String STYLE_TRANSPARENT = "-fx-background-color: transparent;";
 
-        // 🔥 인스턴스 생성 방지
+    // 🔥 인스턴스 생성 방지
     private TableColumnUtil() {
         throw new UnsupportedOperationException("Utility class");
     }
 
+    /**
+     * 정렬 값에 따른 CSS 스타일을 반환하는 헬퍼 메서드
+     */
+    private static String getAlignmentStyle(String alignment) {
+        if (alignment == null) return STYLE_CENTER;
+        return switch (alignment.toUpperCase()) {
+            case RIGHT -> STYLE_RIGHT;
+            case LEFT -> STYLE_LEFT;
+            default -> STYLE_CENTER;
+        };
+    }
+
+    // ========================
+    // Number (Row Index)
+    // ========================
     public static <T> TableColumn<T, String> createNumberColumn(TableView<T> tableView, TableColumn<T, String> column, int width) {
-        if( width != 0 ) column.setPrefWidth(width);
+        if (width != 0) column.setPrefWidth(width);
         column.setText("NO");
         column.setSortable(false);
-        column.setStyle(STYLE_CENTER);
-
-        column.setCellValueFactory( p -> new ReadOnlyObjectWrapper<>(" " + (tableView.getItems().indexOf(p.getValue()) + 1) + " "));
-
+        column.setStyle(STYLE_TRANSPARENT + STYLE_CENTER);
+        column.setCellValueFactory(p -> new ReadOnlyObjectWrapper<>(" " + (tableView.getItems().indexOf(p.getValue()) + 1) + " "));
         return column;
     }
 
@@ -72,36 +84,86 @@ public class TableColumnUtil {
             Function<T, StringProperty> propertyGetter,
             BiConsumer<T, String> setter,
             boolean editable,
-            DirtyConsumer<T> dirtyConsumer   // ⭐ 추가
+            String alignment,           // 정렬 추가
+            DirtyConsumer<T> dirtyConsumer
     ) {
-        column.setCellValueFactory(cellData ->
-                propertyGetter.apply(cellData.getValue())
-        );
-
-        column.setStyle(STYLE_CENTER);
+        column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()));
+        column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
         column.setSortable(false);
-        column.setStyle(STYLE_TRANSPARENT);
 
         if (editable) {
-
             column.setCellFactory(TextFieldTableCell.forTableColumn());
-
             column.setOnEditCommit(event -> {
-
                 T row = event.getRowValue();
                 String newValue = event.getNewValue();
-
                 setter.accept(row, newValue);
-
-                if (dirtyConsumer != null) {
-                    dirtyConsumer.accept(row);   // ⭐ Dirty 등록
-                }
+                if (dirtyConsumer != null) dirtyConsumer.accept(row);
             });
-
         } else {
             column.setEditable(false);
         }
     }
+
+    /**
+     * 통화(Currency) 컬럼 생성
+     * Locale에 맞는 기호, 소수점 2자리 표시 및 편집 기능 포함
+     */
+    public static <T> void makeCurrencyColumn(
+            TableColumn<T, Double> column,
+            Function<T, DoubleProperty> propertyGetter,
+            boolean editable,
+            String alignment,
+            DirtyConsumer<T> dirtyConsumer
+    ) {
+        // 1. 값 바인딩 (DoubleProperty -> Object)
+        column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
+        
+        // 2. 스타일 및 정렬 적용
+        column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+
+        // 3. 통화 포맷터 설정 (소수점 2자리 고정)
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+        currencyFormat.setMinimumFractionDigits(2);
+        currencyFormat.setMaximumFractionDigits(2);
+
+        // 4. 셀 팩토리 설정 (표시 형식 지정)
+        column.setCellFactory(tc -> new TableCell<T, Double>() {
+            @Override
+            protected void updateItem(Double price, boolean empty) {
+                super.updateItem(price, empty);
+                if (empty || price == null) {
+                    setText(null);
+                } else {
+                    // 화면 표시: $ 1,234.56 또는 ₩ 1,234.56
+                    setText(currencyFormat.format(price));
+                }
+            }
+        });
+
+        // 5. 편집 모드 설정
+        if (editable) {
+            // 편집 시에는 기호 없이 숫자만 입력받기 위해 기본 DoubleStringConverter 사용
+            column.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverter()));
+
+            // 편집 완료 시 로직
+            column.setOnEditCommit(event -> {
+                T row = event.getRowValue();
+                Double newValue = event.getNewValue();
+                
+                // 데이터 모델 업데이트 (Property의 set 메서드 호출)
+                DoubleProperty prop = propertyGetter.apply(row);
+                prop.set(newValue);
+
+                // Dirty 상태 등록
+                if (dirtyConsumer != null) {
+                    dirtyConsumer.accept(row);
+                }
+            });
+        } else {
+            column.setEditable(false);
+        }
+    }
+
 
     // ========================
     // Integer
@@ -111,36 +173,27 @@ public class TableColumnUtil {
             Function<T, IntegerProperty> propertyGetter,
             ObjIntConsumer<T> setter,
             boolean editable,
+            String alignment,           // 정렬 추가
             DirtyConsumer<T> dirtyConsumer
     ) {
-        column.setCellValueFactory(cellData ->
-                propertyGetter.apply(cellData.getValue()).asObject()
-        );
+        column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
+        column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
 
         if (editable) {
-
-            StringConverter<Integer> converter = new IntegerStringConverter();
-
-            column.setCellFactory(TextFieldTableCell.forTableColumn(converter));
-
+            column.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
             column.setOnEditCommit(event -> {
-
                 T row = event.getRowValue();
-
                 setter.accept(row, event.getNewValue());
-
-                if (dirtyConsumer != null) {
-                    dirtyConsumer.accept(row);
-                }
+                if (dirtyConsumer != null) dirtyConsumer.accept(row);
             });
-
         } else {
             column.setEditable(false);
         }
     }
 
-    public static <T> void makeReadOnlyIntegerColumn( TableColumn<T, Long> column, Function<T, LongProperty> propertyGetter) {
-        column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject() );
+    public static <T> void makeReadOnlyLongColumn(TableColumn<T, Long> column, Function<T, LongProperty> propertyGetter, String alignment) {
+        column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
+        column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
         column.setEditable(false);
     }
 
@@ -152,45 +205,37 @@ public class TableColumnUtil {
             Function<T, DoubleProperty> propertyGetter,
             ObjDoubleConsumer<T> setter,
             boolean editable,
+            String alignment,           // 정렬 추가
             DirtyConsumer<T> dirtyConsumer
     ) {
-        column.setCellValueFactory(cellData ->
-                propertyGetter.apply(cellData.getValue()).asObject()
-        );
+        column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
+        column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
 
         if (editable) {
-
-            StringConverter<Double> converter = new DoubleStringConverter();
-
-            column.setCellFactory(TextFieldTableCell.forTableColumn(converter));
-
+            column.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverter()));
             column.setOnEditCommit(event -> {
-
                 T row = event.getRowValue();
-
                 setter.accept(row, event.getNewValue());
-
-                if (dirtyConsumer != null) {
-                    dirtyConsumer.accept(row);
-                }
+                if (dirtyConsumer != null) dirtyConsumer.accept(row);
             });
-
         } else {
             column.setEditable(false);
         }
     }
 
+    // ========================
+    // LocalDateTime
+    // ========================
     public static <T> void makeDateTimeColumn(
             TableColumn<T, LocalDateTime> column,
             Function<T, LocalDateTime> getter,
             BiConsumer<T, LocalDateTime> setter,
             boolean editable,
-            Consumer<T> dirtyConsumer
+            String alignment,           // 정렬 추가
+            DirtyConsumer<T> dirtyConsumer
     ) {
-
-        column.setCellValueFactory(cell ->
-                new SimpleObjectProperty<>(getter.apply(cell.getValue()))
-        );
+        column.setCellValueFactory(cell -> new SimpleObjectProperty<>(getter.apply(cell.getValue())));
+        column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
 
         column.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -199,7 +244,7 @@ public class TableColumnUtil {
                 if (empty || item == null) {
                     setText(null);
                 } else {
-                    setText(item.toString()); // 필요하면 formatter 적용
+                    setText(item.toString()); 
                 }
             }
         });
@@ -208,32 +253,21 @@ public class TableColumnUtil {
             column.setOnEditCommit(event -> {
                 T row = event.getRowValue();
                 setter.accept(row, event.getNewValue());
-
-                if (dirtyConsumer != null) {
-                    dirtyConsumer.accept(row);
-                }
+                if (dirtyConsumer != null) dirtyConsumer.accept(row);
             });
         }
     }
 
-    // ========================
-    // LocalDateTime
-    // ========================
     public static <T> void makeDatePickerColumn(
             TableColumn<T, LocalDateTime> column,
             Function<T, ObjectProperty<LocalDateTime>> getter,
             BiConsumer<T, LocalDateTime> setter,
+            String alignment,           // 정렬 추가
             DirtyConsumer<T> dirtyConsumer
     ) {
-
-        column.setCellValueFactory(cell ->
-                getter.apply(cell.getValue())
-        );
-
-        column.setCellFactory(col ->
-                new DatePickerTableCell<T>(setter, dirtyConsumer) // ✅ 핵심
-        );
-
+        column.setCellValueFactory(cell -> getter.apply(cell.getValue()));
+        column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+        column.setCellFactory(col -> new DatePickerTableCell<T>(setter, dirtyConsumer));
         column.setEditable(true);
     }
 
@@ -248,30 +282,22 @@ public class TableColumnUtil {
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cellData -> {
-
             BooleanProperty prop = propertyGetter.apply(cellData.getValue());
-
             if (editable) {
                 prop.addListener((obs, oldVal, newVal) -> {
-
                     setter.accept(cellData.getValue(), newVal);
-
-                    if (dirtyConsumer != null) {
-                        dirtyConsumer.accept(cellData.getValue());
-                    }
+                    if (dirtyConsumer != null) dirtyConsumer.accept(cellData.getValue());
                 });
             }
-
             return prop;
         });
-
+        column.setStyle(STYLE_TRANSPARENT + STYLE_CENTER); // 불리언은 보통 중앙 정렬 고정
         column.setEditable(editable);
     }
 
     // ========================
-    // Button Column
+    // Button & Label Column
     // ========================
-
     public static <T> void makeButtonColumn(
             TableColumn<T, Void> column,
             String title,
@@ -279,34 +305,22 @@ public class TableColumnUtil {
             Integer width,
             EventHandler<MouseEvent> actionEvent
     ) {
+        setupStaticColumnProps(column, title, iconPath, width);
 
-        if (title != null) { column.setText(title); }
-        column.setStyle(STYLE_CENTER);
-        column.setGraphic(loadIconView(iconPath));
-        column.setSortable(false);
-        column.setStyle(STYLE_TRANSPARENT);
-
-        if (width != null) { column.setPrefWidth(width); }
-
-        Callback<TableColumn<T, Void>, TableCell<T, Void>> cellFactory = param -> new TableCell<>() {
+        column.setCellFactory(param -> new TableCell<>() {
             private final Button button = new Button();
             {
-                if (iconPath != null) {
-                    button.setGraphic(loadIconView(iconPath));
-                }
-
+                if (iconPath != null) button.setGraphic(loadIconView(iconPath));
                 button.setAlignment(Pos.CENTER);
-                setAlignment(Pos.CENTER);
                 button.setMaxWidth(Double.MAX_VALUE);
                 button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                 button.setPadding(Insets.EMPTY);
                 button.setStyle("-fx-background-color:transparent; -fx-alignment: center;");
-
-                button.setOnMouseEntered(event -> {
+                button.setOnMouseEntered(e -> {
                     getTableView().getSelectionModel().select(getIndex());
                     button.setStyle("-fx-background-color:#6F4CBB");
                 });
-                button.setOnMouseExited(event -> button.setStyle(STYLE_TRANSPARENT));
+                button.setOnMouseExited(e -> button.setStyle(STYLE_TRANSPARENT));
                 button.setOnMousePressed(actionEvent);
             }
 
@@ -316,9 +330,7 @@ public class TableColumnUtil {
                 setGraphic(empty ? null : button);
                 setAlignment(Pos.CENTER);
             }
-        };
-
-        column.setCellFactory(cellFactory);
+        });
     }
 
     public static <T> void makeLableColumn(
@@ -328,79 +340,61 @@ public class TableColumnUtil {
             Integer width,
             EventHandler<MouseEvent> actionEvent
     ) {
-        if (title != null) { column.setText(title); }
-        column.setStyle(STYLE_CENTER);
-        column.setGraphic(loadIconView(iconPath));
-        column.setSortable(false);
-        column.setStyle(STYLE_TRANSPARENT);
-                
-        if (width != null) { column.setPrefWidth(width); }
+        setupStaticColumnProps(column, title, iconPath, width);
 
-        Callback<TableColumn<T, Void>, TableCell<T, Void>> cellFactory = param -> new TableCell<>() {
+        column.setCellFactory(param -> new TableCell<>() {
             private final Label iconLabel = new Label();
-
             {
                 if (iconPath != null) {
                     ImageView imageView = loadIconView(iconPath);
                     if (imageView != null) {
-                        imageView.setPreserveRatio(true);
-                        imageView.setFitWidth(16);  // 필요시 이미지 크기 조정
+                        imageView.setFitWidth(16);
                         imageView.setFitHeight(16);
                         iconLabel.setGraphic(imageView);
                     }
                 }
-
-                // Label 중앙 정렬 설정
                 iconLabel.setAlignment(Pos.CENTER);
                 iconLabel.setMaxWidth(Double.MAX_VALUE);
                 iconLabel.setStyle(STYLE_TRANSPARENT);
-                
-                // 마우스 이벤트 처리 (Button 대신 Label에 직접 적용)
-                iconLabel.setOnMouseEntered(event -> {
+                iconLabel.setCursor(Cursor.HAND);
+                iconLabel.setOnMouseEntered(e -> {
                     getTableView().getSelectionModel().select(getIndex());
                     iconLabel.setStyle("-fx-background-color: #6F4CBB; -fx-padding: 5px;");
                 });
-                
-                iconLabel.setOnMouseExited(event -> 
-                    iconLabel.setStyle("-fx-background-color: transparent; -fx-padding: 5px;")
-                );
-                
+                iconLabel.setOnMouseExited(e -> iconLabel.setStyle("-fx-background-color: transparent; -fx-padding: 5px;"));
                 iconLabel.setOnMousePressed(actionEvent);
-                
-                // 클릭 시 마우스 커서 변경 (선택사항)
-                iconLabel.setCursor(Cursor.HAND);
             }
 
             @Override
             public void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                
                 if (empty) {
                     setGraphic(null);
-                    setText(null);
                 } else {
                     setGraphic(iconLabel);
-                    setText(null);  // 텍스트는 사용하지 않음
-                    // 셀 자체도 중앙 정렬
                     setAlignment(Pos.CENTER);
                 }
             }
-        };
+        });
+    }
 
-        column.setCellFactory(cellFactory);
+    private static <T> void setupStaticColumnProps(TableColumn<T, Void> column, String title, String iconPath, Integer width) {
+        if (title != null) column.setText(title);
+        if (width != null) column.setPrefWidth(width);
+        column.setGraphic(loadIconView(iconPath));
+        column.setSortable(false);
+        column.setStyle(STYLE_TRANSPARENT + STYLE_CENTER);
     }
 
     private static ImageView loadIconView(String iconPath) {
         if (iconPath == null) return null;
-
         URL url = TableColumnUtil.class.getResource(iconPath);
         if (url == null) return null;
 
         ImageView imageView = new ImageView(new Image(url.toExternalForm()));
         imageView.setPreserveRatio(true);
-        imageView.setFitWidth(22);  // 기본 이미지 크기 설정
+        imageView.setFitWidth(22);
         imageView.setFitHeight(22);
-        
         return imageView;
     }
 }

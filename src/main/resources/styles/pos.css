@@ -56,9 +56,29 @@
    -fx-text-alignment: center;
 }
 
+/* TableView 전체 설정 */
 .pos-table {
    -fx-background-color: #dcdcdc;
    -fx-font-size: 18px;
+   /* 행 높이를 40px로 고정 (원하는 높이로 조절) */
+   -fx-fixed-cell-size: 40px;
+}
+
+/* PosViewController에서 활성화할 커스텀 의사 클래스 */
+.pos-table .table-row-cell:fifth-row {
+   -fx-background-color: #ffeb3b;
+   /* 강조하고 싶은 색상 (예: 노란색) */
+}
+
+/* 마우스 호버 시 효과 (선택 사항) */
+.pos-table .table-row-cell:hover {
+   -fx-background-color: #b0e77c;
+}
+
+/* 선택된 행 스타일 유지 */
+.pos-table .table-row-cell:selected {
+   -fx-background-color: #7caae7;
+   ;
 }
 
 .pos-table .table-cell {
@@ -157,6 +177,21 @@
    -fx-text-fill: white;
 }
 
+.grid-button {
+   -fx-font-weight: bold;
+   -fx-font-size: 25.0px;
+   -fx-padding: 8.0 5.0;
+   -fx-effect: dropshadow(three-pass-box, rgba(0.0, 0.0, 0.0, 0.7), 10.0, 0.0, 5.0, 5.0);
+   -fx-min-width: 120px;
+   -fx-pref-height: 80px;
+}
+
+.grid-button:hover {
+   -fx-text-fill: white;
+   -fx-background-color: #6F4CBB;
+}
+
+
 /* =========================================================
    8. QUICK AMOUNT PANEL
    ========================================================= */
@@ -176,4 +211,82 @@
 
 .drawer-hidden:hover {
    -fx-opacity: 1;
+}
+
+
+/* =========================================================
+   POS HEADER PANEL
+   ========================================================= */
+
+.pos-summary-panel {
+   -fx-background-color: #cccccc;
+   -fx-padding: 0 10 0 0;
+}
+
+/* =========================================================
+   LEFT / RIGHT AREA
+   ========================================================= */
+
+.pos-summary-left {
+   -fx-alignment: center-left;
+}
+
+.pos-summary-right {
+   -fx-alignment: center-left;
+}
+
+/* =========================================================
+   TOTAL AMOUNT
+   ========================================================= */
+
+.text-total-amount {
+   -fx-font-family: "Bookman Old Style";
+   -fx-font-size: 80;
+   -fx-font-weight: bold;
+}
+
+/* =========================================================
+   DISCOUNT
+   ========================================================= */
+
+.text-discount {
+   -fx-font-family: "Bookman Old Style";
+   -fx-font-size: 36;
+   -fx-font-weight: bold;
+   -fx-text-fill: green;
+}
+
+/* =========================================================
+   TOTAL QTY
+   ========================================================= */
+
+.text-total-qty {
+   -fx-font-family: "Bookman Old Style";
+   -fx-font-size: 22;
+   -fx-font-weight: bold;
+   -fx-text-fill: green;
+}
+
+/* =========================================================
+   STATUS MESSAGE
+   ========================================================= */
+
+.text-status-success {
+   -fx-font-size: 20;
+   -fx-text-fill: green;
+}
+
+.text-status-error {
+   -fx-font-size: 20;
+   -fx-text-fill: red;
+}
+
+/* =========================================================
+   CLOCK
+   ========================================================= */
+
+.text-clock {
+   -fx-font-family: "Bookman Old Style";
+   -fx-font-size: 39;
+   -fx-font-weight: bold;
 }

@@ -67,11 +67,6 @@ public class PosViewController {
     @FXML private TableColumn<PosItem, Void> colDiscountPrice;
     @FXML private TableColumn<PosItem, Void> colChangePrice;
 
-    @FXML private Label lblTotal;
-    @FXML private Label lblQty;
-    @FXML private Label lblScanStatus;
-
-    //@FXML private TextField txtScan;
 
     // =========================
     // Initialize (View lifecycle)
@@ -142,20 +137,71 @@ public class PosViewController {
 
         table.setItems(vm.getItems());
 
-        TableColumnUtil.createNumberColumn(table, colNo, 50);
-        TableColumnUtil.makeLableColumn(colDelete, null, IconPaths.DELETE, 50, this::actionEvent );
-        TableColumnUtil.makeStringColumn(colBarcode,PosItem::barcodeProperty, PosItem::setBarcode, false, null);
-        TableColumnUtil.makeStringColumn(colDesc,PosItem::descriptionProperty, PosItem::setDescription, false, null);
-        TableColumnUtil.makeLableColumn(colMinus, null, IconPaths.MINUS, 50, this::actionEvent );
-        TableColumnUtil.makeIntegerColumn(colQty,PosItem::qtyProperty, PosItem::setQty, false, null);
-        TableColumnUtil.makeLableColumn(colPlus, null, IconPaths.PLUS, 50, this::actionEvent );
-        TableColumnUtil.makeDoubleColumn(colTotal,PosItem::sellingPriceProperty, PosItem::setSellingPrice, false, null);
-        TableColumnUtil.makeDoubleColumn(colDiscount,PosItem::discountProperty, PosItem::setDiscount, false, null);
-        TableColumnUtil.makeIntegerColumn(colStock,PosItem::stockProperty, PosItem::setStock, false, null);
-        TableColumnUtil.makeLableColumn(colDiscountPrice, null, IconPaths.DISCOUNT, 50, this::actionEvent );
-        TableColumnUtil.makeLableColumn(colChangePrice, null, IconPaths.PRICE_22, 50, this::actionEvent );
-        TableColumnUtil.makeLableColumn(colMinus, null, IconPaths.MINUS, 50, this::actionEvent );
-        TableColumnUtil.makeStringColumn(colComment,PosItem::commentProperty, PosItem::setComment, false, null);
+        // ViewModel의 selectedItem이 변경되면 TableView의 선택 행도 변경됨
+        vm.selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                table.getSelectionModel().select(newVal);
+                table.scrollTo(newVal);
+            } else {
+                table.getSelectionModel().clearSelection();
+            }
+        });
+
+        vm.selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                // 선택 상태 동기화
+                table.getSelectionModel().select(newVal); 
+                // 화면 스크롤 동기화 🔥 이 줄이 있으면 onQuickAmount에 필요 없음
+                table.scrollTo(newVal); 
+            }
+        });
+
+
+        // 반대로 TableView에서 행을 클릭했을 때 ViewModel의 selectedItem도 업데이트
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            vm.selectedItemProperty().set(newVal);
+        });
+        // 1. 번호 컬럼 (기본 중앙 정렬)
+        TableColumnUtil.createNumberColumn(table, colNo, 70);
+
+        // 2. 삭제 버튼 (중앙 정렬)
+        TableColumnUtil.makeLableColumn(colDelete, null, IconPaths.DELETE, 50, this::actionEvent);
+
+        // 3. 바코드 (일반적으로 중앙 또는 왼쪽)
+        TableColumnUtil.makeStringColumn(colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, false, TableColumnUtil.CENTER, null);
+
+        // 4. 상품명/설명 (텍스트가 길 수 있으므로 왼쪽 정렬)
+        TableColumnUtil.makeStringColumn(colDesc, PosItem::descriptionProperty, PosItem::setDescription, false, TableColumnUtil.LEFT, null);
+
+        // 5. 마이너스 버튼 (중앙 정렬)
+        TableColumnUtil.makeLableColumn(colMinus, null, IconPaths.MINUS, 50, this::actionEvent);
+
+        // 6. 수량 (숫자이므로 오른쪽 또는 중앙)
+        TableColumnUtil.makeIntegerColumn(colQty, PosItem::qtyProperty, PosItem::setQty, false, TableColumnUtil.CENTER, null);
+
+        // 7. 플러스 버튼 (중앙 정렬)
+        TableColumnUtil.makeLableColumn(colPlus, null, IconPaths.PLUS, 50, this::actionEvent);
+
+        // 8. 판매 단가 금액 (기호 "$"를 삭제하고 메서드 정의 순서에 맞춤)
+        TableColumnUtil.makeCurrencyColumn(colPrice, PosItem::sellingPriceProperty, false, TableColumnUtil.RIGHT, null);
+
+        // 8-1. 합계 금액
+        TableColumnUtil.makeCurrencyColumn(colTotal, PosItem::sellingPriceProperty, false, TableColumnUtil.RIGHT, null);
+
+        // 9. 할인액
+        TableColumnUtil.makeCurrencyColumn(colDiscount, PosItem::discountProperty, false, TableColumnUtil.RIGHT, null);
+
+        // 10. 재고 (숫자이므로 오른쪽 정렬)
+        TableColumnUtil.makeIntegerColumn(colStock, PosItem::stockProperty, PosItem::setStock, false, TableColumnUtil.CENTER, null);
+
+        // 11. 할인 처리 버튼 (중앙 정렬)
+        TableColumnUtil.makeLableColumn(colDiscountPrice, null, IconPaths.DISCOUNT, 50, this::actionEvent);
+
+        // 12. 가격 변경 버튼 (중앙 정렬)
+        TableColumnUtil.makeLableColumn(colChangePrice, null, IconPaths.PRICE_22, 50, this::actionEvent);
+
+        // 13. 비고/코멘트 (텍스트이므로 왼쪽 정렬)
+        TableColumnUtil.makeStringColumn(colComment, PosItem::commentProperty, PosItem::setComment, false, TableColumnUtil.LEFT, null);
         
         setupStockStyle();
 
@@ -182,10 +228,18 @@ public class PosViewController {
 
                 setText(value.toString());
 
+                // 1. 기본 스타일 (투명 배경 + 중앙 정렬)을 베이스로 선언
+                // TableColumnUtil의 상수를 public으로 열어두셨다면 직접 접근하거나 
+                // 아래처럼 동일하게 정의해서 사용하세요.
+                String baseStyle = "-fx-background-color: transparent; -fx-alignment: CENTER;";
+
+                // 2. 조건에 따라 스타일 추가
                 if (value < 0) {
-                    setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+                    // 기존 정렬 유지 + 빨간색 + 굵게
+                    setStyle(baseStyle + "-fx-text-fill: red; -fx-font-weight: bold;");
                 } else {
-                    setStyle("");
+                    // 기존 정렬 유지 + 기본 글자색
+                    setStyle(baseStyle + "-fx-text-fill: black;");
                 }
             }
         });
@@ -197,35 +251,14 @@ public class PosViewController {
     // =========================
     private void bindTop() {
 
-        lblTotal.textProperty().bind( vm.totalAmountProperty().asString("Total: %.2f") );
+        // lblTotal.textProperty().bind( vm.totalAmountProperty().asString("Total: %.2f") );
 
-        lblQty.textProperty().bind( vm.totalQtyProperty().asString("Total Qty: %d"));
+        // lblQty.textProperty().bind( vm.totalQtyProperty().asString("Total Qty: %d"));
 
-        lblScanStatus.textProperty().bind(vm.scanStatusProperty());
+        // lblScanStatus.textProperty().bind(vm.scanStatusProperty());
 
         log.info("[BIND] top labels bound");
     }
-
-    // =========================
-    // Manual Scan (fallback input)
-    // =========================
-    // @FXML
-    // private void onScan() {
-    //     String code = txtScan.getText();
-    //     log.info("[MANUAL SCAN] input: {}", code);
-    //     if (code == null || code.isBlank()) {
-    //         log.warn("[MANUAL SCAN] empty input ignored");
-    //         return;
-    //     }
-    //     try {
-    //         vm.scan(code);
-    //         log.info("[MANUAL SCAN] processed: {}", code);
-    //     } catch (Exception e) {
-    //         log.error("[MANUAL SCAN] error: {}", code, e);
-    //     }
-    //     txtScan.clear();
-    //     txtScan.requestFocus();
-    // }
 
     // =========================
     // Table Action Event
@@ -239,46 +272,31 @@ public class PosViewController {
     // =========================
     @FXML
     private void onQuickAmount(ActionEvent e) {
-
-        PosItem selected = table.getSelectionModel().getSelectedItem();
-
-        if (selected != null) {
-            log.debug("[ADD] {}", selected.getCode());
-            vm.increaseQty(selected);
+        try {
+            Button button = (Button) e.getSource();
+            String text = button.getText();
+            String amountText = text.replaceAll("[^0-9.]", ""); 
+            
+            if (!amountText.isEmpty()) {
+                double amount = Double.parseDouble(amountText);
+                
+                // 1. ViewModel 로직 실행
+                vm.addQuickAmountItem(amount);
+                
+                // 2. ViewModel이 선택한 아이템을 TableView에서도 선택 상태로 만듦
+                // PosItem target = vm.selectedItemProperty().get();
+                // if (target != null) {
+                //     table.getSelectionModel().select(target);
+                    
+                //     // 3. 해당 위치로 스크롤 이동
+                //     table.scrollTo(target);
+                // }
+            }
+        } catch (NumberFormatException ex) {
+            log.error("[QUICK AMOUNT] Failed to parse amount", ex);
         }
     }
 
-    @FXML
-    private void onMin(MouseEvent  e) {
-        PosItem selected = table.getSelectionModel().getSelectedItem();
-        if (selected != null) vm.increaseQty(selected);
-        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        stage.setIconified(true);
-    }
-
-    @FXML
-    private void onMiddle(MouseEvent  e) {
-         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-                 stage.setWidth(1024);
-        stage.setHeight(768);
-        stage.centerOnScreen();
-        // PosItem selected = table.getSelectionModel().getSelectedItem();
-
-        // if (selected != null) {
-        //     log.debug("[REMOVE] {}", selected.getCode());
-        //     vm.decreaseQty(selected);
-        // }
-    }
-
-    @FXML
-    private void onMax(MouseEvent  e) {
-        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-        stage.setX(bounds.getMinX());
-        stage.setY(bounds.getMinY());
-        stage.setWidth(bounds.getWidth());
-        stage.setHeight(bounds.getHeight());
-    }
 
     @FXML
     private void onClose(MouseEvent  e) {

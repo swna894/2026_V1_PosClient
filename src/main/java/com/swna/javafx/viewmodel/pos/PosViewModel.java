@@ -1,5 +1,7 @@
 package com.swna.javafx.viewmodel.pos;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import org.springframework.context.annotation.Scope;
@@ -89,6 +91,39 @@ public class PosViewModel {
                         scanStatus.set("상품 없음 ❌");
                     }
                 });
+    }
+
+    public void addQuickAmountItem(double amount) {
+        // 1. 기존 리스트 확인 (동일 가격의 수동 상품)
+        Optional<PosItem> existing = items.stream()
+                .filter(i -> i.getBarcode().startsWith("M-"))
+                .filter(i -> i.getSellingPrice() == amount)
+                .findFirst();
+
+        PosItem target;
+
+        if (existing.isPresent()) {
+            target = existing.get();
+            target.increaseQty();
+        } else {
+            target = new PosItem();
+            
+            // 2. 날짜/시간 포맷 설정 (연월일시분)
+            // 예: 2026년 5월 1일 21시 10분 -> 2605012110
+            String timestamp = LocalDateTime.now()
+                    .format(DateTimeFormatter.ofPattern("MMddHHmm"));
+            
+            target.setBarcode("M-" + timestamp + "-" + amount);
+            target.setDescription(String.format("Open Item ($%.2f)", amount));
+            target.setSellingPrice(amount);
+            target.setOriginalPrice(amount);
+            target.increaseQty();
+            
+            items.add(target);
+        }
+
+        selectedItem.set(target);
+        scanStatus.set(String.format("Added: $%.2f", amount));
     }
 
     // =========================

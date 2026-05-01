@@ -12,104 +12,87 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Circle?>
 
-<BorderPane
-   prefHeight="565.0"
-   prefWidth="1273.0"
-   styleClass="pos-root"
-   stylesheets="@../../styles/pos.css"
-   xmlns="http://javafx.com/javafx/22"
-   xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.swna.javafx.view_ui.pos.PosViewController">
+<BorderPane prefHeight="565.0" prefWidth="1273.0" styleClass="pos-root"
+   stylesheets="@../../styles/pos.css" xmlns="http://javafx.com/javafx/22"
+   xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.view_ui.pos.PosViewController">
 
    <!-- ===================================================== -->
    <!-- TOP -->
    <!-- ===================================================== -->
 
    <top>
+      <HBox alignment="CENTER" prefHeight="100.0" styleClass="pos-summary-panel" HBox.hgrow="ALWAYS">
 
-      <StackPane>
+         <children>
 
-         <VBox spacing="5">
+            <!-- ================================================= -->
+            <!-- LEFT AREA -->
+            <!-- ================================================= -->
 
-            <HBox alignment="CENTER_LEFT" spacing="20">
+            <HBox alignment="CENTER_LEFT" prefHeight="71.0" styleClass="pos-summary-left"
+               HBox.hgrow="ALWAYS">
 
-               <Label
-                  fx:id="lblTotal"
-                  styleClass="text-total"
-                  text="Total: 0.00" />
+               <children>
 
-               <VBox spacing="5">
+                  <!-- TOTAL -->
 
-                  <Label
-                     fx:id="lblQty"
-                     styleClass="text-qty"
-                     text="Qty: 0" />
+                  <Label fx:id="labelTotalAmount" styleClass="text-total-amount" text="Total : 0.00" />
 
-                  <Label
-                     fx:id="lblScanStatus"
-                     styleClass="text-status"
-                     text="Scan ready" />
+                  <!-- INFO AREA -->
 
-               </VBox>
+                  <VBox alignment="CENTER_LEFT">
+
+                     <children>
+
+                        <!-- DISCOUNT -->
+
+                        <Label fx:id="labelDiscountAmount" alignment="BOTTOM_LEFT" prefHeight="60"
+                           styleClass="text-discount" text="Total Qty : 0" />
+
+                        <!-- STATUS -->
+
+                        <Label fx:id="labelInfo" alignment="TOP_LEFT" prefHeight="40"
+                           styleClass="text-status-success" text=" " />
+
+                     </children>
+
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+
+                  </VBox>
+
+               </children>
 
             </HBox>
 
-         </VBox>
+            <!-- ================================================= -->
+            <!-- RIGHT AREA -->
+            <!-- ================================================= -->
 
-         <!-- Window Control Buttons -->
+            <VBox alignment="CENTER_LEFT" styleClass="pos-summary-right">
 
-         <HBox
-            alignment="TOP_RIGHT"
-            spacing="5"
-            StackPane.alignment="TOP_RIGHT">
+               <children>
 
-            <children>
+                  <!-- TOTAL QTY -->
 
-               <Circle
-                  fx:id="onMin"
-                  fill="#fdbb2d"
-                  onMouseClicked="#onMin"
-                  radius="6"
-                  stroke="WHITE"
-                  strokeType="INSIDE" />
+                  <Label fx:id="labelTotalQty" styleClass="text-total-qty" text="D/C : 0.00" />
 
-               <Circle
-                  fx:id="onMiddle"
-                  fill="#b86a00"
-                  onMouseClicked="#onMiddle"
-                  radius="6"
-                  stroke="WHITE"
-                  strokeType="INSIDE" />
+                  <!-- CLOCK -->
 
-               <Circle
-                  fx:id="onMax"
-                  fill="#27c941"
-                  onMouseClicked="#onMax"
-                  radius="6"
-                  stroke="WHITE"
-                  strokeType="INSIDE" />
+                  <Label fx:id="labelTime" styleClass="text-clock" text="08/14 PM 23:27:12" />
 
-               <Circle
-                  fx:id="onClose"
-                  fill="#fc5d57"
-                  onMouseClicked="#onClose"
-                  radius="6"
-                  stroke="WHITE"
-                  strokeType="INSIDE" />
+               </children>
 
-            </children>
+            </VBox>
 
-         </HBox>
+         </children>
 
-      </StackPane>
-
+      </HBox>
    </top>
 
    <!-- ===================================================== -->
@@ -118,68 +101,36 @@
 
    <center>
 
-      <TableView
-         fx:id="table"
-         prefHeight="500"
-         styleClass="pos-table"
-         BorderPane.alignment="CENTER">
+      <TableView fx:id="table" prefHeight="500" styleClass="pos-table" BorderPane.alignment="CENTER">
 
          <columns>
 
             <TableColumn fx:id="colNo" prefWidth="80" />
             <TableColumn fx:id="colDelete" prefWidth="80" />
 
-            <TableColumn
-               fx:id="colBarcode"
-               prefWidth="180"
-               text="BARCODE" />
+            <TableColumn fx:id="colBarcode" prefWidth="180" text="BARCODE" />
 
-            <TableColumn
-               fx:id="colDesc"
-               prefWidth="400"
-               text="DESCRIPTION" />
+            <TableColumn fx:id="colDesc" prefWidth="400" text="DESCRIPTION" />
 
             <TableColumn fx:id="colMinus" prefWidth="80" />
 
-            <TableColumn
-               fx:id="colQty"
-               prefWidth="80"
-               text="QTY" />
+            <TableColumn fx:id="colQty" prefWidth="80" text="QTY" />
 
             <TableColumn fx:id="colPlus" prefWidth="80" />
 
-            <TableColumn
-               fx:id="colPrice"
-               prefWidth="100"
-               text="PRICE" />
+            <TableColumn fx:id="colPrice" prefWidth="100" text="PRICE" />
 
-            <TableColumn
-               fx:id="colTotal"
-               prefWidth="120"
-               text="TOTAL" />
+            <TableColumn fx:id="colTotal" prefWidth="120" text="TOTAL" />
 
-            <TableColumn
-               fx:id="colDiscount"
-               prefWidth="100"
-               text="D/C" />
+            <TableColumn fx:id="colDiscount" prefWidth="100" text="D/C" />
 
-            <TableColumn
-               fx:id="colStock"
-               prefWidth="80"
-               text="STOCK" />
+            <TableColumn fx:id="colStock" prefWidth="80" text="STOCK" />
 
-            <TableColumn
-               fx:id="colDiscountPrice"
-               prefWidth="120" />
+            <TableColumn fx:id="colDiscountPrice" prefWidth="120" />
 
-            <TableColumn
-               fx:id="colChangePrice"
-               prefWidth="120" />
+            <TableColumn fx:id="colChangePrice" prefWidth="120" />
 
-            <TableColumn
-               fx:id="colComment"
-               prefWidth="300"
-               text="COMMENT" />
+            <TableColumn fx:id="colComment" prefWidth="300" text="COMMENT" />
 
          </columns>
 
@@ -197,120 +148,114 @@
 
    <right>
 
-      <GridPane
-         hgap="10"
-         vgap="10"
-         styleClass="quick-panel">
+      <GridPane hgap="10" styleClass="quick-panel" vgap="10">
 
          <!-- Row 0 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$0.5"
+            GridPane.columnIndex="0" GridPane.rowIndex="0" />
 
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="0.5"
-            GridPane.columnIndex="0"
-            GridPane.rowIndex="0" />
-
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="0.7"
-            GridPane.columnIndex="1"
-            GridPane.rowIndex="0" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$0.7"
+            GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
          <!-- Row 1 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$1.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="1" />
 
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="1.0"
-            GridPane.columnIndex="0"
-            GridPane.rowIndex="1" />
-
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="1.2"
-            GridPane.columnIndex="1"
-            GridPane.rowIndex="1" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$1.2"
+            GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
          <!-- Row 2 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$1.5"
+            GridPane.columnIndex="0" GridPane.rowIndex="2" />
 
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="1.5"
-            GridPane.columnIndex="0"
-            GridPane.rowIndex="2" />
-
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="2.0"
-            GridPane.columnIndex="1"
-            GridPane.rowIndex="2" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$2.0"
+            GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
          <!-- Row 3 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$2.5"
+            GridPane.columnIndex="0" GridPane.rowIndex="3" />
 
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="2.5"
-            GridPane.columnIndex="0"
-            GridPane.rowIndex="3" />
-
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="3.0"
-            GridPane.columnIndex="1"
-            GridPane.rowIndex="3" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$3.0"
+            GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
          <!-- Row 4 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$3.5"
+            GridPane.columnIndex="0" GridPane.rowIndex="4" />
 
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="3.5"
-            GridPane.columnIndex="0"
-            GridPane.rowIndex="4" />
-
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="4.0"
-            GridPane.columnIndex="1"
-            GridPane.rowIndex="4" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$4.0"
+            GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
          <!-- Row 5 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$5.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="5" />
 
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="5.0"
-            GridPane.columnIndex="0"
-            GridPane.rowIndex="5" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$5.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="5" />
 
-         <Button
-            onAction="#onQuickAmount"
-            styleClass="btn btn-quick"
-            text="10.0"
-            GridPane.columnIndex="1"
-            GridPane.rowIndex="5" />
+         <!-- Row 6 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$6.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="6" />
+
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$6.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="6" />
+
+         <!-- Row 7 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$7.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="7" />
+
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$7.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="7" />
+
+         <!-- Row 8 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$8.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="8" />
+
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$8.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="8" />
+
+         <!-- Row 9 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$9.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="9" />
+
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$9.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="9" />
+
+         <!-- Row 10 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$10.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="10" />
+
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$10.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="10" />
+
+         <!-- Row 11 -->
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$11.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="11" />
+
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$11.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="11" />
 
          <columnConstraints>
-            <ColumnConstraints />
-            <ColumnConstraints />
+            <ColumnConstraints hgrow="ALWAYS" percentWidth="50" />
+            <ColumnConstraints hgrow="ALWAYS" percentWidth="50" />
          </columnConstraints>
 
          <rowConstraints>
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
          </rowConstraints>
+         <BorderPane.margin>
+            <Insets left="10.0" />
+         </BorderPane.margin>
 
       </GridPane>
 
@@ -322,35 +267,17 @@
 
    <bottom>
 
-      <HBox
-         spacing="5"
-         styleClass="pos-root">
-
-         <padding>
-            <Insets
-               top="5"
-               right="5"
-               bottom="5"
-               left="5" />
-         </padding>
+      <HBox spacing="5" styleClass="pos-root">
 
          <!-- ================================================= -->
          <!-- CART -->
          <!-- ================================================= -->
 
-         <Button
-            fx:id="buttonCart1"
-            onAction="#onActionCart"
-            styleClass="btn,btn-lg"
-            text="[F2]">
+         <Button fx:id="buttonCart1" onAction="#onActionCart" styleClass="btn,btn-lg" text="[F2]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/add_cart_24px.png" />
@@ -362,19 +289,11 @@
 
          </Button>
 
-         <Button
-            fx:id="buttonCart2"
-            onAction="#onActionCart"
-            styleClass="btn,btn-lg"
-            text="[F3]">
+         <Button fx:id="buttonCart2" onAction="#onActionCart" styleClass="btn,btn-lg" text="[F3]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/add_cart_24px.png" />
@@ -386,19 +305,11 @@
 
          </Button>
 
-         <Button
-            fx:id="buttonCart3"
-            onAction="#onActionCart"
-            styleClass="btn,btn-lg"
-            text="[F4]">
+         <Button fx:id="buttonCart3" onAction="#onActionCart" styleClass="btn,btn-lg" text="[F4]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/add_cart_24px.png" />
@@ -414,19 +325,12 @@
          <!-- DISCOUNT -->
          <!-- ================================================= -->
 
-         <Button
-            fx:id="buttonDiscountVolumn"
-            onAction="#onActionDiscountVolumn"
-            styleClass="btn,btn-lg"
-            text="[F5]">
+         <Button fx:id="buttonDiscountVolumn" onAction="#onActionDiscountVolumn"
+            styleClass="btn,btn-lg" text="[F5]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/discount_24px.png" />
@@ -442,10 +346,7 @@
          <!-- SCANNER -->
          <!-- ================================================= -->
 
-         <Button
-            fx:id="buttonScanner"
-            onAction="#onActionScanner"
-            styleClass="btn,btn-lg"
+         <Button fx:id="buttonScanner" onAction="#onActionScanner" styleClass="btn,btn-lg"
             text="[F6]">
 
             <tooltip>
@@ -454,11 +355,7 @@
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/20_barcode.png" />
@@ -474,19 +371,11 @@
          <!-- CANCEL -->
          <!-- ================================================= -->
 
-         <Button
-            fx:id="buttonCancel"
-            onAction="#onActionCancel"
-            styleClass="btn,btn-lg"
-            text="[F7]">
+         <Button fx:id="buttonCancel" onAction="#onActionCancel" styleClass="btn,btn-lg" text="[F7]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/delete_doc_24px.png" />
@@ -502,19 +391,11 @@
          <!-- PRINT -->
          <!-- ================================================= -->
 
-         <Button
-            fx:id="buttonPrint"
-            onAction="#onActionPrint"
-            styleClass="btn,btn-lg"
-            text="[F8]">
+         <Button fx:id="buttonPrint" onAction="#onActionPrint" styleClass="btn,btn-lg" text="[F8]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/print_24px.png" />
@@ -530,19 +411,11 @@
          <!-- QTY -->
          <!-- ================================================= -->
 
-         <Button
-            fx:id="buttonQty"
-            onAction="#onActionQty"
-            styleClass="btn,btn-lg"
-            text="[F9]">
+         <Button fx:id="buttonQty" onAction="#onActionQty" styleClass="btn,btn-lg" text="[F9]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/number_24px.png" />
@@ -558,19 +431,11 @@
          <!-- CASH -->
          <!-- ================================================= -->
 
-         <Button
-            fx:id="buttonCash"
-            onAction="#onActionCash"
-            styleClass="btn,btn-lg"
-            text="[F10]">
+         <Button fx:id="buttonCash" onAction="#onActionCash" styleClass="btn,btn-lg" text="[F10]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/cash_24px.png" />
@@ -586,19 +451,12 @@
          <!-- CREDIT -->
          <!-- ================================================= -->
 
-         <Button
-            fx:id="buttonCredit"
-            onAction="#onActionCredit"
-            styleClass="btn,btn-lg"
+         <Button fx:id="buttonCredit" onAction="#onActionCredit" styleClass="btn,btn-lg"
             text="[F11]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/card_24px.png" />
@@ -614,19 +472,12 @@
          <!-- CASHOUT -->
          <!-- ================================================= -->
 
-         <Button
-            fx:id="buttonCashout"
-            onAction="#onActionCashout"
-            styleClass="btn,btn-lg"
+         <Button fx:id="buttonCashout" onAction="#onActionCashout" styleClass="btn,btn-lg"
             text="[F12]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/cashout_24px.png" />
@@ -642,19 +493,12 @@
          <!-- DRAWER -->
          <!-- ================================================= -->
 
-         <Button
-            fx:id="buttonDrawer"
-            onAction="#onActionDrawer"
-            styleClass="btn,btn-lg, drawer-hidden"
-            text="[F1]">
+         <Button fx:id="buttonDrawer" onAction="#onActionDrawer"
+            styleClass="btn,btn-lg, drawer-hidden" text="[F1]">
 
             <graphic>
 
-               <ImageView
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
-                  preserveRatio="true">
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/drawer_24px.png" />
@@ -674,25 +518,16 @@
          <!-- POS STATUS -->
          <!-- ================================================= -->
 
-         <Button
-            maxWidth="40"
-            mnemonicParsing="false"
-            onAction="#onPos"
-            prefHeight="34"
-            prefWidth="40"
-            styleClass="btn btn-sm">
+         <Button mnemonicParsing="false" onAction="#onPos" prefHeight="34" styleClass="btn,btn-lg"
+            text="OFF">
 
             <graphic>
 
-               <ImageView
-                  fx:id="posImageView"
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
+               <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
 
                   <image>
-                     <Image url="@../../images/20_pos_no.png" />
+                     <Image url="@../../images/20_pos.png" />
                   </image>
 
                </ImageView>
@@ -705,25 +540,16 @@
          <!-- PRINT STATUS -->
          <!-- ================================================= -->
 
-         <Button
-            maxWidth="40"
-            mnemonicParsing="false"
-            onAction="#onPrint"
-            prefHeight="34"
-            prefWidth="40"
-            styleClass="btn btn-sm">
+         <Button mnemonicParsing="false" onAction="#onPrint" prefHeight="34" styleClass="btn,btn-lg"
+            text="OFF">
 
             <graphic>
 
-               <ImageView
-                  fx:id="printImageView"
-                  fitHeight="24"
-                  fitWidth="24"
-                  pickOnBounds="true"
+               <ImageView fx:id="printImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
 
                   <image>
-                     <Image url="@../../images/print_no_24px.png" />
+                     <Image url="@../../images/print_24px.png" />
                   </image>
 
                </ImageView>
@@ -731,6 +557,9 @@
             </graphic>
 
          </Button>
+         <BorderPane.margin>
+            <Insets bottom="7.0" top="10.0" />
+         </BorderPane.margin>
 
       </HBox>
 
@@ -741,11 +570,7 @@
    </opaqueInsets>
 
    <padding>
-      <Insets
-         top="7"
-         right="7"
-         bottom="7"
-         left="7" />
+      <Insets left="7.0" right="7.0" top="7.0" />
    </padding>
 
 </BorderPane>
