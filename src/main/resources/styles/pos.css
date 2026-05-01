@@ -72,12 +72,12 @@
 
 /* 마우스 호버 시 효과 (선택 사항) */
 .pos-table .table-row-cell:hover {
-   -fx-background-color: #b0e77c;
+   -fx-background-color: #ccffee
 }
 
 /* 선택된 행 스타일 유지 */
 .pos-table .table-row-cell:selected {
-   -fx-background-color: #7caae7;
+   -fx-background-color: #80ffd4;
    ;
 }
 

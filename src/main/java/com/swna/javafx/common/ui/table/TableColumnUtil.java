@@ -312,13 +312,18 @@ public class TableColumnUtil {
             {
                 if (iconPath != null) button.setGraphic(loadIconView(iconPath));
                 button.setAlignment(Pos.CENTER);
-                button.setMaxWidth(Double.MAX_VALUE);
+                //button.setMaxWidth(Double.MAX_VALUE);
+                //button.setMaxHeight(Double.MAX_VALUE);
+                button.setMinWidth(45);
+                button.setPrefWidth(45);
+                button.setMinHeight(34);
+                button.setPrefHeight(34);
                 button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                 button.setPadding(Insets.EMPTY);
                 button.setStyle("-fx-background-color:transparent; -fx-alignment: center;");
                 button.setOnMouseEntered(e -> {
                     getTableView().getSelectionModel().select(getIndex());
-                    button.setStyle("-fx-background-color:#6F4CBB");
+                    button.setStyle("-fx-background-color:#6F4CBB;");
                 });
                 button.setOnMouseExited(e -> button.setStyle(STYLE_TRANSPARENT));
                 button.setOnMousePressed(actionEvent);
@@ -359,9 +364,9 @@ public class TableColumnUtil {
                 iconLabel.setCursor(Cursor.HAND);
                 iconLabel.setOnMouseEntered(e -> {
                     getTableView().getSelectionModel().select(getIndex());
-                    iconLabel.setStyle("-fx-background-color: #6F4CBB; -fx-padding: 5px;");
+                    iconLabel.setStyle("-fx-background-color: #6F4CBB; -fx-padding: 10x;");
                 });
-                iconLabel.setOnMouseExited(e -> iconLabel.setStyle("-fx-background-color: transparent; -fx-padding: 5px;"));
+                iconLabel.setOnMouseExited(e -> iconLabel.setStyle("-fx-background-color: transparent; -fx-padding: 10px;"));
                 iconLabel.setOnMousePressed(actionEvent);
             }
 

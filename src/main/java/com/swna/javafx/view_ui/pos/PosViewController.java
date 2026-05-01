@@ -180,7 +180,7 @@ public class PosViewController {
         TableColumnUtil.createNumberColumn(table, colNo, 70);
 
         // 2. 삭제 버튼 (중앙 정렬)
-        TableColumnUtil.makeLableColumn(colDelete, null, IconPaths.DELETE, 50, this::actionEvent);
+        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, 50, this::actionEvent);
 
         // 3. 바코드 (일반적으로 중앙 또는 왼쪽)
         TableColumnUtil.makeStringColumn(colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, false, TableColumnUtil.CENTER, null);
@@ -189,13 +189,13 @@ public class PosViewController {
         TableColumnUtil.makeStringColumn(colDesc, PosItem::descriptionProperty, PosItem::setDescription, false, TableColumnUtil.LEFT, null);
 
         // 5. 마이너스 버튼 (중앙 정렬)
-        TableColumnUtil.makeLableColumn(colMinus, null, IconPaths.MINUS, 50, this::actionEvent);
+        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, 50, this::actionEvent);
 
         // 6. 수량 (숫자이므로 오른쪽 또는 중앙)
         TableColumnUtil.makeIntegerColumn(colQty, PosItem::qtyProperty, PosItem::setQty, false, TableColumnUtil.CENTER, null);
 
         // 7. 플러스 버튼 (중앙 정렬)
-        TableColumnUtil.makeLableColumn(colPlus, null, IconPaths.PLUS, 50, this::actionEvent);
+        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, 50, this::actionEvent);
 
         // 8. 판매 단가 금액 (기호 "$"를 삭제하고 메서드 정의 순서에 맞춤)
         TableColumnUtil.makeCurrencyColumn(colPrice, PosItem::sellingPriceProperty, false, TableColumnUtil.RIGHT, null);
@@ -210,10 +210,10 @@ public class PosViewController {
         TableColumnUtil.makeIntegerColumn(colStock, PosItem::stockProperty, PosItem::setStock, false, TableColumnUtil.CENTER, null);
 
         // 11. 할인 처리 버튼 (중앙 정렬)
-        TableColumnUtil.makeLableColumn(colDiscountPrice, null, IconPaths.DISCOUNT, 50, this::actionEvent);
+        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, 50, this::actionEvent);
 
         // 12. 가격 변경 버튼 (중앙 정렬)
-        TableColumnUtil.makeLableColumn(colChangePrice, null, IconPaths.PRICE_22, 50, this::actionEvent);
+        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, 50, this::actionEvent);
 
         // 13. 비고/코멘트 (텍스트이므로 왼쪽 정렬)
         TableColumnUtil.makeStringColumn(colComment, PosItem::commentProperty, PosItem::setComment, false, TableColumnUtil.LEFT, null);
