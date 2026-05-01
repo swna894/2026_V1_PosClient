@@ -34,6 +34,7 @@ public class PosViewModel {
     private final ObservableList<PosItem> items = FXCollections.observableArrayList();
 
     private final DoubleProperty totalAmount = new SimpleDoubleProperty(0);
+    private final DoubleProperty discount = new SimpleDoubleProperty(0);
     private final IntegerProperty totalQty = new SimpleIntegerProperty(0);
 
     private final StringProperty scannedCode = new SimpleStringProperty("");
@@ -126,7 +127,7 @@ public class PosViewModel {
         sortItems(target);
 
         selectedItem.set(target);
-        scanStatus.set(String.format("Added: $%.2f", amount));
+        scanStatus.set(String.format("Add Quick Item : $%.2f", amount));
     }
 
     private void sortItems(PosItem topItem) {
@@ -197,18 +198,8 @@ public class PosViewModel {
     // 계산
     // =========================
     private void recalc() {
-
-        totalAmount.set(
-                items.stream()
-                        .mapToDouble(i -> i.finalAmountProperty().get())
-                        .sum()
-        );
-
-        totalQty.set(
-                items.stream()
-                        .mapToInt(PosItem::getQty)
-                        .sum()
-        );
+        totalAmount.set(items.stream().mapToDouble(i -> i.finalAmountProperty().get()).sum() );
+        totalQty.set( items.stream() .mapToInt(PosItem::getQty).sum() );
     }
 
     // =========================
@@ -217,6 +208,7 @@ public class PosViewModel {
     public ObservableList<PosItem> getItems() { return items; }
 
     public DoubleProperty totalAmountProperty() { return totalAmount; }
+    public DoubleProperty discountProperty() { return discount; }
     public IntegerProperty totalQtyProperty() { return totalQty; }
 
     public StringProperty scannedCodeProperty() { return scannedCode; }

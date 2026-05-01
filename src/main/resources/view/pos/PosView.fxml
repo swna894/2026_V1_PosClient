@@ -50,7 +50,7 @@
 
                         <!-- DISCOUNT -->
 
-                        <Label fx:id="labelDiscountAmount" alignment="BOTTOM_LEFT" prefHeight="60"
+                        <Label fx:id="labelTotalQty" alignment="BOTTOM_LEFT" prefHeight="60"
                            styleClass="text-discount" text="Total Qty : 0" />
 
                         <!-- STATUS -->
@@ -80,7 +80,7 @@
 
                   <!-- TOTAL QTY -->
 
-                  <Label fx:id="labelTotalQty" styleClass="text-total-qty" text="D/C : 0.00" />
+                  <Label fx:id="labelDiscount" styleClass="text-total-qty" text="D/C : 0.00" />
 
                   <!-- CLOCK -->
 

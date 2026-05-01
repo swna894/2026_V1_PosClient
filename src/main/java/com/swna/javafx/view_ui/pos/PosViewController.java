@@ -1,5 +1,9 @@
 package com.swna.javafx.view_ui.pos;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +13,9 @@ import com.swna.javafx.domain.pos.PosItem;
 import com.swna.javafx.infrastructure.scanner.BarcodeInputEngine;
 import com.swna.javafx.viewmodel.pos.PosViewModel;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,6 +31,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
@@ -67,7 +75,13 @@ public class PosViewController {
     @FXML private TableColumn<PosItem, Void> colDiscountPrice;
     @FXML private TableColumn<PosItem, Void> colChangePrice;
 
+    @FXML private Label labelDiscount;
+    @FXML private Label labelInfo;
+    @FXML private Label labelTime;
+    @FXML private Label labelTotalAmount;
+    @FXML private Label labelTotalQty;
 
+    private static final DateTimeFormatter FORMATTER =  DateTimeFormatter.ofPattern("MM/dd a HH:mm:ss", Locale.ENGLISH);
     // =========================
     // Initialize (View lifecycle)
     // =========================
@@ -76,9 +90,10 @@ public class PosViewController {
 
         log.info("[INIT] PosViewController initialized");
 
-        bindTable();
         bindTop();
+        bindTable();
         setupBarcodeScanner();
+        startClock();
     }
 
     // =========================
@@ -250,14 +265,10 @@ public class PosViewController {
     // Top Binding
     // =========================
     private void bindTop() {
-
-        // lblTotal.textProperty().bind( vm.totalAmountProperty().asString("Total: %.2f") );
-
-        // lblQty.textProperty().bind( vm.totalQtyProperty().asString("Total Qty: %d"));
-
-        // lblScanStatus.textProperty().bind(vm.scanStatusProperty());
-
-        log.info("[BIND] top labels bound");
+        labelTotalAmount.textProperty().bind( vm.totalAmountProperty().asString("Total: %.2f") );
+        labelTotalQty.textProperty().bind( vm.totalQtyProperty().asString("Total Qty: %d"));
+        labelDiscount.textProperty().bind( vm.discountProperty().asString("Discount: %.2f"));
+        labelInfo.textProperty().bind(vm.scanStatusProperty());
     }
 
     // =========================
@@ -386,45 +397,28 @@ public class PosViewController {
         System.out.println("onPrint");
     }
 
-    @FXML
-    private Button buttonCart1;
+    @FXML private Button buttonCart1;
+    @FXML private Button buttonCart2;
+    @FXML private Button buttonCart3;
+    @FXML private Button buttonDiscountVolumn;
+    @FXML private Button buttonScanner;
+    @FXML private Button buttonCancel;
+    @FXML private Button buttonPrint;
+    @FXML private Button buttonQty;
+    @FXML private Button buttonCash;
+    @FXML private Button buttonCredit;
+    @FXML private Button buttonCashout;
+    @FXML private Button buttonDrawer;
+    @FXML private ImageView posImageView;
+    @FXML private ImageView printImageView;
 
-    @FXML
-    private Button buttonCart2;
+    private void startClock() {
+        // 1초마다 실행되는 Timeline 생성
+        Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
+            labelTime.setText(LocalDateTime.now().format(FORMATTER));
+        }), new KeyFrame(Duration.seconds(1)));
 
-    @FXML
-    private Button buttonCart3;
-
-    @FXML
-    private Button buttonDiscountVolumn;
-
-    @FXML
-    private Button buttonScanner;
-
-    @FXML
-    private Button buttonCancel;
-
-    @FXML
-    private Button buttonPrint;
-
-    @FXML
-    private Button buttonQty;
-
-    @FXML
-    private Button buttonCash;
-
-    @FXML
-    private Button buttonCredit;
-
-    @FXML
-    private Button buttonCashout;
-
-    @FXML
-    private Button buttonDrawer;
-
-    @FXML
-    private ImageView posImageView;
-
-    @FXML
-    private ImageView printImageView;
+        clock.setCycleCount(Animation.INDEFINITE); // 무한 반복
+        clock.play(); // 시계 시작
+    }
 }
