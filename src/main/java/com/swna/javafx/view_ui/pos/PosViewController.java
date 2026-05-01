@@ -186,7 +186,10 @@ public class PosViewController {
         TableColumnUtil.createNumberColumn(table, colNo, 70);
 
         // 2. 삭제 버튼 (중앙 정렬)
-        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, 50, this::actionEvent);
+        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, 50, event -> {
+                            PosItem target = table.getSelectionModel().getSelectedItem();
+                            vm.removeItem(target); 
+                        });
 
         // 3. 바코드 (일반적으로 중앙 또는 왼쪽)
         TableColumnUtil.makeStringColumn(colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, false, TableColumnUtil.CENTER, null);
@@ -195,13 +198,19 @@ public class PosViewController {
         TableColumnUtil.makeStringColumn(colDesc, PosItem::descriptionProperty, PosItem::setDescription, false, TableColumnUtil.LEFT, null);
 
         // 5. 마이너스 버튼 (중앙 정렬)
-        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, 50, this::actionEvent);
+        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, 50, e -> {
+                            PosItem item = table.getSelectionModel().getSelectedItem();
+                            if (item != null) vm.decreaseQty(item); // ViewModel에서 수량 감소 및 합계 재계산
+        });
 
         // 6. 수량 (숫자이므로 오른쪽 또는 중앙)
         TableColumnUtil.makeIntegerColumn(colQty, PosItem::qtyProperty, PosItem::setQty, true, TableColumnUtil.CENTER, null);
 
         // 7. 플러스 버튼 (중앙 정렬)
-        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, 50, this::actionEvent);
+        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, 50, e -> {
+                            PosItem item = table.getSelectionModel().getSelectedItem();
+                            if (item != null) vm.increaseQty(item); // ViewModel에서 수량 증가 및 합계 재계산
+        });
 
         // 8. 판매 단가 금액 (기호 "$"를 삭제하고 메서드 정의 순서에 맞춤)
         TableColumnUtil.makeCurrencyColumn(colPrice, PosItem::sellingPriceProperty, false, TableColumnUtil.RIGHT, null);

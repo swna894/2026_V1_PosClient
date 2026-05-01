@@ -189,6 +189,13 @@ public class PosViewModel {
         }
     }
 
+    public void removeItem(PosItem item) {
+    if (item != null) {
+        items.remove(item);
+        // 필요 시 여기서 전체 합계(totalAmount) 등을 다시 계산하는 로직 수행
+    }
+}
+
     // =========================
     // 할인
     // =========================
