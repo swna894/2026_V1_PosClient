@@ -8,6 +8,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.ObjIntConsumer;
+import java.util.function.UnaryOperator;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -27,6 +28,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -180,7 +183,50 @@ public class TableColumnUtil {
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
 
         if (editable) {
-            column.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
+           column.setCellFactory(col -> new TextFieldTableCell<T, Integer>(new IntegerStringConverter()) {
+                {
+                    // 기본 스타일 유지 (핵심)
+                    setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+                }
+
+                private final UnaryOperator<TextFormatter.Change> filter = change -> {
+                    String text = change.getControlNewText();
+
+                    if (text.isEmpty()) return change;
+
+                    if (text.matches("-?\\d*")) {
+                        return change;
+                    }
+
+                    return null;
+                };
+
+                @Override
+                public void startEdit() {
+                    super.startEdit();
+
+                    TextField textField = (TextField) getGraphic();
+                    if (textField != null) {
+                        textField.setTextFormatter(
+                                new TextFormatter<>(new IntegerStringConverter(), null, filter)
+                        );
+
+                        // 🔥 중요: edit mode에서도 스타일 유지
+                        textField.setStyle(getAlignmentStyle(alignment));
+                    }
+
+                    // 🔥 cell 자체도 유지
+                    this.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+                }
+
+                @Override
+                public void updateItem(Integer item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    // 🔥 렌더링 시마다 다시 적용 (중요)
+                    setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+                }
+            });
             column.setOnEditCommit(event -> {
                 T row = event.getRowValue();
                 setter.accept(row, event.getNewValue());

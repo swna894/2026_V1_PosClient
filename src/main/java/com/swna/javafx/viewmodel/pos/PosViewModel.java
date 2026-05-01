@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.application.pos.PosService;
 import com.swna.javafx.domain.pos.PosItem;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -19,7 +20,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
 @Component
@@ -31,7 +31,14 @@ public class PosViewModel {
     // =========================
     // 상태
     // =========================
-    private final ObservableList<PosItem> items = FXCollections.observableArrayList();
+    // 1. [핵심] Extractor 설정: 아이템 내부의 값이 바뀔 때 리스트가 반응하도록 합니다.
+    private final ObservableList<PosItem> items = FXCollections.observableArrayList(item -> 
+        new javafx.beans.Observable[] { 
+            item.qtyProperty(), 
+            item.finalAmountProperty(),
+            item.discountTotalProperty() 
+        }
+    );
 
     private final DoubleProperty totalAmount = new SimpleDoubleProperty(0);
     private final DoubleProperty discount = new SimpleDoubleProperty(0);
@@ -47,11 +54,32 @@ public class PosViewModel {
     // =========================
     public PosViewModel(PosService posService) {
         this.posService = posService;
-
-        // 🔥 리스트 변경 감지 (단순화)
-        items.addListener((ListChangeListener<PosItem>) change -> recalc());
+        // 2. 바인딩 초기화 호출
+        initTotalBinding();
     }
 
+    /**
+     * 🔥 [핵심] 수동 recalc() 대신 바인딩 사용
+     * items 리스트에 변화(추가, 삭제, 내부 값 변경)가 생기면 자동으로 계산됩니다.
+     */
+    private void initTotalBinding() {
+        totalAmount.bind(Bindings.createDoubleBinding(
+            () -> items.stream().mapToDouble(PosItem::getFinalAmount).sum(),
+            items
+        ));
+
+        totalQty.bind(Bindings.createIntegerBinding(
+            () -> items.stream().mapToInt(PosItem::getQty).sum(),
+            items
+        ));
+        
+        // 전체 할인액 합계도 바인딩 가능
+        discount.bind(Bindings.createDoubleBinding(
+            () -> items.stream().mapToDouble(PosItem::getDiscountTotal).sum(),
+            items
+        ));
+    }
+    
     // =========================
     // 🔥 핵심: 비동기 스캔
     // =========================
@@ -82,8 +110,6 @@ public class PosViewModel {
                     selectedItem.set(target);
                     scannedCode.set(barcode);
                     scanStatus.set("Scan successful ✓ Code: " + barcode);
-
-                    recalc();
 
                 }, error -> {
                     scanStatus.set("상품 조회 실패 ❌");
@@ -148,7 +174,6 @@ public class PosViewModel {
         if (item == null) return;
         item.increaseQty();
         selectedItem.set(item);
-        recalc();
     }
 
     public void decreaseQty(PosItem item) {
@@ -162,8 +187,6 @@ public class PosViewModel {
         } else {
             selectedItem.set(item);
         }
-
-        recalc();
     }
 
     // =========================
@@ -173,14 +196,12 @@ public class PosViewModel {
         PosItem item = selectedItem.get();
         if (item == null) return;
         item.applyDiscount(percent, 0);
-        recalc();
     }
 
     public void applyDiscountAmount(double amount) {
         PosItem item = selectedItem.get();
         if (item == null) return;
         item.applyDiscount(0, amount);
-        recalc();
     }
 
     // =========================
@@ -191,16 +212,15 @@ public class PosViewModel {
         selectedItem.set(null);
         scannedCode.set("");
         scanStatus.set("Scan ready");
-        recalc();
     }
 
     // =========================
     // 계산
     // =========================
-    private void recalc() {
-        totalAmount.set(items.stream().mapToDouble(i -> i.finalAmountProperty().get()).sum() );
-        totalQty.set( items.stream() .mapToInt(PosItem::getQty).sum() );
-    }
+    // private void recalc() {
+    //     totalAmount.set(items.stream().mapToDouble(i -> i.finalAmountProperty().get()).sum() );
+    //     totalQty.set( items.stream() .mapToInt(PosItem::getQty).sum() );
+    // }
 
     // =========================
     // Getter

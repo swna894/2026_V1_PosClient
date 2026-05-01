@@ -94,6 +94,12 @@ public class PosViewController {
         bindTable();
         setupBarcodeScanner();
         startClock();
+
+        buttonCart2.setVisible(false);
+        buttonCart2.setManaged(false);
+        
+        buttonCart3.setVisible(false);
+        buttonCart3.setManaged(false);
     }
 
     // =========================
@@ -149,7 +155,7 @@ public class PosViewController {
     // Table Binding
     // =========================
     private void bindTable() {
-
+        table.setEditable(true);
         table.setItems(vm.getItems());
 
         // ViewModel의 selectedItem이 변경되면 TableView의 선택 행도 변경됨
@@ -192,7 +198,7 @@ public class PosViewController {
         TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, 50, this::actionEvent);
 
         // 6. 수량 (숫자이므로 오른쪽 또는 중앙)
-        TableColumnUtil.makeIntegerColumn(colQty, PosItem::qtyProperty, PosItem::setQty, false, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeIntegerColumn(colQty, PosItem::qtyProperty, PosItem::setQty, true, TableColumnUtil.CENTER, null);
 
         // 7. 플러스 버튼 (중앙 정렬)
         TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, 50, this::actionEvent);
@@ -201,10 +207,10 @@ public class PosViewController {
         TableColumnUtil.makeCurrencyColumn(colPrice, PosItem::sellingPriceProperty, false, TableColumnUtil.RIGHT, null);
 
         // 8-1. 합계 금액
-        TableColumnUtil.makeCurrencyColumn(colTotal, PosItem::sellingPriceProperty, false, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(colTotal, PosItem::finalAmountProperty, false, TableColumnUtil.RIGHT, null);
 
         // 9. 할인액
-        TableColumnUtil.makeCurrencyColumn(colDiscount, PosItem::discountProperty, false, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(colDiscount, PosItem::discountTotalProperty, false, TableColumnUtil.RIGHT, null);
 
         // 10. 재고 (숫자이므로 오른쪽 정렬)
         TableColumnUtil.makeIntegerColumn(colStock, PosItem::stockProperty, PosItem::setStock, false, TableColumnUtil.CENTER, null);
