@@ -58,7 +58,8 @@ public class NavigationService {
                 (obs, oldVal, newVal) ->
                         Platform.runLater(() -> {
                             if (newVal == AuthState.AUTHENTICATED) {
-                                navigate(PosViewController.class);
+                                //navigate(PosViewController.class);
+                                openPosStage();
                             } else {
                                 navigate(LoginViewController.class);
                             }
@@ -75,9 +76,32 @@ public class NavigationService {
         } else {
             Application.setUserAgentStylesheet( new PrimerLight().getUserAgentStylesheet() );
             navigate(LoginViewController.class);
+            
         }
     }
 
+    private void openPosStage() {
+        try {
+            stage.close();
+
+            Stage newStage = new Stage();
+            newStage.getIcons().add( new Image("/images/24_server.png") );
+
+            newStage.initStyle(StageStyle.DECORATED);
+
+            Parent root = fxWeaver.loadView(PosViewController.class);
+
+            Scene scene = new Scene(root);
+            newStage.setScene(scene);
+            newStage.setMaximized(true);
+            newStage.show();
+
+            this.stage = newStage;
+        } catch (Exception e) {
+            log.error("POS Stage open error", e);
+        }
+    }
+    
     // =========================
     // 기본 navigate
     // =========================

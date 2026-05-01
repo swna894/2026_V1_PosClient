@@ -12,6 +12,7 @@ import com.swna.javafx.viewmodel.pos.PosViewModel;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -19,9 +20,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.HBox;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,7 +71,7 @@ public class PosViewController {
     @FXML private Label lblQty;
     @FXML private Label lblScanStatus;
 
-    @FXML private TextField txtScan;
+    //@FXML private TextField txtScan;
 
     // =========================
     // Initialize (View lifecycle)
@@ -83,8 +84,6 @@ public class PosViewController {
         bindTable();
         bindTop();
         setupBarcodeScanner();
-
-        txtScan.requestFocus();
     }
 
     // =========================
@@ -210,29 +209,23 @@ public class PosViewController {
     // =========================
     // Manual Scan (fallback input)
     // =========================
-    @FXML
-    private void onScan() {
-
-        String code = txtScan.getText();
-
-        log.info("[MANUAL SCAN] input: {}", code);
-
-        if (code == null || code.isBlank()) {
-            log.warn("[MANUAL SCAN] empty input ignored");
-            return;
-        }
-
-        try {
-            vm.scan(code);
-            log.info("[MANUAL SCAN] processed: {}", code);
-
-        } catch (Exception e) {
-            log.error("[MANUAL SCAN] error: {}", code, e);
-        }
-
-        txtScan.clear();
-        txtScan.requestFocus();
-    }
+    // @FXML
+    // private void onScan() {
+    //     String code = txtScan.getText();
+    //     log.info("[MANUAL SCAN] input: {}", code);
+    //     if (code == null || code.isBlank()) {
+    //         log.warn("[MANUAL SCAN] empty input ignored");
+    //         return;
+    //     }
+    //     try {
+    //         vm.scan(code);
+    //         log.info("[MANUAL SCAN] processed: {}", code);
+    //     } catch (Exception e) {
+    //         log.error("[MANUAL SCAN] error: {}", code, e);
+    //     }
+    //     txtScan.clear();
+    //     txtScan.requestFocus();
+    // }
 
     // =========================
     // Table Action Event
@@ -256,17 +249,15 @@ public class PosViewController {
     }
 
     @FXML
-    private void onMin(ActionEvent e) {
+    private void onMin(MouseEvent  e) {
         PosItem selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) vm.increaseQty(selected);
-            // 현재 Stage(창) 가져오기
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        // 최소화
         stage.setIconified(true);
     }
 
     @FXML
-    private void onMiddle(ActionEvent e) {
+    private void onMiddle(MouseEvent  e) {
          Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
                  stage.setWidth(1024);
         stage.setHeight(768);
@@ -279,11 +270,18 @@ public class PosViewController {
         // }
     }
 
-    // =========================
-    // Clear
-    // =========================
     @FXML
-    private void onClose(ActionEvent e) {
+    private void onMax(MouseEvent  e) {
+        Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        stage.setX(bounds.getMinX());
+        stage.setY(bounds.getMinY());
+        stage.setWidth(bounds.getWidth());
+        stage.setHeight(bounds.getHeight());
+    }
+
+    @FXML
+    private void onClose(MouseEvent  e) {
 
         log.info("[CLEAR] reset POS state");
 
@@ -309,4 +307,106 @@ public class PosViewController {
             log.error("[PAYMENT] failed", e);
         }
     }
+    
+    @FXML
+    private void onActionCart(ActionEvent event) {
+        System.out.println("onActionCart");
+    }
+
+    @FXML
+    private void onActionDiscountVolumn(ActionEvent event) {
+        System.out.println("onActionDiscountVolumn");
+    }
+
+    @FXML
+    private void onActionScanner(ActionEvent event) {
+        System.out.println("onActionScanner");
+    }
+
+    @FXML
+    private void onActionCancel(ActionEvent event) {
+        System.out.println("onActionCancel");
+    }
+
+    @FXML
+    private void onActionPrint(ActionEvent event) {
+        System.out.println("onActionPrint");
+    }
+
+    @FXML
+    private void onActionQty(ActionEvent event) {
+        System.out.println("onActionQty");
+    }
+
+    @FXML
+    private void onActionCash(ActionEvent event) {
+        System.out.println("onActionCash");
+    }
+
+    @FXML
+    private void onActionCredit(ActionEvent event) {
+        System.out.println("onActionCredit");
+    }
+
+    @FXML
+    private void onActionCashout(ActionEvent event) {
+        System.out.println("onActionCashout");
+    }
+
+    @FXML
+    private void onActionDrawer(ActionEvent event) {
+        System.out.println("onActionDrawer");
+    }
+
+    @FXML
+    private void onPos(ActionEvent event) {
+        System.out.println("onPos");
+    }
+
+    @FXML
+    private void onPrint(ActionEvent event) {
+        System.out.println("onPrint");
+    }
+
+    @FXML
+    private Button buttonCart1;
+
+    @FXML
+    private Button buttonCart2;
+
+    @FXML
+    private Button buttonCart3;
+
+    @FXML
+    private Button buttonDiscountVolumn;
+
+    @FXML
+    private Button buttonScanner;
+
+    @FXML
+    private Button buttonCancel;
+
+    @FXML
+    private Button buttonPrint;
+
+    @FXML
+    private Button buttonQty;
+
+    @FXML
+    private Button buttonCash;
+
+    @FXML
+    private Button buttonCredit;
+
+    @FXML
+    private Button buttonCashout;
+
+    @FXML
+    private Button buttonDrawer;
+
+    @FXML
+    private ImageView posImageView;
+
+    @FXML
+    private ImageView printImageView;
 }

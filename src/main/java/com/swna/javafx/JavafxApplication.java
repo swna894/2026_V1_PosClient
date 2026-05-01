@@ -63,19 +63,10 @@ public class JavafxApplication extends Application {
             // Bean 조회
             // =========================
             NavigationService navigationService =
-                    applicationContext.getBean(
-                            NavigationService.class
-                    );
+                    applicationContext.getBean( NavigationService.class);
 
-            AuthStore authStore =
-                    applicationContext.getBean(
-                            AuthStore.class
-                    );
-
-            TokenStore tokenStore =
-                    applicationContext.getBean(
-                            TokenStore.class
-                    );
+            AuthStore authStore = applicationContext.getBean( AuthStore.class );
+            TokenStore tokenStore = applicationContext.getBean( TokenStore.class );
 
             // =========================
             // Stage 주입
@@ -88,16 +79,9 @@ public class JavafxApplication extends Application {
             // 초기 로그인 상태 결정
             // =========================
             if (tokenStore.hasToken()) {
-
-                authStore.setAuthState(
-                        AuthState.AUTHENTICATED
-                );
-
+                authStore.setAuthState(AuthState.AUTHENTICATED );
             } else {
-
-                authStore.setAuthState(
-                        AuthState.UNAUTHENTICATED
-                );
+                authStore.setAuthState(AuthState.UNAUTHENTICATED);
             }
 
             // =========================

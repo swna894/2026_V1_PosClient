@@ -1,0 +1,528 @@
+.table-view .column-header .label {
+    -fx-alignment: CENTER;
+    -fx-text-alignment: center;
+}
+
+.root {
+    -fx-font-family: "Malgun Gothic";
+}
+
+/*========================
+  Common Styles
+/*======================== */
+
+.scanned-table {
+    -fx-font-family: "Bookman Old Style";
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.7), 10, 0, 5, 5);
+}
+
+.total-amount {
+    -fx-font-weight: bold;
+    -fx-font-size: 80.0;
+    -fx-font-family: "Bookman Old Style";
+}
+
+.discount-amount {
+    -fx-font-weight: bold;
+    -fx-font-size: 36.0;
+    -fx-text-fill: GREEN;
+    -fx-font-family: "Bookman Old Style";
+}
+
+.total-qty {
+    -fx-font-weight: bold;
+    -fx-font-size: 22.0;
+    -fx-text-fill: GREEN;
+    -fx-alignment: center-right;
+    -fx-font-family: "Bookman Old Style";
+}
+
+.shadowed-box {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.7), 10, 0, 5, 5);
+}
+
+.label-sum {
+    -fx-font: 14px "Arial";
+    -fx-font-weight: bold;
+}
+
+/* 성공일 경우 */
+.label-success {
+    -fx-text-fill: green;
+    -fx-font-size: 20px;
+    /* 글자 색 */
+    /* 여백 */
+}
+
+/* 오류일 경우 */
+.label-error {
+    -fx-text-fill: red;
+    -fx-font-size: 20px;
+    /* 글자 색 */
+}
+
+/* 현금통을 안보도록 하기 */
+#buttonDrawer {
+    -fx-opacity: 0;
+    /* 기본은 보이지 않음 */
+    -fx-background-color: transparent;
+    /* 배경 제거 */
+}
+
+#buttonDrawer:hover {
+    -fx-opacity: 1;
+    -fx-background-color: rgba(0, 0, 0, 0.04);
+    /* 최대한 연한 회색(약 4% 불투명) */
+    -fx-effect: dropshadow(three-pass-box, rgba(0.0, 0.0, 0.0, 0.7), 10.0, 0.0, 5.0, 5.0);
+    /* 마우스 올라가면 보임 */
+}
+
+.table-row-cell:red {
+    -fx-text-fill: red;
+}
+
+/* 기본 행 스타일 */
+.table-row-cell {
+    -fx-text-fill: black;
+}
+
+/* 커스텀 PseudoClass인 'special'이 적용된 row의 모든 셀 텍스트를 빨간색으로 */
+.table-row-cell:special .text {
+    -fx-fill: red;
+}
+
+
+/*========================
+  tableview Styles
+/*======================== */
+
+.table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+}
+
+.table-view .table-row-cell:focused .table-cell {
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+}
+
+.table-view .table-row-cell .table-cell {
+    -fx-text-fill: black;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: black;
+    /* -fx-font-weight: bold; */
+    -fx-font-size: 18.0px;
+
+}
+
+/* POS table 설정 시작 */
+.table-view .column-header,
+.table-view .column-header .filler,
+.table-view .column-header-background .filler {
+    /* -fx-background-color: #7a7a7a; */
+    -fx-font-size: 16.0;
+}
+
+.table-view .column-header .label {
+    /* -fx-text-fill: white; */
+    -fx-font-weight: bold;
+}
+
+.tableView .column-header-background {
+    -fx-background-radius: 5.0;
+}
+
+/* Style of each table cell */
+
+
+/* POS table 설정 끝 */
+
+.button {
+    -fx-pref-width: 110.0px;
+    -fx-pref-height: 32.0px;
+    -fx-font: 14px "Arial";
+    -fx-font-weight: bold;
+
+}
+
+/* 장바구니 저장 상태일 때 토글 버튼 */
+.button.cart-held {
+    -fx-background-color: #80e777;
+    /* 파란색 */
+    -fx-text-fill: white;
+    /* 흰색 글자 */
+    -fx-font-weight: bold;
+}
+
+.combo-box {
+    -fx-pref-width: 200.0px;
+    -fx-pref-height: 32.0px;
+    -fx-font: 14px "Arial";
+    -fx-font-weight: bold;
+    -fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);
+}
+
+
+.date-picker {
+    -fx-pref-width: 130.0px;
+    -fx-pref-height: 32.0px;
+    -fx-font: 14px "Arial";
+    -fx-font-weight: bold;
+}
+
+.menu-bar {
+    -fx-background-color: transparent;
+    -fx-opacity: 0.5;
+    -fx-border-width: 2.0;
+
+}
+
+.menu-bar .label {
+    -fx-font-size: 16.0 pt;
+    /*-fx-font-family: "Bookman Old Style";*/
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+    -fx-padding: 10.0px;
+    -fx-font-family: Century;
+
+}
+
+.menu-bar .label:hover {
+    -fx-text-fill: white;
+}
+
+.menu-bar .menu-button:hover,
+.menu-bar .menu-button:focused,
+.menu-bar .menu-button:showing {
+    -fx-background: gray;
+    -fx-opacity: 0.5;
+    -fx-text-fill: white;
+}
+
+.menu-item {
+    -fx-padding: 0.0em 0.0em 0.0em 0.0em;
+    -fx-text-fill: black;
+    -fx-background: darkgray;
+}
+
+.menu-item:hover,
+.menu-item:focused {
+    -fx-background-color: rgb(138, 102, 228);
+    -fx-background-radius: 8;
+    -fx-background-insets: 3;
+}
+
+
+.menu-item .label {
+    -fx-font-size: 14.0 pt;
+    -fx-text-fill: black;
+}
+
+.menu-item .label:hover {
+    -fx-font-size: 14.0 pt;
+    -fx-background: black;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+}
+
+
+.context-menu {
+    /*-fx-skin: "com.sun.javafx.scene.control.skin.ContextMenuSkin"; */
+    -fx-background-color: white;
+    -fx-border-width: 0.2px;
+    -fx-border-color: black;
+    /** -fx-background-insets: 0.0, 1.0, 2.0;
+    -fx-background-radius: 0.0 6.0 6.0 6.0, 0.0 5.0 5.0 5.0, 0.0 4.0 4.0 4.0;
+    -fx-padding: 0.333333em 0.083333em 0.666667em 0.083333em; 
+    -fx-opacity: 0.9;*/
+}
+
+.basic_button {
+    -fx-background-color:
+        #707070,
+        linear-gradient(#fcfcfc, #f3f3f3),
+        linear-gradient(#f2f2f2 0.0%, #ebebeb 49.0%, #dddddd 50.0%, #cfcfcf 100.0%);
+    -fx-background-insets: 0.0, 1.0, 2.0;
+    -fx-background-radius: 3.0, 2.0, 1.0;
+    -fx-padding: 3.0 30.0 3.0 30.0;
+    -fx-text-fill: black;
+    -fx-font-size: 12.0px;
+
+}
+
+
+.long_button {
+    -fx-background-color:
+        #707070,
+        linear-gradient(#fcfcfc, #f3f3f3),
+        linear-gradient(#f2f2f2 0.0%, #ebebeb 49.0%, #dddddd 50.0%, #cfcfcf 100.0%);
+    -fx-background-insets: 0.0, 1.0, 2.0;
+    -fx-background-radius: 3.0, 2.0, 1.0;
+    -fx-padding: 3.0 30.0 3.0 30.0;
+    -fx-text-fill: black;
+    -fx-font-size: 12.0px;
+    -fx-pref-width: 140.0px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0.0, 0.0, 0.0, 0.7), 10.0, 0.0, 5.0, 5.0);
+}
+
+.long_button:hover {
+    -fx-text-fill: white;
+    -fx-background-color: #6F4CBB;
+}
+
+.long_button:pressed {
+    -fx-background-color: #2F2B43;
+    -fx-background-radius: 30.0 0.0 0.0 30.0;
+}
+
+
+.grid-button {
+    -fx-font-weight: bold;
+    -fx-font-size: 25.0px;
+    -fx-padding: 8.0 5.0;
+    -fx-effect: dropshadow(three-pass-box, rgba(0.0, 0.0, 0.0, 0.7), 10.0, 0.0, 5.0, 5.0);
+}
+
+.grid-button:hover {
+    -fx-text-fill: white;
+    -fx-background-color: #6F4CBB;
+}
+
+
+.button-small {
+    -fx-background-color:
+        #707070,
+        linear-gradient(#fcfcfc, #f3f3f3),
+        linear-gradient(#f2f2f2 0.0%, #ebebeb 49.0%, #dddddd 50.0%, #cfcfcf 100.0%);
+    -fx-background-insets: 0.0, 1.0, 2.0;
+    -fx-background-radius: 3.0, 2.0, 1.0;
+    -fx-padding: 3.0 3.0 3.0 3.0;
+    -fx-text-fill: black;
+    -fx-font-size: 12.0px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0.0, 0.0, 0.0, 0.7), 10.0, 0.0, 5.0, 5.0);
+    -fx-pref-width: 40.0px;
+}
+
+.button-hold-sky {
+    -fx-background-color:
+        #3c7fb1,
+        linear-gradient(#fafdfe, #e8f5fc),
+        linear-gradient(#eaf6fd 0.0%, #d9f0fc 49.0%, #bee6fd 50.0%, #a7d9f5 100.0%);
+    -fx-background-insets: 0.0, 1.0, 2.0;
+    -fx-background-radius: 3.0, 2.0, 1.0;
+    -fx-padding: 3.0 30.0 3.0 30.0;
+    -fx-text-fill: black;
+    -fx-font-size: 12.0px;
+    -fx-pref-width: 140.0px;
+}
+
+.button-display-orange {
+    -fx-background-color:
+        linear-gradient(#ffd65b, #e68400),
+        linear-gradient(#ffef84, #f2ba44),
+        linear-gradient(#ffea6a, #efaa22),
+        linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),
+        linear-gradient(from 0% 0% to 15% 50%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+    -fx-background-radius: 6.0, 5.0;
+    -fx-background-insets: 0.0, 1.0;
+    -fx-effect: dropshadow(three-pass-box, rgba(0.0, 0.0, 0.0, 0.4), 5.0, 0.0, 0.0, 1.0);
+    -fx-text-fill: #395306;
+    -fx-pref-width: 140.0px;
+    -fx-font-size: 12.0px;
+}
+
+
+
+
+.clock {
+    -fx-font-weight: bold;
+    -fx-font-size: 39.0;
+    -fx-font-family: "Bookman Old Style";
+}
+
+.hBox-backgroud-amount {
+    -fx-background-color: white;
+    -fx-border-radius: 5.0;
+    -fx-effect: dropshadow(three-pass-box, rgba(0.0, 0.0, 0.0, 0.7), 10.0, 0.0, 5.0, 5.0);
+}
+
+.hBox-manu-back-ground {
+    -fx-background-color: #D5CBEB;
+    -fx-background-radius: 5.0;
+    -fx-text-fill: #371897;
+    -fx-border-radius: 5.0;
+
+}
+
+.hBox-manu-back-ground:hover {
+    /*-fx-background-color : #524A7B ;*/
+}
+
+
+
+.quick {
+    -fx-font-weight: bold;
+    -fx-font-size: 30.0;
+    -fx-background-color:
+        #707070,
+        linear-gradient(#fcfcfc, #f3f3f3),
+        linear-gradient(#f2f2f2 0.0%, #ebebeb 49.0%, #dddddd 50.0%, #cfcfcf 100.0%);
+    -fx-background-insets: 0.0, 1.0, 2.0;
+    -fx-background-radius: 3.0, 2.0, 1.0;
+    -fx-text-fill: black;
+    -fx-effect: dropshadow(three-pass-box, rgba(0.0, 0.0, 0.0, 0.7), 10.0, 0.0, 5.0, 5.0);
+}
+
+
+.worker {
+    -fx-text-fill: #3399ff;
+    -fx-font-weight: bold;
+    -fx-font-size: 36.0 pt;
+    -fx-font-family: "Century";
+}
+
+.anchor {
+    -fx-border-color: #6F4CBB;
+}
+
+.button1 {
+    -fx-background-color: #6F4CBB;
+    -fx-text-fill: #FFFFFF;
+}
+
+
+.button2 {
+    -fx-background-color: #D5CBEB;
+    -fx-background-radius: 5.0;
+    -fx-text-fill: #371897;
+    -fx-border-color: #6F4CBB;
+    -fx-border-radius: 5.0;
+}
+
+.button2:hover {
+    -fx-background-color: #524A7B;
+}
+
+.button2:pressed {
+    -fx-background-color: #2F2B43;
+}
+
+.button3 {
+    -fx-background-color: #ceedca;
+    -fx-background-radius: 5.0;
+    -fx-text-fill: #371897;
+    -fx-border-color: #6F4CBB;
+    -fx-border-radius: 5.0;
+}
+
+.button3:hover {
+    -fx-background-color: #a3bf9f;
+}
+
+.button3:pressed {
+    -fx-background-color: #2F2B43;
+}
+
+.button4 {
+    -fx-background-color: #ededca;
+    -fx-background-radius: 5.0;
+    -fx-text-fill: #371897;
+    -fx-border-color: #6F4CBB;
+    -fx-border-radius: 5.0;
+}
+
+.button4:hover {
+    -fx-background-color: #c7c7a3;
+}
+
+.button4:pressed {
+    -fx-background-color: #2F2B43;
+}
+
+.button5 {
+    -fx-background-color: #00e600;
+    -fx-background-radius: 5.0;
+    -fx-text-fill: #fff;
+    -fx-border-color: #6F4CBB;
+    -fx-border-radius: 5.0;
+}
+
+.linear-grad {
+    -fx-background-color: linear-gradient(to bottom left, #34186E, #34186E);
+}
+
+.label-ok {
+    -fx-text-fill: green;
+    -fx-font-size: 24.0;
+    -fx-font-family: Bookman Old Style;
+}
+
+.label-fail {
+    -fx-text-fill: red;
+    -fx-font-size: 24.0;
+    -fx-font-family: Bookman Old Style;
+}
+
+.tableView {
+    -fx-background-radius: 5.0;
+    -fx-border-color: #6F4CBB;
+    -fx-border-radius: 5.0;
+    -fx-font-size: 16.0;
+
+}
+
+.table-row-cell:discount {
+    /*  -fx-background-color: silver; */
+}
+
+/* .table-row-cell:odd{
+    -fx-background-color: -fx-table-cell-border-color, #e5e0f1;
+}
+
+.table-row-cell:even{
+    -fx-background-color: -fx-table-cell-border-color, #e5e0f1;
+} */
+
+
+
+
+
+/* Style for each < non odd> row of table view */
+/* .table-row-cell{
+    -fx-background-color: white;
+    -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
+    -fx-padding: 0.0em; 
+}
+
+/* Style for each <odd> row of table view 
+.table-row-cell:odd{
+    -fx-background-color: orange;
+    -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
+    -fx-padding: 0.0em;  
+}
+*/
+
+/* Style of each entire row in the table view 
+.table-row-cell:selected {
+   /* -fx-border-color:transparent firebrick transparent firebrick  ;
+    -fx-border-width:2.0; 
+}
+*/
+
+/* Style of each entire row in the table view when is hovered 
+.table-row-cell:hover {
+    -fx-background-color:orange;
+}
+
+/* Style of each entire row in the table view when is getting focused 
+.table-row-cell:focused {
+    -fx-background-color:purple;
+}
+*/
+
+.table-view-daily-sales .table-cell {
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+}
