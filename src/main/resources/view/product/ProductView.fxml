@@ -31,7 +31,7 @@
    </HBox>
 
    <HBox spacing="10">
-      <Button text="주문 추가" onAction="#onAdd" />
+      <Button text="주문 추가" onAction="#onMin" />
       <Button text="주문 화면 이동" onAction="#onMoveOrder" />
    </HBox>
 

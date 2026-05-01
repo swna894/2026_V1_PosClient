@@ -13,6 +13,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.EventHandler;
@@ -24,6 +25,7 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -44,11 +46,24 @@ public class TableColumnUtil {
     private static final String STYLE_CENTER = "-fx-alignment: CENTER;";
     private static final String STYLE_RIGHT = "-fx-alignment: CENTER-RIGHT;";
     private static final String STYLE_LEFT = "-fx-alignment: CENTER-LEFT;";
+    private static final String STYLE_TRANSPARENT = "-fx-background-color: transparent;";
 
         // 🔥 인스턴스 생성 방지
     private TableColumnUtil() {
         throw new UnsupportedOperationException("Utility class");
     }
+
+    public static <T> TableColumn<T, String> createNumberColumn(TableView<T> tableView, TableColumn<T, String> column, int width) {
+        if( width != 0 ) column.setPrefWidth(width);
+        column.setText("NO");
+        column.setSortable(false);
+        column.setStyle(STYLE_CENTER);
+
+        column.setCellValueFactory( p -> new ReadOnlyObjectWrapper<>(" " + (tableView.getItems().indexOf(p.getValue()) + 1) + " "));
+
+        return column;
+    }
+
     // ========================
     // String
     // ========================
@@ -62,6 +77,10 @@ public class TableColumnUtil {
         column.setCellValueFactory(cellData ->
                 propertyGetter.apply(cellData.getValue())
         );
+
+        column.setStyle(STYLE_CENTER);
+        column.setSortable(false);
+        column.setStyle(STYLE_TRANSPARENT);
 
         if (editable) {
 
@@ -265,7 +284,7 @@ public class TableColumnUtil {
         column.setStyle(STYLE_CENTER);
         column.setGraphic(loadIconView(iconPath));
         column.setSortable(false);
-        column.setStyle("-fx-background-color: transparent; -fx-padding: 0px 0px 0px 6px;");
+        column.setStyle(STYLE_TRANSPARENT);
 
         if (width != null) { column.setPrefWidth(width); }
 
@@ -287,7 +306,7 @@ public class TableColumnUtil {
                     getTableView().getSelectionModel().select(getIndex());
                     button.setStyle("-fx-background-color:#6F4CBB");
                 });
-                button.setOnMouseExited(event -> button.setStyle("-fx-background-color:transparent"));
+                button.setOnMouseExited(event -> button.setStyle(STYLE_TRANSPARENT));
                 button.setOnMousePressed(actionEvent);
             }
 
@@ -313,7 +332,7 @@ public class TableColumnUtil {
         column.setStyle(STYLE_CENTER);
         column.setGraphic(loadIconView(iconPath));
         column.setSortable(false);
-        column.setStyle("-fx-background-color: transparent; -fx-padding: 0px 0px 0px 5px;");
+        column.setStyle(STYLE_TRANSPARENT);
                 
         if (width != null) { column.setPrefWidth(width); }
 
@@ -334,7 +353,7 @@ public class TableColumnUtil {
                 // Label 중앙 정렬 설정
                 iconLabel.setAlignment(Pos.CENTER);
                 iconLabel.setMaxWidth(Double.MAX_VALUE);
-                iconLabel.setStyle("-fx-background-color: transparent;");
+                iconLabel.setStyle(STYLE_TRANSPARENT);
                 
                 // 마우스 이벤트 처리 (Button 대신 Label에 직접 적용)
                 iconLabel.setOnMouseEntered(event -> {
@@ -379,8 +398,8 @@ public class TableColumnUtil {
 
         ImageView imageView = new ImageView(new Image(url.toExternalForm()));
         imageView.setPreserveRatio(true);
-        imageView.setFitWidth(24);  // 기본 이미지 크기 설정
-        imageView.setFitHeight(24);
+        imageView.setFitWidth(22);  // 기본 이미지 크기 설정
+        imageView.setFitHeight(22);
         
         return imageView;
     }

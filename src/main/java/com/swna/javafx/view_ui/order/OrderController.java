@@ -19,7 +19,6 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 
 @Component
-
 public class OrderController extends BaseController {
 
     private final OrderViewModel viewModel;

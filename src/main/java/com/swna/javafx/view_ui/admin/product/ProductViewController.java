@@ -1,11 +1,11 @@
-package com.swna.javafx.view_ui.product;
+package com.swna.javafx.view_ui.admin.product;
 
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.common.event.AddOrderItemEvent;
 import com.swna.javafx.common.event.EventBus;
 import com.swna.javafx.common.ui.table.TableViewHelper;
-import com.swna.javafx.domain.product.Product;
+import com.swna.javafx.domain.admin.product.Product;
 import com.swna.javafx.navigation.SceneManager;
 import com.swna.javafx.view_ui.base.BaseController;
 import com.swna.javafx.viewmodel.product.ProductViewModel;
@@ -76,7 +76,7 @@ public class ProductViewController extends BaseController {
 
     // 주문 추가 (EventBus 활용)
     @FXML
-    private void onAdd() {
+    private void onMin() {
 
         Product selected = table.getSelectionModel().getSelectedItem();
 

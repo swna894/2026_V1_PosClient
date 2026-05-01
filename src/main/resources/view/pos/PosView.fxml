@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml"
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/22"
+   stylesheets="@../../styles/pos.css"
    fx:controller="com.swna.javafx.view_ui.pos.PosViewController">
 
    <!-- =========================
@@ -13,26 +22,20 @@
    <top>
       <VBox spacing="5" style="-fx-background-color: #dcdcdc; -fx-padding: 10;">
 
-         <HBox spacing="20" alignment="CENTER_LEFT">
-            <Label fx:id="lblTotal"
-               text="Total: 0.00"
-               style="-fx-font-size: 48px; -fx-font-weight: bold;" />
+         <HBox alignment="CENTER_LEFT" spacing="20">
+            <Label fx:id="lblTotal" style="-fx-font-size: 48px; -fx-font-weight: bold;"
+               text="Total: 0.00" />
 
             <VBox spacing="5">
-               <Label fx:id="lblQty"
-                  text="Qty: 0"
-                  style="-fx-font-size: 18px; -fx-text-fill: green;" />
+               <Label fx:id="lblQty" style="-fx-font-size: 18px; -fx-text-fill: green;"
+                  text="Qty: 0" />
 
-               <Label fx:id="lblScanStatus"
-                  text="Scan ready"
-                  style="-fx-font-size: 14px;" />
+               <Label fx:id="lblScanStatus" style="-fx-font-size: 14px;" text="Scan ready" />
             </VBox>
          </HBox>
 
          <!-- 스캔 입력 -->
-         <TextField fx:id="txtScan"
-            promptText="Scan barcode..."
-            onAction="#onScan"
+         <TextField fx:id="txtScan" onAction="#onScan" promptText="Scan barcode..."
             style="-fx-font-size: 16px;" />
       </VBox>
    </top>
@@ -41,26 +44,28 @@
          CENTER : 상품 테이블
     ========================== -->
    <center>
-      <TableView fx:id="table" prefHeight="500">
+      <TableView fx:id="table" prefHeight="500" BorderPane.alignment="CENTER">
 
          <columns>
 
+            <TableColumn fx:id="colNo" prefWidth="80" />
             <TableColumn fx:id="colDelete" prefWidth="80" />
-            <TableColumn fx:id="colBarcode" text="BARCODE" prefWidth="180" />
-            <TableColumn fx:id="colDesc" text="DESCRIPTION" prefWidth="300" />
+            <TableColumn fx:id="colBarcode" prefWidth="180" text="BARCODE" />
+            <TableColumn fx:id="colDesc" prefWidth="400" text="DESCRIPTION" />
 
             <TableColumn fx:id="colMinus" prefWidth="80" />
-            <TableColumn fx:id="colQty" text="QTY" prefWidth="80" />
+            <TableColumn fx:id="colQty" prefWidth="80" text="QTY" />
             <TableColumn fx:id="colPlus" prefWidth="80" />
 
-            <TableColumn fx:id="colPrice" text="PRICE" prefWidth="100" />
-            <TableColumn fx:id="colTotal" text="TOTAL" prefWidth="120" />
-
-            <TableColumn fx:id="colStock" text="STOCK" prefWidth="80" />
+            <TableColumn fx:id="colPrice" prefWidth="100" text="PRICE" />
+            <TableColumn fx:id="colTotal" prefWidth="120" text="TOTAL" />
+            <TableColumn fx:id="colDiscount" prefWidth="100" text="D/C" />
+            <TableColumn fx:id="colStock" prefWidth="80" text="STOCK" />
 
             <!-- 액션 버튼 -->
-            <TableColumn fx:id="colAction" prefWidth="120" />
-            <TableColumn fx:id="colDiscount" prefWidth="120" />
+            <TableColumn fx:id="colDiscountPrice" prefWidth="120" />
+            <TableColumn fx:id="colChangePrice" prefWidth="120" />
+            <TableColumn fx:id="colComment" prefWidth="300" text="COMMENT" />
 
          </columns>
       </TableView>
@@ -70,38 +75,39 @@
          RIGHT : 금액 버튼 패드
     ========================== -->
    <right>
-      <GridPane hgap="10" vgap="10" style="-fx-padding: 10; -fx-background-color: #eeeeee;">
+      <GridPane hgap="10" style="-fx-padding: 10; -fx-background-color: #eeeeee;" vgap="10">
 
          <!-- 버튼 2열 구성 -->
-         <Button text="0.5" GridPane.rowIndex="0" GridPane.columnIndex="0"
-            onAction="#onQuickAmount" />
-         <Button text="0.7" GridPane.rowIndex="0" GridPane.columnIndex="1"
-            onAction="#onQuickAmount" />
+         <Button onAction="#onQuickAmount" text="0.5" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+         <Button onAction="#onQuickAmount" text="0.7" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
-         <Button text="1.0" GridPane.rowIndex="1" GridPane.columnIndex="0"
-            onAction="#onQuickAmount" />
-         <Button text="1.2" GridPane.rowIndex="1" GridPane.columnIndex="1"
-            onAction="#onQuickAmount" />
+         <Button onAction="#onQuickAmount" text="1.0" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+         <Button onAction="#onQuickAmount" text="1.2" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
-         <Button text="1.5" GridPane.rowIndex="2" GridPane.columnIndex="0"
-            onAction="#onQuickAmount" />
-         <Button text="2.0" GridPane.rowIndex="2" GridPane.columnIndex="1"
-            onAction="#onQuickAmount" />
+         <Button onAction="#onQuickAmount" text="1.5" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+         <Button onAction="#onQuickAmount" text="2.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
-         <Button text="2.5" GridPane.rowIndex="3" GridPane.columnIndex="0"
-            onAction="#onQuickAmount" />
-         <Button text="3.0" GridPane.rowIndex="3" GridPane.columnIndex="1"
-            onAction="#onQuickAmount" />
+         <Button onAction="#onQuickAmount" text="2.5" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+         <Button onAction="#onQuickAmount" text="3.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
-         <Button text="3.5" GridPane.rowIndex="4" GridPane.columnIndex="0"
-            onAction="#onQuickAmount" />
-         <Button text="4.0" GridPane.rowIndex="4" GridPane.columnIndex="1"
-            onAction="#onQuickAmount" />
+         <Button onAction="#onQuickAmount" text="3.5" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+         <Button onAction="#onQuickAmount" text="4.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
-         <Button text="5.0" GridPane.rowIndex="5" GridPane.columnIndex="0"
-            onAction="#onQuickAmount" />
-         <Button text="10.0" GridPane.rowIndex="5" GridPane.columnIndex="1"
-            onAction="#onQuickAmount" />
+         <Button onAction="#onQuickAmount" text="5.0" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+         <Button onAction="#onQuickAmount" text="10.0" GridPane.columnIndex="1"
+            GridPane.rowIndex="5" />
+         <columnConstraints>
+            <ColumnConstraints />
+            <ColumnConstraints />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+         </rowConstraints>
 
       </GridPane>
    </right>
@@ -110,14 +116,15 @@
          BOTTOM : 기능 버튼
     ========================== -->
    <bottom>
-      <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10; -fx-background-color: #cccccc;">
+      <HBox alignment="CENTER" spacing="10" style="-fx-padding: 10; -fx-background-color: #cccccc;">
 
-         <Button text="[F2] Add" onAction="#onAdd" />
-         <Button text="[F3] Remove" onAction="#onRemove" />
-         <Button text="[F4] Clear" onAction="#onClear" />
+         <Button onAction="#onMin" text="[F2] MIN" />
+         <Button onAction="#onMiddle" text="[F3] MIDDLE" />
+         <Button onAction="#onClose" text="[F4] CLOSE" />
 
-         <Button text="[F8] Payment" onAction="#onPayment"
-            style="-fx-background-color: green; -fx-text-fill: white; -fx-font-weight: bold;" />
+         <Button onAction="#onPayment"
+            style="-fx-background-color: green; -fx-text-fill: white; -fx-font-weight: bold;"
+            text="[F8] Payment" />
 
       </HBox>
    </bottom>

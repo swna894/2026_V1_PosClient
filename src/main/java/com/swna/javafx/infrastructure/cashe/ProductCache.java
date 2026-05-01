@@ -5,8 +5,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.domain.product.PageResult;
-import com.swna.javafx.domain.product.Product;
+import com.swna.javafx.domain.admin.product.PageResult;
+import com.swna.javafx.domain.admin.product.Product;
 
 @Component
 public class ProductCache {

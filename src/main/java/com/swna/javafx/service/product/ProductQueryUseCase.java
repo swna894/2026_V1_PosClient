@@ -2,8 +2,8 @@ package com.swna.javafx.service.product;
 
 import org.springframework.stereotype.Service;
 
-import com.swna.javafx.domain.product.PageResult;
-import com.swna.javafx.domain.product.Product;
+import com.swna.javafx.domain.admin.product.PageResult;
+import com.swna.javafx.domain.admin.product.Product;
 import com.swna.javafx.infrastructure.cashe.ProductCache;
 import com.swna.javafx.repository.product.ProductApiRepository;
 

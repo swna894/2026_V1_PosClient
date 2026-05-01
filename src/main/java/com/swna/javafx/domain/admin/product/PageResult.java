@@ -1,4 +1,4 @@
-package com.swna.javafx.domain.product;
+package com.swna.javafx.domain.admin.product;
 
 import java.util.List;
 

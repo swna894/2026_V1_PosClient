@@ -16,10 +16,12 @@ public class PosItem {
     private final StringProperty code = new SimpleStringProperty();
     private final StringProperty barcode = new SimpleStringProperty();
     private final StringProperty description = new SimpleStringProperty();
-
+    private final StringProperty comment = new SimpleStringProperty();
+    
     // =========================
     // 가격
     // =========================
+    private final DoubleProperty discount = new SimpleDoubleProperty();
     private final DoubleProperty originalPrice = new SimpleDoubleProperty(0); // 정가
     private final DoubleProperty sellingPrice = new SimpleDoubleProperty(0);  // 판매가
 
@@ -103,15 +105,23 @@ public class PosItem {
     public void setDescription(String v) { description.set(v); }
     public StringProperty descriptionProperty() { return description; }
 
+    public String getComment() { return comment.get(); }
+    public void setComment(String v) { comment.set(v); }
+    public StringProperty commentProperty() { return comment; }
+
+    
     // 가격
     public double getOriginalPrice() { return originalPrice.get(); }
     public void setOriginalPrice(double v) { originalPrice.set(v); }
     public DoubleProperty originalPriceProperty() { return originalPrice; }
-
+    
     public double getSellingPrice() { return sellingPrice.get(); }
     public void setSellingPrice(double v) { sellingPrice.set(v); }
     public DoubleProperty sellingPriceProperty() { return sellingPrice; }
-
+    
+    public double getDiscout() { return discount.get(); }
+    public void setDiscount(double v) { discount.set(v); }
+    public DoubleProperty discountProperty() { return discount; }
     // 수량
     public int getQty() { return qty.get(); }
     public void setQty(int v) { qty.set(v); }

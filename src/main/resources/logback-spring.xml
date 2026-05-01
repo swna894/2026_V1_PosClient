@@ -17,7 +17,7 @@
       </encoder>
    </appender>
 
-   <appender name="STDOUT" class="ch.qos.logback.core.rolling.ConsoleAppender">
+   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
       <encoder>
          <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
       </encoder>
@@ -25,6 +25,6 @@
 
    <root level="INFO">
       <appender-ref ref="ROLLING" />
-      <appender-ref ref="STDOUT" />
+      <appender-ref ref="CONSOLE" />
    </root>
 </configuration>

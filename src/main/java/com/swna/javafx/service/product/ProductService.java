@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.swna.javafx.domain.product.Product;
+import com.swna.javafx.domain.admin.product.Product;
 import com.swna.javafx.repository.product.ProductApiRepository;
 
 import lombok.RequiredArgsConstructor;
