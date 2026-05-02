@@ -1,139 +1,75 @@
 /* =========================================================
    1. ROOT / GLOBAL
    ========================================================= */
-
 .root {
    -fx-font-family: "Malgun Gothic";
 }
 
-/* =========================================================
-   2. LAYOUT
-   ========================================================= */
-
-.pos-root {
+.root-boardpane {
    -fx-background-color: #cccccc;
 }
 
-.panel-shadow {
-   -fx-effect: dropshadow(three-pass-box,
-         rgba(0, 0, 0, 0.25),
-         10, 0, 5, 5);
-}
-
 /* =========================================================
-   3. TYPOGRAPHY
-   ========================================================= */
-
-.text-total {
-   -fx-font-size: 48px;
-   -fx-font-weight: bold;
-   -fx-font-family: "Bookman Old Style";
-}
-
-.text-qty {
-   -fx-font-size: 18px;
-   -fx-font-weight: bold;
-   -fx-text-fill: green;
-}
-
-.text-status {
-   -fx-font-size: 14px;
-}
-
-.text-success {
-   -fx-text-fill: green;
-}
-
-.text-error {
-   -fx-text-fill: red;
-}
-
-/* =========================================================
-   4. TABLE
+   2. TABLE (TableView & Cells)
    ========================================================= */
 .table-view .column-header .label {
    -fx-alignment: CENTER;
    -fx-text-alignment: center;
 }
 
-/* 2. 컬럼 사이의 실선 (세로선) */
 .table-view .table-cell {
    -fx-border-color: #dddddd;
    -fx-border-width: 0 0.5 0 0;
-   /* 오른쪽에만 선 생성 */
 }
 
-/* 3. 행 사이의 실선 (가로선) */
 .table-view .table-row-cell {
    -fx-border-color: #ebebeb;
    -fx-border-width: 0 0 0.5 0;
-   /* 아래쪽에만 선 생성 */
 }
 
-/* TableView 전체 설정 */
-.pos-table {
+.table-center-pos {
    -fx-background-color: #dcdcdc;
    -fx-font-size: 18px;
-   /* 행 높이를 40px로 고정 (원하는 높이로 조절) */
    -fx-fixed-cell-size: 40px;
 }
 
-/* PosViewController에서 활성화할 커스텀 의사 클래스 */
-.pos-table .table-row-cell:fifth-row {
+.table-center-pos .table-row-cell:fifth-row {
    -fx-background-color: #ffeb3b;
-   /* 강조하고 싶은 색상 (예: 노란색) */
 }
 
-/* 마우스 호버 시 효과 (선택 사항) */
-.pos-table .table-row-cell:hover {
-   -fx-background-color: #ccffee
+.table-center-pos .table-row-cell:hover {
+   -fx-background-color: #ccffee;
 }
 
-/* 선택된 행 스타일 유지 */
-.pos-table .table-row-cell:selected {
+.table-center-pos .table-row-cell:selected {
    -fx-background-color: #80ffd4;
-   ;
 }
 
-.pos-table .table-cell {
+.table-center-pos .table-cell {
    -fx-text-fill: black;
 }
 
-.pos-table .column-header,
-.pos-table .column-header-background .filler {
-   /* -fx-background-color: #7a7a7a; */
-}
-
-.pos-table .column-header .label {
-   /* -fx-text-fill: white; */
+.table-center-pos .column-header .label {
    -fx-font-weight: bold;
    -fx-font-size: 16px;
 }
 
-.pos-table .table-row-cell:selected .table-cell,
-.pos-table .table-row-cell:focused .table-cell {
+.table-center-pos .table-row-cell:selected .table-cell,
+.table-center-pos .table-row-cell:focused .table-cell {
    -fx-font-weight: bold;
 }
 
-/* special row */
-.table-row-cell:special .text {
-   -fx-fill: red;
-}
-
 /* =========================================================
-   5. BUTTON BASE
+   3. BUTTONS
    ========================================================= */
-
 .btn {
    -fx-font-size: 14px;
    -fx-font-weight: bold;
    -fx-pref-height: 32px;
-
    -fx-background-color:
       #707070,
       linear-gradient(#fcfcfc, #f3f3f3),
       linear-gradient(#f2f2f2 0%, #ebebeb 49%, #dddddd 50%, #cfcfcf 100%);
-
    -fx-background-insets: 0, 1, 2;
    -fx-background-radius: 3, 2, 1;
 }
@@ -147,48 +83,9 @@
    -fx-background-color: #2F2B43;
 }
 
-/* =========================================================
-   6. BUTTON SIZE
-   ========================================================= */
-
 .btn-lg {
    -fx-pref-width: 140px;
    -fx-padding: 3 30 3 30;
-}
-
-.btn-sm {
-   -fx-pref-width: 40px;
-   -fx-padding: 3;
-}
-
-.btn-quick {
-   -fx-font-size: 25px;
-   -fx-font-weight: bold;
-   -fx-padding: 8 5;
-}
-
-/* =========================================================
-   7. BUTTON STATE
-   ========================================================= */
-
-.btn-cart-held {
-   -fx-background-color: #80e777;
-   -fx-text-fill: white;
-}
-
-.btn-primary {
-   -fx-background-color: #6F4CBB;
-   -fx-text-fill: white;
-}
-
-.btn-secondary {
-   -fx-background-color: #D5CBEB;
-   -fx-text-fill: #371897;
-}
-
-.btn-success {
-   -fx-background-color: #00e600;
-   -fx-text-fill: white;
 }
 
 .grid-button {
@@ -205,102 +102,53 @@
    -fx-background-color: #6F4CBB;
 }
 
-
-/* =========================================================
-   8. QUICK AMOUNT PANEL
-   ========================================================= */
-
-.quick-panel {
-   -fx-background-color: #cccccc;
-}
-
-/* =========================================================
-   9. DRAWER BUTTON
-   ========================================================= */
-
-.drawer-hidden {
+.button-hidden-cashbox {
    -fx-opacity: 0;
    -fx-background-color: transparent;
 }
 
-.drawer-hidden:hover {
+.button-hidden-cashbox:hover {
    -fx-opacity: 1;
+}
+
+/* =========================================================
+   4. LAYOUT PANELS
+   ========================================================= */
+.right-panel-quick {
+   -fx-background-color: #cccccc;
 }
 
 
 /* =========================================================
-   POS HEADER PANEL
-   ========================================================= */
-
-.pos-summary-panel {
+5. TOP SUMMARY TEXTS
+========================================================= */
+.top-panel-hBox {
    -fx-background-color: #cccccc;
    -fx-padding: 0 10 0 0;
 }
 
-/* =========================================================
-   LEFT / RIGHT AREA
-   ========================================================= */
-
-.pos-summary-left {
-   -fx-alignment: center-left;
-}
-
-.pos-summary-right {
-   -fx-alignment: center-left;
-}
-
-/* =========================================================
-   TOTAL AMOUNT
-   ========================================================= */
-
-.text-total-amount {
+.top-label-total {
    -fx-font-family: "Bookman Old Style";
-   -fx-font-size: 80;
+   -fx-font-size: 80px;
    -fx-font-weight: bold;
 }
 
-/* =========================================================
-   DISCOUNT
-   ========================================================= */
-
-.text-discount {
+.top-label-coununt {
    -fx-font-family: "Bookman Old Style";
-   -fx-font-size: 36;
+   -fx-font-size: 24px;
    -fx-font-weight: bold;
-   -fx-text-fill: green;
+   -fx-text-fill: #313a31;
 }
 
-/* =========================================================
-   TOTAL QTY
-   ========================================================= */
-
-.text-total-qty {
+.top-label-status {
    -fx-font-family: "Bookman Old Style";
-   -fx-font-size: 22;
-   -fx-font-weight: bold;
+   -fx-font-size: 22px;
    -fx-text-fill: green;
+   -fx-font-style: italic;
 }
 
-/* =========================================================
-   STATUS MESSAGE
-   ========================================================= */
-
-.text-status-success {
-   -fx-font-size: 20;
-   -fx-text-fill: green;
-}
-
-.text-status-error {
-   -fx-font-size: 20;
-   -fx-text-fill: red;
-}
-
-/* =========================================================
-   CLOCK
-   ========================================================= */
-
-.text-clock {
+.top-label-clock {
    -fx-font-family: "Bookman Old Style";
-   -fx-font-size: 39;
+   -fx-font-size: 39px;
    -fx-font-weight: bold;
 }
