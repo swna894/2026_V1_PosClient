@@ -94,10 +94,7 @@ public class PosItem {
         ));
 
         // 4. 최종 금액 (판매가 합계 - 할인 총액)
-        finalAmount.bind(Bindings.createDoubleBinding(
-                () -> getSellingAmount() - getDiscountTotal(),
-                sellingAmount, discountTotal
-        ));
+        finalAmount.bind(sellingAmount);
     }
 
     /**
@@ -116,7 +113,7 @@ public class PosItem {
 
                 // 1. 단가 할인(D/C)이 적용된 경우 우선 표시
                 if (uDiscount > 0) {
-                    return String.format("D/C: -$%.2f/ea", uDiscount);
+                    return String.format("D/C: $%.2f/ea", uDiscount);
                 } 
                 
                 // 2. 정가와 현재 판매가가 다른 경우 (가격 변경 발생)

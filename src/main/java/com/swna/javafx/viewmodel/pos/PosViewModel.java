@@ -175,7 +175,7 @@ public class PosViewModel {
      * @param item 가격을 변경할 대상 아이템
      * @param newPrice 다이얼로그로부터 전달받은 새로운 단가
      */
-    public void updateItemPrice(PosItem item, double newPrice) {
+    public void discountItemPrice(PosItem item, double newPrice) {
         if (item == null) return;
         log.info("[VM] Updating price for item: {} -> {}", item.getBarcode(), newPrice);
         
@@ -196,11 +196,12 @@ public class PosViewModel {
         log.info("[VM] Price update completed. Unit discount: {}", item.getUnitDiscount());
     }
     
-    public void changePrice(PosItem item, double newPrice) {
+    public void changeItemPrice(PosItem item, double newPrice) {
         if (item == null) return;
         log.info("[VM] Updating price for item: {} -> {}", item.getBarcode(), newPrice);
         
         // 새로운 판매 가격 설정
+        item.setUnitDiscount(0);
         item.setSellingPrice(newPrice);
         
         log.info("[VM] Price update completed. Unit discount: {}", item.getUnitDiscount());

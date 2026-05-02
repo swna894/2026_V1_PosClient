@@ -313,7 +313,7 @@ public class PosViewController {
                 selectedItem.getSellingPrice(), 
                 newPrice -> {
                     // ViewModel을 통해 가격 반영[cite: 3]
-                    vm.changePrice(selectedItem, newPrice);
+                    vm.changeItemPrice(selectedItem, newPrice);
                     table.refresh();
                 }
             );
@@ -341,7 +341,7 @@ public class PosViewController {
             // 데이터 초기화 및 콜백 등록
             dialog.getController().initData(selectedItem.getBarcode(), selectedItem.getSellingPrice(), 
                 revisedPrice -> {
-                    vm.updateItemPrice(selectedItem, revisedPrice);
+                    vm.discountItemPrice(selectedItem, revisedPrice);
                     table.refresh();
                 });
 

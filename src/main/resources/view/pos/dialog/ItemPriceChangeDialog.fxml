@@ -9,12 +9,10 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css"
-   xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.swna.javafx.controller.pos.dialog.ItemPriceChangeDialogController">
+<VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.controller.pos.dialog.ItemPriceChangeDialogController">
 
    <padding>
       <Insets bottom="25" left="30" right="30" top="25" />
@@ -23,15 +21,15 @@
    <!-- 헤더 영역: 왼쪽 이미지와 동일한 레이아웃 적용 -->
    <VBox alignment="CENTER" spacing="10">
       <!-- 1. 메인 타이틀 -->
-      <Label text="Change Price" styleClass="title-label" />
+      <Label styleClass="title-label" text="Change Price" />
 
       <!-- 2. 구분선 (이미지의 얇은 선 반영) -->
       <Separator prefWidth="200.0" />
 
       <!-- 3. 아이템 코드 영역 (구분선 아래 배치) -->
       <HBox alignment="CENTER" spacing="8">
-         <Label text="Item Code:" styleClass="info-header" />
-         <Label fx:id="lblItemBarcode" text="-" styleClass="info-value" />
+         <Label styleClass="info-header" text="Item Code:" />
+         <Label fx:id="lblItemBarcode" styleClass="info-value" text="-" />
       </HBox>
    </VBox>
 
@@ -43,20 +41,14 @@
       </columnConstraints>
 
       <!-- Original Price 행 -->
-      <Label styleClass="field-label" text="Original Price" GridPane.columnIndex="0"
-         GridPane.rowIndex="0" />
-      <Label fx:id="lblOriginalPrice" styleClass="info-value" text="0.00" GridPane.columnIndex="1"
-         GridPane.rowIndex="0" />
+      <Label alignment="CENTER_RIGHT" prefHeight="27.0" prefWidth="144.0" styleClass="field-label" text="Original Price : " GridPane.columnIndex="0" GridPane.rowIndex="0" />
+      <Label fx:id="lblOriginalPrice" styleClass="info-value" text="0.00" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
       <!-- New Price 행 -->
-      <StackPane fx:id="paneNewPrice" onMouseClicked="#handlePriceRowClick"
-         style="-fx-cursor: hand;"
-         GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2" />
+      <StackPane fx:id="paneNewPrice" onMouseClicked="#handlePriceRowClick" style="-fx-cursor: hand;" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
 
-      <Label styleClass="field-label" text="New Price" GridPane.columnIndex="0"
-         GridPane.rowIndex="1" mouseTransparent="true" />
-      <TextField fx:id="txtNewPrice" styleClass="text-field" GridPane.columnIndex="1"
-         GridPane.rowIndex="1" />
+      <Label mouseTransparent="true" styleClass="field-label" text="New Price : " GridPane.columnIndex="0" GridPane.rowIndex="1" />
+      <TextField fx:id="txtNewPrice" styleClass="text-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
       <rowConstraints>
          <RowConstraints minHeight="45" />
