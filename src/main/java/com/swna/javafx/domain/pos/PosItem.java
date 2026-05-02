@@ -8,6 +8,18 @@ import java.time.LocalDateTime;
  * POS 아이템 도메인 클래스
  * TableColumnUtil과의 호환성을 위해 계산 필드를 DoubleProperty로 변경하고
  * 초기화 시 bind()를 통해 읽기 전용 로직을 구현했습니다.
+ * 
+ * // 초기: 단가 $100, 수량 1, 단가할인 $20
+    // discountTotal = $20 × 1 = $20
+    // finalAmount = $100 - $20 = $80
+
+    // increaseQty() 호출: 수량 2로 증가
+    // discountTotal = $20 × 2 = $40 (자동 증가)
+    // finalAmount = $200 - $40 = $160 (자동 계산)
+
+    // decreaseQty() 호출: 수량 1로 감소  
+    // discountTotal = $20 × 1 = $20 (자동 감소)
+    // finalAmount = $100 - $20 = $80 (자동 계산)
  */
 public class PosItem {
 
@@ -28,8 +40,9 @@ public class PosItem {
     private final DoubleProperty sellingPrice = new SimpleDoubleProperty(0);  // 판매가
     private final IntegerProperty qty = new SimpleIntegerProperty(0);         // 수량
     private final IntegerProperty stock = new SimpleIntegerProperty(0);       // 재고
-    private final DoubleProperty discountAmount = new SimpleDoubleProperty(0); // 고정 할인액
+    private final DoubleProperty discountAmount = new SimpleDoubleProperty(0); // 고정 할인액 (총액 기준)
     private final DoubleProperty discountRate = new SimpleDoubleProperty(0);   // 할인율 (%)
+    private final DoubleProperty unitDiscount = new SimpleDoubleProperty(0);   // 단가 기준 할인액 (개당 할인)
 
     // ============================================================
     // 3. 자동 계산 결과 필드 (SimpleDoubleProperty로 변경)
@@ -45,6 +58,7 @@ public class PosItem {
     // ============================================================
     public PosItem() {
         initBindings();
+        initCommentBinding();
     }
 
     /**
@@ -65,16 +79,36 @@ public class PosItem {
                 sellingPrice, qty
         ));
 
-        // 3. 할인 총액 ( (판매가 * 수량 * 할인율) + 고정 할인액 )
+        // 3. 할인 총액 ( (판매가 * 수량 * 할인율) + 고정 할인액 + (단가할인 * 수량) )
         discountTotal.bind(Bindings.createDoubleBinding(
-                () -> (getSellingPrice() * getQty() * (getDiscountRate() / 100.0)) + getDiscountAmount(),
-                sellingPrice, qty, discountRate, discountAmount
+                () -> (getSellingPrice() * getQty() * (getDiscountRate() / 100.0)) 
+                      + getDiscountAmount() 
+                      + (getUnitDiscount() * getQty()),
+                sellingPrice, qty, discountRate, discountAmount, unitDiscount
         ));
 
         // 4. 최종 금액 (판매가 합계 - 할인 총액)
         finalAmount.bind(Bindings.createDoubleBinding(
                 () -> getSellingAmount() - getDiscountTotal(),
                 sellingAmount, discountTotal
+        ));
+    }
+
+    /**
+     * 단가 할인 정보를 comment에 자동으로 표시하는 바인딩
+     */
+    private void initCommentBinding() {
+        // unitDiscount가 변경될 때마다 comment 업데이트
+        comment.bind(Bindings.createStringBinding(
+            () -> {
+                double discount = getUnitDiscount();
+                if (discount > 0) {
+                    return String.format("Discount: $%.2f (per unit)", discount);
+                } else {
+                    return ""; // 할인이 없으면 빈 문자열
+                }
+            },
+            unitDiscount
         ));
     }
 
@@ -95,6 +129,13 @@ public class PosItem {
     public void applyDiscount(double percent, double amount) {
         setDiscountRate(percent);
         setDiscountAmount(amount);
+    }
+    
+    /**
+     * 단가 기준 할인 적용 (개당 할인)
+     */
+    public void applyUnitDiscount(double unitDiscountAmount) {
+        setUnitDiscount(unitDiscountAmount);
     }
 
     // ============================================================
@@ -144,6 +185,10 @@ public class PosItem {
     public double getDiscountRate() { return discountRate.get(); }
     public void setDiscountRate(double v) { discountRate.set(v); }
     public DoubleProperty discountRateProperty() { return discountRate; }
+    
+    public double getUnitDiscount() { return unitDiscount.get(); }
+    public void setUnitDiscount(double v) { unitDiscount.set(v); }
+    public DoubleProperty unitDiscountProperty() { return unitDiscount; }
 
     public LocalDateTime getUpdated() { return updated.get(); }
     public void setUpdated(LocalDateTime v) { updated.set(v); }

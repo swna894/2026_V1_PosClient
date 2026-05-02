@@ -38,7 +38,8 @@ public class PosViewModel {
         new javafx.beans.Observable[] { 
             item.qtyProperty(), 
             item.finalAmountProperty(),
-            item.discountTotalProperty() 
+            item.discountTotalProperty(),
+            item.unitDiscountProperty()  // unitDiscount 변경도 감지
         }
     );
 
@@ -177,9 +178,27 @@ public class PosViewModel {
     public void updateItemPrice(PosItem item, double newPrice) {
         if (item == null) return;
         log.info("[VM] Updating price for item: {} -> {}", item.getBarcode(), newPrice);
-        item.setSellingPrice(newPrice); 
-        log.info("[VM] Price update completed. ");
+        
+        double originalPrice = item.getSellingPrice(); // 원래 가격 가져오기
+        double priceDifference = originalPrice - newPrice; // 가격 차이 (단가 할인 금액)
+        
+        // 새로운 판매 가격 설정
+        item.setSellingPrice(newPrice);
+        
+        // 단가 기준 할인 설정 (수량과 무관하게 단가 차이를 저장)
+        if (priceDifference > 0) {
+            // 가격이 인하된 경우: 단가 할인으로 설정
+            item.setUnitDiscount(priceDifference);
+            log.info("[VM] Set unit discount: {} (per unit)", priceDifference);
+        } else if (priceDifference < 0) {
+            // 가격이 인상된 경우: 단가 할인 제거
+            item.setUnitDiscount(0);
+            log.info("[VM] Removed unit discount due to price increase");
+        }
+        
+        log.info("[VM] Price update completed. Unit discount: {}", item.getUnitDiscount());
     }
+    
         // =========================
     // 수량
     // =========================
@@ -187,6 +206,9 @@ public class PosViewModel {
         if (item == null) return;
         item.increaseQty();
         selectedItem.set(item);
+        // discountTotal과 finalAmount는 바인딩을 통해 자동 업데이트됨
+        log.info("[VM] Increased qty to {}, unit discount: {}, total discount: {}", 
+                 item.getQty(), item.getUnitDiscount(), item.getDiscountTotal());
     }
 
     public void decreaseQty(PosItem item) {
@@ -200,14 +222,19 @@ public class PosViewModel {
         } else {
             selectedItem.set(item);
         }
+        // discountTotal과 finalAmount는 바인딩을 통해 자동 업데이트됨
+        log.info("[VM] Decreased qty to {}, unit discount: {}, total discount: {}", 
+                 item != null ? item.getQty() : 0, 
+                 item != null ? item.getUnitDiscount() : 0, 
+                 item != null ? item.getDiscountTotal() : 0);
     }
 
     public void removeItem(PosItem item) {
-    if (item != null) {
-        items.remove(item);
-        // 필요 시 여기서 전체 합계(totalAmount) 등을 다시 계산하는 로직 수행
+        if (item != null) {
+            items.remove(item);
+            // 필요 시 여기서 전체 합계(totalAmount) 등을 다시 계산하는 로직 수행
+        }
     }
-}
 
     // =========================
     // 할인
@@ -222,6 +249,15 @@ public class PosViewModel {
         PosItem item = selectedItem.get();
         if (item == null) return;
         item.applyDiscount(0, amount);
+    }
+    
+    /**
+     * 단가 기준 할인 적용 (개당 할인)
+     */
+    public void applyUnitDiscount(double unitDiscountAmount) {
+        PosItem item = selectedItem.get();
+        if (item == null) return;
+        item.applyUnitDiscount(unitDiscountAmount);
     }
 
     // =========================
