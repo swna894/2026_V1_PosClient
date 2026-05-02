@@ -48,6 +48,12 @@ public class PosItem {
     // 3. 자동 계산 결과 필드 (SimpleDoubleProperty로 변경)
     // ============================================================
     // TableColumnUtil의 ClassCastException을 방지하기 위해 DoubleProperty 타입을 사용합니다.
+    //===================================
+    // originalAmount = 정가 × 수량
+    // sellingAmount = 판매가 × 수량
+    // discountTotal = (판매가 × 수량 × 할인율%) + 고정할인액 + (단가할인 × 수량)
+    // finalAmount = sellingAmount - discountTotal
+    //===================================
     private final DoubleProperty originalAmount = new SimpleDoubleProperty();
     private final DoubleProperty sellingAmount = new SimpleDoubleProperty();
     private final DoubleProperty discountTotal = new SimpleDoubleProperty();
@@ -97,18 +103,32 @@ public class PosItem {
     /**
      * 단가 할인 정보를 comment에 자동으로 표시하는 바인딩
      */
+/**
+     * 가격 변경 시 기존 가격과 새 가격을 comment에 자동으로 표시하는 바인딩
+     */
     private void initCommentBinding() {
-        // unitDiscount가 변경될 때마다 comment 업데이트
+        // originalPrice, sellingPrice, unitDiscount 중 하나라도 변경되면 업데이트
         comment.bind(Bindings.createStringBinding(
             () -> {
-                double discount = getUnitDiscount();
-                if (discount > 0) {
-                    return String.format("Discount: $%.2f (per unit)", discount);
-                } else {
-                    return ""; // 할인이 없으면 빈 문자열
+                double original = getOriginalPrice();
+                double current = getSellingPrice();
+                double uDiscount = getUnitDiscount();
+
+                // 1. 단가 할인(D/C)이 적용된 경우 우선 표시
+                if (uDiscount > 0) {
+                    return String.format("D/C: -$%.2f/ea", uDiscount);
+                } 
+                
+                // 2. 정가와 현재 판매가가 다른 경우 (가격 변경 발생)
+                else if (Double.compare(original, current) != 0) {
+                    // 원래 가격(original)을 포함하여 변경 이력을 표시
+                    return String.format("Changed: $%.2f → $%.2f", original, current);
                 }
+
+                // 3. 변경 사항이 없는 경우 빈 문자열
+                return "";
             },
-            unitDiscount
+            originalPrice, sellingPrice, unitDiscount
         ));
     }
 

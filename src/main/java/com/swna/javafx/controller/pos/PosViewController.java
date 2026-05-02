@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.common.constant.IconPaths;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
 import com.swna.javafx.controller.pos.dialog.ItemDiscountDialogController;
+import com.swna.javafx.controller.pos.dialog.ItemPriceChangeDialogController;
 import com.swna.javafx.domain.pos.PosItem;
 import com.swna.javafx.infrastructure.scanner.BarcodeInputEngine;
 import com.swna.javafx.viewmodel.pos.PosViewModel;
@@ -35,6 +36,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -235,7 +237,7 @@ public class PosViewController {
         TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, 50, this::onDiscout);
 
         // 12. 가격 변경 버튼 (중앙 정렬)
-        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, 50, this::actionEvent);
+        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, 50, this::onChangePrice);
 
         // 13. 비고/코멘트 (텍스트이므로 왼쪽 정렬)
         TableColumnUtil.makeStringColumn(colComment, PosItem::commentProperty, PosItem::setComment, false, TableColumnUtil.LEFT, null);
@@ -296,9 +298,32 @@ public class PosViewController {
     // =========================
     // Table Action Event
     // =========================
-    private void actionEvent(MouseEvent event) {
-        System.err.println("[TABLE ACTION] clicked");
-        log.debug("[TABLE ACTION] clicked: {}", event.getSource());
+    private void onChangePrice(MouseEvent event) {
+        PosItem selectedItem = table.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) return;
+
+        // FxWeaver를 통해 다이얼로그 로드
+        FxControllerAndView<ItemPriceChangeDialogController, Parent> dialog =
+                fxWeaver.load(ItemPriceChangeDialogController.class);
+
+        dialog.getView().ifPresent(view -> {
+            // 데이터 초기화 및 업데이트 콜백 설정[cite: 2]
+            dialog.getController().initData(
+                selectedItem.getBarcode(), 
+                selectedItem.getSellingPrice(), 
+                newPrice -> {
+                    // ViewModel을 통해 가격 반영[cite: 3]
+                    vm.changePrice(selectedItem, newPrice);
+                    table.refresh();
+                }
+            );
+
+            Stage stage = new Stage();
+            stage.setScene(new Scene(view));
+            stage.initStyle(StageStyle.UNDECORATED); // 테두리 제거 (캡처 이미지 스타일)
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.show();
+        });
     }
 
     // PosViewController 내부

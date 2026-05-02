@@ -6,6 +6,7 @@ import java.util.function.UnaryOperator;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -46,8 +47,7 @@ public class ItemDiscountDialogController {
         // 2. 숫자 및 마침표(.) 입력 제한 설정
         applyNumericFilter(txtPrice);
         applyNumericFilter(txtPercent);
-        
-        txtPrice.requestFocus();
+   
     }
 
     /**
@@ -124,6 +124,12 @@ public class ItemDiscountDialogController {
 
         txtPrice.disableProperty().bind(rbPercent.selectedProperty());
         txtPercent.disableProperty().bind(rbPrice.selectedProperty());
+
+        // 🔥 시작 시 txtPrice 전체 선택 (딜레이 없이 바로 실행)
+        Platform.runLater( () -> {
+            txtPrice.requestFocus();
+            txtPrice.selectAll();
+        });
 
         lblItemBarcode.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null) {

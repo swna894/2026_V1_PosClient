@@ -189,17 +189,25 @@ public class PosViewModel {
         if (priceDifference > 0) {
             // 가격이 인하된 경우: 단가 할인으로 설정
             item.setUnitDiscount(priceDifference);
-            log.info("[VM] Set unit discount: {} (per unit)", priceDifference);
         } else if (priceDifference < 0) {
             // 가격이 인상된 경우: 단가 할인 제거
             item.setUnitDiscount(0);
-            log.info("[VM] Removed unit discount due to price increase");
         }
+        log.info("[VM] Price update completed. Unit discount: {}", item.getUnitDiscount());
+    }
+    
+    public void changePrice(PosItem item, double newPrice) {
+        if (item == null) return;
+        log.info("[VM] Updating price for item: {} -> {}", item.getBarcode(), newPrice);
+        
+        // 새로운 판매 가격 설정
+        item.setSellingPrice(newPrice);
         
         log.info("[VM] Price update completed. Unit discount: {}", item.getUnitDiscount());
     }
     
-        // =========================
+
+    // =========================
     // 수량
     // =========================
     public void increaseQty(PosItem item) {
