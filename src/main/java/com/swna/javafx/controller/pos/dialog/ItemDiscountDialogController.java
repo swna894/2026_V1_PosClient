@@ -91,8 +91,10 @@ public class ItemDiscountDialogController {
             close();
         } catch (NumberFormatException e) {
             // 콘솔 대신 로그 파일에 기록 (SLF4J)
-            log.error("할인 금액 변환 중 오류 발생: 바코드={}, 입력값={}, 에러={}", 
-                      lblItemBarcode.getText(), txtPrice.getText(), e.getMessage());
+            log.error("Error converting discount value: barcode={}, input={}, error={}", 
+                      lblItemBarcode.getText(), 
+                      rbPrice.isSelected() ? txtPrice.getText() : txtPercent.getText(), 
+                      e.getMessage());
         }
     }
 
