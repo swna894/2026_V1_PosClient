@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent; // MouseEvent 추가
 import javafx.stage.Stage;
 import net.rgielen.fxweaver.core.FxmlView;
 
@@ -16,45 +17,55 @@ import net.rgielen.fxweaver.core.FxmlView;
 @FxmlView("/view/pos/dialog/ItemDiscountDialog.fxml")
 public class ItemDiscountDialogController {
     @FXML private Label lblItemBarcode;
-    @FXML private TextField txtPriceAfterDC;
-    @FXML private TextField txtDiscountPercent;
+    @FXML private TextField txtPrice;
+    @FXML private TextField txtPercent;
     @FXML private RadioButton rbPrice;
     @FXML private RadioButton rbPercent;
 
     private double originalPrice;
     private Consumer<Double> onResultCallback;
 
-    // 드래그 이동을 위한 좌표 변수
     private double xOffset = 0;
     private double yOffset = 0;
 
     @FXML
     public void initialize() {
-        // 마우스 진입/이탈 시 자동 선택 설정
-        setupAutoSelect(txtPriceAfterDC);
-        setupAutoSelect(txtDiscountPercent);
-
         // 엔터키/ESC키 이벤트 설정
-        setupKeyEvents(txtPriceAfterDC);
-        setupKeyEvents(txtDiscountPercent);
+        setupKeyEvents(txtPrice);
+        setupKeyEvents(txtPercent);
+        
+        // 초기 포커스 설정
+        txtPrice.requestFocus();
     }
 
-    private void setupAutoSelect(TextField textField) {
-        // Mouse In: 포커스 주고 전체 선택
-        textField.setOnMouseEntered(e -> {
-            if (!textField.isDisabled()) {
-                textField.requestFocus();
-                textField.selectAll();
-            }
-        });
-        // Mouse Out: 선택 해제
-        textField.setOnMouseExited(e -> textField.deselect());
+    /**
+     * FXML의 Price 행(StackPane) 클릭 시 호출됨
+     */
+    @FXML
+    private void handlePriceRowClick(MouseEvent event) {
+        rbPrice.setSelected(true);
+        txtPercent.setText("0");
+        txtPrice.requestFocus();
+        txtPrice.selectAll(); // 기존 금액 수정 용이하도록 전체 선택
+    }
+
+    /**
+     * FXML의 Percent 행(StackPane) 클릭 시 호출됨
+     */
+    @FXML
+    private void handlePercentRowClick(MouseEvent event) {
+        rbPercent.setSelected(true);
+        txtPrice.setText("0");
+        txtPercent.requestFocus();
+        txtPercent.selectAll();
     }
 
     private void setupKeyEvents(TextField textField) {
         textField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) handleConfirm();
             else if (event.getCode() == KeyCode.ESCAPE) handleCancel();
+            // F12 키로도 확인 가능하도록 추가 (FXML 버튼 텍스트 반영)
+            else if (event.getCode() == KeyCode.F12) handleConfirm();
         });
     }
 
@@ -62,13 +73,14 @@ public class ItemDiscountDialogController {
         this.lblItemBarcode.setText(barcode);
         this.originalPrice = price;
         this.onResultCallback = callback;
-        this.txtPriceAfterDC.setText(String.format("%.2f", price));
-        this.txtDiscountPercent.setText("0");
+        this.txtPrice.setText(String.format("%.2f", price));
+        this.txtPercent.setText("0");
 
-        txtPriceAfterDC.disableProperty().bind(rbPercent.selectedProperty());
-        txtDiscountPercent.disableProperty().bind(rbPrice.selectedProperty());
+        // UI 바인딩: 선택되지 않은 쪽의 입력창 비활성화
+        txtPrice.disableProperty().bind(rbPercent.selectedProperty());
+        txtPercent.disableProperty().bind(rbPrice.selectedProperty());
 
-        // 창 이동(드래그) 기능 추가: 헤더가 없으므로 씬 전체에 드래그 적용
+        // 드래그 이동 기능
         lblItemBarcode.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null) {
                 newScene.setOnMousePressed(event -> {
@@ -89,15 +101,16 @@ public class ItemDiscountDialogController {
         try {
             double finalPrice;
             if (rbPrice.isSelected()) {
-                finalPrice = Double.parseDouble(txtPriceAfterDC.getText());
+                finalPrice = Double.parseDouble(txtPrice.getText());
             } else {
-                double percent = Double.parseDouble(txtDiscountPercent.getText());
+                double percent = Double.parseDouble(txtPercent.getText());
                 finalPrice = originalPrice * (1 - (percent / 100.0));
             }
             if (onResultCallback != null) onResultCallback.accept(finalPrice);
             close();
         } catch (NumberFormatException e) {
-            // 숫자 변환 오류 시 처리
+            // 숫자 입력 오류 시 txtPrice나 txtPercent 스타일 변경 등 추가 처리 가능
+            System.err.println("Invalid number format");
         }
     }
 

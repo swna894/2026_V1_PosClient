@@ -1,0 +1,80 @@
+/* 고전적인 폰트 및 기본 컨테이너 */
+.dialog-container {
+   -fx-background-color: linear-gradient(to bottom, #3a6364, #2c4a4b);
+   -fx-border-color: #1a2e2e;
+   -fx-border-width: 3;
+   -fx-font-family: "Georgia", "serif";
+   /* 중후한 세리프 폰트 */
+}
+
+.title-label {
+   -fx-font-size: 24px;
+   -fx-font-weight: bold;
+   -fx-text-fill: #f4f1ea;
+   /* 미색(Off-white)으로 고전적 느낌 */
+   -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 3, 0, 0, 1);
+}
+
+/* TextField 개선: 크기 확대 및 포커스 시각화 */
+.text-field {
+   -fx-background-color: #ffffff;
+   -fx-background-radius: 2;
+   -fx-padding: 10 15;
+   /* 안쪽 여백을 키워 입력창을 더 크게 만듦 */
+   -fx-font-size: 18px;
+   -fx-font-weight: bold;
+   -fx-border-color: #7f8c8d;
+   /* 기본 테두리 */
+   -fx-border-width: 1;
+}
+
+/* 포커스 In: 고전적인 금색(Gold) 테두리로 명확히 구분 */
+.text-field:focused {
+   -fx-background-color: #fffdec;
+   /* 약간 노란빛이 도는 배경 */
+   -fx-border-color: #d4af37;
+   /* 클래식 골드 테두리 */
+   -fx-border-width: 2.5;
+   -fx-effect: dropshadow(three-pass-box, rgba(212, 175, 55, 0.3), 5, 0, 0, 0);
+}
+
+/* RadioButton (이미지 상의 Checkbox 형태) 가독성 개선 */
+.radio-button .radio {
+   -fx-background-color: white;
+   -fx-border-color: #1a2e2e;
+   -fx-background-radius: 10;
+   -fx-padding: 4px;
+}
+
+.radio-button:selected .dot {
+   -fx-background-color: #2c4a4b;
+   -fx-background-insets: 0;
+}
+
+.radio-button .text {
+   -fx-fill: white;
+   -fx-font-weight: bold;
+   -fx-font-size: 16px;
+}
+
+/* 버튼 개선: 입체적인 고전적 버튼 스타일 */
+.btn-confirm {
+   -fx-background-color: linear-gradient(#fdfdfd, #dcdcdc);
+   -fx-border-color: #7f8c8d;
+   -fx-border-radius: 3;
+   -fx-background-radius: 3;
+   -fx-padding: 10 30;
+   -fx-text-fill: #2c3e50;
+   -fx-font-weight: bold;
+   -fx-cursor: hand;
+   -fx-effect: dropshadow(two-pass-box, rgba(0, 0, 0, 0.2), 3, 0, 0, 2);
+}
+
+.btn-confirm:hover {
+   -fx-background-color: linear-gradient(#eee, #ccc);
+}
+
+.btn-confirm:pressed {
+   -fx-background-insets: 2 0 0 0;
+   -fx-effect: none;
+}

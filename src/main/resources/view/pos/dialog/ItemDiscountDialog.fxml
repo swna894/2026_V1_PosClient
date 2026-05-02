@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
 
 <VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css"
    xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
@@ -21,6 +22,7 @@
       <Insets bottom="25" left="30" right="30" top="25" />
    </padding>
 
+   <!-- 헤더 영역 -->
    <VBox alignment="CENTER" spacing="5">
       <Label fx:id="lblTitle" styleClass="title-label" text="Item Discount / Change" />
       <Separator styleClass="title-separator" />
@@ -37,27 +39,39 @@
          <ColumnConstraints minWidth="100" />
       </columnConstraints>
 
-      <RadioButton fx:id="rbPrice" selected="true" GridPane.columnIndex="0" GridPane.rowIndex="0">
+      <!-- 첫 번째 행 (Price) 클릭 레이어 -->
+      <StackPane onMouseClicked="#handlePriceRowClick" style="-fx-cursor: hand;"
+         GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.columnSpan="3" />
+
+      <RadioButton fx:id="rbPrice" selected="true" GridPane.columnIndex="0" GridPane.rowIndex="0"
+         mouseTransparent="true"> <!-- 클릭 이벤트가 StackPane으로 전달되도록 설정 -->
          <toggleGroup>
             <ToggleGroup fx:id="dcGroup" />
          </toggleGroup>
       </RadioButton>
       <Label styleClass="field-label" text="Price after DC" GridPane.columnIndex="1"
-         GridPane.rowIndex="0" />
-      <TextField fx:id="txtPriceAfterDC" styleClass="input-field" GridPane.columnIndex="2"
+         GridPane.rowIndex="0" mouseTransparent="true" />
+      <TextField fx:id="txtPrice" styleClass="input-field" GridPane.columnIndex="2"
          GridPane.rowIndex="0" />
 
+      <!-- 두 번째 행 (Percent) 클릭 레이어 -->
+      <StackPane onMouseClicked="#handlePercentRowClick" style="-fx-cursor: hand;"
+         GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="3" />
+
       <RadioButton fx:id="rbPercent" toggleGroup="$dcGroup" GridPane.columnIndex="0"
+         GridPane.rowIndex="1" mouseTransparent="true" />
+      <Label styleClass="field-label" text="DC By %" GridPane.columnIndex="1"
+         GridPane.rowIndex="1" mouseTransparent="true" />
+      <TextField fx:id="txtPercent" styleClass="input-field" GridPane.columnIndex="2"
          GridPane.rowIndex="1" />
-      <Label styleClass="field-label" text="DC By %" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-      <TextField fx:id="txtDiscountPercent" styleClass="input-field" GridPane.columnIndex="2"
-         GridPane.rowIndex="1" />
+
       <rowConstraints>
-         <RowConstraints />
-         <RowConstraints />
+         <RowConstraints minHeight="45" />
+         <RowConstraints minHeight="45" />
       </rowConstraints>
    </GridPane>
 
+   <!-- 하단 버튼 -->
    <HBox alignment="CENTER" spacing="15">
       <Button onAction="#handleConfirm" styleClass="btn-confirm" text="CONFIRM [F12]" />
       <Button onAction="#handleCancel" styleClass="btn-cancel" text="CANCEL [ESC]" />
