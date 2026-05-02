@@ -56,6 +56,20 @@
    -fx-text-alignment: center;
 }
 
+/* 2. 컬럼 사이의 실선 (세로선) */
+.table-view .table-cell {
+   -fx-border-color: #dddddd;
+   -fx-border-width: 0 0.5 0 0;
+   /* 오른쪽에만 선 생성 */
+}
+
+/* 3. 행 사이의 실선 (가로선) */
+.table-view .table-row-cell {
+   -fx-border-color: #ebebeb;
+   -fx-border-width: 0 0 0.5 0;
+   /* 아래쪽에만 선 생성 */
+}
+
 /* TableView 전체 설정 */
 .pos-table {
    -fx-background-color: #dcdcdc;

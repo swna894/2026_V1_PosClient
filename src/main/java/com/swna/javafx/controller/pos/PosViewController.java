@@ -3,6 +3,7 @@ package com.swna.javafx.controller.pos;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Optional;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,6 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -34,7 +34,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
@@ -44,7 +43,14 @@ import net.rgielen.fxweaver.core.FxControllerAndView;
 import net.rgielen.fxweaver.core.FxWeaver;
 import net.rgielen.fxweaver.core.FxmlView;
 
-@Slf4j // 🔥 Logger 활성화 (SLF4J)
+/**
+ * POS 메인 화면 컨트롤러
+ * 상품 스캔, 장바구니 관리, 결제 등 POS 시스템의 전반적인 기능을 담당합니다.
+ * 
+ * @author POS Team
+ * @version 1.0
+ */
+@Slf4j
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
@@ -52,430 +58,67 @@ import net.rgielen.fxweaver.core.FxmlView;
 public class PosViewController {
 
     // =========================
-    // ViewModel (비즈니스 상태 담당)
+    // Constants
     // =========================
-    private final PosViewModel vm;
-    private final FxWeaver fxWeaver;
+    /** 시간 표시 포맷 (월/일 오전/오후 시:분:초) */
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("MM/dd a HH:mm:ss", Locale.ENGLISH);
+    
+    /** 금액 버튼에서 숫자만 추출하기 위한 정규식 패턴 */
+    private static final String BUTTON_AMOUNT_REGEX = "[^0-9.]";
+    
+    /** 버튼 컬럼의 고정 너비 (픽셀) */
+    private static final int BUTTON_COLUMN_WIDTH = 50;
+    
+    /** 테이블 셀 기본 스타일 (투명 배경, 중앙 정렬) */
+    private static final String STYLE_BASE_CELL = "-fx-background-color: transparent; -fx-alignment: CENTER;";
+    
+    /** 재고 부족 스타일 (빨간색, 굵게) */
+    private static final String STYLE_LOW_STOCK = "-fx-text-fill: red; -fx-font-weight: bold;";
+    
+    /** 정상 재고 스타일 (검정색) */
+    private static final String STYLE_NORMAL_STOCK = "-fx-text-fill: black;";
 
     // =========================
-    // Barcode Scanner Input Engine
+    // Dependencies
     // =========================
+    /** POS 비즈니스 로직 및 상태 관리를 위한 ViewModel */
+    private final PosViewModel viewModel;
+    
+    /** FXML 다이얼로그 로딩을 위한 FxWeaver */
+    private final FxWeaver fxWeaver;
+    
+    /** 바코드 스캐너 입력 처리 엔진 */
     private final BarcodeInputEngine barcodeInputEngine = new BarcodeInputEngine();
 
     // =========================
-    // UI Components
+    // UI Components (Grouped by purpose)
     // =========================
-    @FXML private TableView<PosItem> table;
     
+    // Table and Columns
+    @FXML private TableView<PosItem> table;
     @FXML private TableColumn<PosItem, String> colNo;
     @FXML private TableColumn<PosItem, String> colBarcode;
     @FXML private TableColumn<PosItem, String> colDesc;
     @FXML private TableColumn<PosItem, String> colComment;
-
     @FXML private TableColumn<PosItem, Integer> colQty;
     @FXML private TableColumn<PosItem, Integer> colStock;
     @FXML private TableColumn<PosItem, Double> colPrice;
     @FXML private TableColumn<PosItem, Double> colTotal;
     @FXML private TableColumn<PosItem, Double> colDiscount;
-
     @FXML private TableColumn<PosItem, Void> colDelete;
     @FXML private TableColumn<PosItem, Void> colMinus;
     @FXML private TableColumn<PosItem, Void> colPlus;
     @FXML private TableColumn<PosItem, Void> colDiscountPrice;
     @FXML private TableColumn<PosItem, Void> colChangePrice;
 
+    // Info Labels
     @FXML private Label labelDiscount;
     @FXML private Label labelInfo;
     @FXML private Label labelTime;
     @FXML private Label labelTotalAmount;
     @FXML private Label labelTotalQty;
 
-    private static final DateTimeFormatter FORMATTER =  DateTimeFormatter.ofPattern("MM/dd a HH:mm:ss", Locale.ENGLISH);
-    // =========================
-    // Initialize (View lifecycle)
-    // =========================
-    @FXML
-    public void initialize() {
-
-        log.info("[INIT] PosViewController initialized");
-
-        bindTop();
-        bindTable();
-        setupBarcodeScanner();
-        startClock();
-
-        buttonCart2.setVisible(false);
-        buttonCart2.setManaged(false);
-        
-        buttonCart3.setVisible(false);
-        buttonCart3.setManaged(false);
-    }
-
-    // =========================
-    // Barcode Scanner Setup
-    // =========================
-    private void setupBarcodeScanner() {
-
-        log.info("[SCANNER] initializing BarcodeInputEngine");
-
-        // 1. Scanner callback 등록
-        barcodeInputEngine.setOnBarcode(this::handleBarcode);
-
-        // 2. Scene attach (UI 로딩 이후)
-        table.sceneProperty().addListener((obs, oldScene, scene) -> {
-
-            if (scene != null) {
-
-                log.info("[SCANNER] attaching to scene");
-
-                barcodeInputEngine.attach(scene);
-            }
-        });
-    }
-
-    // =========================
-    // 🔥 Barcode 처리 핵심
-    // =========================
-    private void handleBarcode(String code) {
-
-        log.info("[SCAN] received barcode: {}", code);
-
-        if (code == null || code.isBlank()) {
-            log.warn("[SCAN] ignored empty barcode");
-            return;
-        }
-
-        try {
-            Platform.runLater(() -> {
-
-                log.info("[SCAN] sending to ViewModel: {}", code);
-
-                vm.scan(code);
-
-                log.info("[SCAN] ViewModel scan executed: {}", code);
-            });
-
-        } catch (Exception e) {
-            log.error("[SCAN] unexpected error: {}", code, e);
-        }
-    }
-
-    // =========================
-    // Table Binding
-    // =========================
-    private void bindTable() {
-        table.setEditable(true);
-        table.setItems(vm.getItems());
-
-        // ViewModel의 selectedItem이 변경되면 TableView의 선택 행도 변경됨
-        vm.selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                table.getSelectionModel().select(newVal);
-                table.scrollTo(newVal);
-            } else {
-                table.getSelectionModel().clearSelection();
-            }
-        });
-
-        vm.selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                // 선택 상태 동기화
-                table.getSelectionModel().select(newVal); 
-                // 화면 스크롤 동기화 🔥 이 줄이 있으면 onQuickAmount에 필요 없음
-                table.scrollTo(newVal); 
-            }
-        });
-
-
-        // 반대로 TableView에서 행을 클릭했을 때 ViewModel의 selectedItem도 업데이트
-        table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            vm.selectedItemProperty().set(newVal);
-        });
-        // 1. 번호 컬럼 (기본 중앙 정렬)
-        TableColumnUtil.createNumberColumn(table, colNo, 70);
-
-        // 2. 삭제 버튼 (중앙 정렬)
-        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, 50, event -> {
-                            PosItem target = table.getSelectionModel().getSelectedItem();
-                            vm.removeItem(target); 
-                        });
-
-        // 3. 바코드 (일반적으로 중앙 또는 왼쪽)
-        TableColumnUtil.makeStringColumn(colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, false, TableColumnUtil.CENTER, null);
-
-        // 4. 상품명/설명 (텍스트가 길 수 있으므로 왼쪽 정렬)
-        TableColumnUtil.makeStringColumn(colDesc, PosItem::descriptionProperty, PosItem::setDescription, false, TableColumnUtil.LEFT, null);
-
-        // 5. 마이너스 버튼 (중앙 정렬)
-        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, 50, e -> {
-                            PosItem item = table.getSelectionModel().getSelectedItem();
-                            if (item != null) vm.decreaseQty(item); // ViewModel에서 수량 감소 및 합계 재계산
-        });
-
-        // 6. 수량 (숫자이므로 오른쪽 또는 중앙)
-        TableColumnUtil.makeIntegerColumn(colQty, PosItem::qtyProperty, PosItem::setQty, true, TableColumnUtil.CENTER, null);
-
-        // 7. 플러스 버튼 (중앙 정렬)
-        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, 50, e -> {
-                            PosItem item = table.getSelectionModel().getSelectedItem();
-                            if (item != null) vm.increaseQty(item); // ViewModel에서 수량 증가 및 합계 재계산
-        });
-
-        // 8. 판매 단가 금액 (기호 "$"를 삭제하고 메서드 정의 순서에 맞춤)
-        TableColumnUtil.makeCurrencyColumn(colPrice, PosItem::sellingPriceProperty, false, TableColumnUtil.RIGHT, null);
-
-        // 8-1. 합계 금액
-        TableColumnUtil.makeCurrencyColumn(colTotal, PosItem::finalAmountProperty, false, TableColumnUtil.RIGHT, null);
-
-        // 9. 할인액
-        TableColumnUtil.makeCurrencyColumn(colDiscount, PosItem::discountTotalProperty, false, TableColumnUtil.RIGHT, null);
-
-        // 10. 재고 (숫자이므로 오른쪽 정렬)
-        TableColumnUtil.makeIntegerColumn(colStock, PosItem::stockProperty, PosItem::setStock, false, TableColumnUtil.CENTER, null);
-
-        // 11. 할인 처리 버튼 (중앙 정렬)
-        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, 50, this::onDiscout);
-
-        // 12. 가격 변경 버튼 (중앙 정렬)
-        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, 50, this::onChangePrice);
-
-        // 13. 비고/코멘트 (텍스트이므로 왼쪽 정렬)
-        TableColumnUtil.makeStringColumn(colComment, PosItem::commentProperty, PosItem::setComment, false, TableColumnUtil.LEFT, null);
-        
-        setupStockStyle();
-
-        log.info("[TABLE] binding completed");
-    }
-
-    // =========================
-    // Stock Style
-    // =========================
-    private void setupStockStyle() {
-
-        colStock.setCellFactory(col -> new TableCell<>() {
-
-            @Override
-            protected void updateItem(Integer value, boolean empty) {
-
-                super.updateItem(value, empty);
-
-                if (empty || value == null) {
-                    setText(null);
-                    setStyle("");
-                    return;
-                }
-
-                setText(value.toString());
-
-                // 1. 기본 스타일 (투명 배경 + 중앙 정렬)을 베이스로 선언
-                // TableColumnUtil의 상수를 public으로 열어두셨다면 직접 접근하거나 
-                // 아래처럼 동일하게 정의해서 사용하세요.
-                String baseStyle = "-fx-background-color: transparent; -fx-alignment: CENTER;";
-
-                // 2. 조건에 따라 스타일 추가
-                if (value < 0) {
-                    // 기존 정렬 유지 + 빨간색 + 굵게
-                    setStyle(baseStyle + "-fx-text-fill: red; -fx-font-weight: bold;");
-                } else {
-                    // 기존 정렬 유지 + 기본 글자색
-                    setStyle(baseStyle + "-fx-text-fill: black;");
-                }
-            }
-        });
-    }
-
-
-    // =========================
-    // Top Binding
-    // =========================
-    private void bindTop() {
-        labelTotalAmount.textProperty().bind( vm.totalAmountProperty().asString("Total: %.2f") );
-        labelTotalQty.textProperty().bind( vm.totalQtyProperty().asString("Total Qty: %d"));
-        labelDiscount.textProperty().bind( vm.discountProperty().asString("Discount: %.2f"));
-        labelInfo.textProperty().bind(vm.scanStatusProperty());
-    }
-
-    // =========================
-    // Table Action Event
-    // =========================
-    private void onChangePrice(MouseEvent event) {
-        PosItem selectedItem = table.getSelectionModel().getSelectedItem();
-        if (selectedItem == null) return;
-
-        // FxWeaver를 통해 다이얼로그 로드
-        FxControllerAndView<ItemPriceChangeDialogController, Parent> dialog =
-                fxWeaver.load(ItemPriceChangeDialogController.class);
-
-        dialog.getView().ifPresent(view -> {
-            // 데이터 초기화 및 업데이트 콜백 설정[cite: 2]
-            dialog.getController().initData(
-                selectedItem.getBarcode(), 
-                selectedItem.getSellingPrice(), 
-                newPrice -> {
-                    // ViewModel을 통해 가격 반영[cite: 3]
-                    vm.changeItemPrice(selectedItem, newPrice);
-                    table.refresh();
-                }
-            );
-
-            Stage stage = new Stage();
-            stage.setScene(new Scene(view));
-            stage.initStyle(StageStyle.UNDECORATED); // 테두리 제거 (캡처 이미지 스타일)
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.show();
-        });
-    }
-
-    // PosViewController 내부
-
-    private void onDiscout(MouseEvent event) {
-        PosItem selectedItem = table.getSelectionModel().getSelectedItem();
-        if (selectedItem == null) return;
-
-        // FxWeaver를 통해 다이얼로그 로드
-        FxControllerAndView<ItemDiscountDialogController, Parent> dialog =
-                fxWeaver.load(ItemDiscountDialogController.class);
-
-        // 1. Optional 값 존재 여부를 확인하고 처리
-        dialog.getView().ifPresent(view -> {
-            // 데이터 초기화 및 콜백 등록
-            dialog.getController().initData(selectedItem.getBarcode(), selectedItem.getSellingPrice(), 
-                revisedPrice -> {
-                    vm.discountItemPrice(selectedItem, revisedPrice);
-                    table.refresh();
-                });
-
-            Stage stage = new Stage();
-            stage.setScene(new Scene(view));
-
-            // 2. OS 기본 헤더(Title Bar) 제거
-            stage.initStyle(javafx.stage.StageStyle.UNDECORATED); 
-            
-            // 모달 설정 및 출력[cite: 1]
-            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-            stage.show();
-        });
-    }
-
-    // =========================
-    // Add / Remove
-    // =========================
-    @FXML
-    private void onQuickAmount(ActionEvent e) {
-        try {
-            Button button = (Button) e.getSource();
-            String text = button.getText();
-            String amountText = text.replaceAll("[^0-9.]", ""); 
-            
-            if (!amountText.isEmpty()) {
-                double amount = Double.parseDouble(amountText);
-                
-                // 1. ViewModel 로직 실행
-                vm.addQuickAmountItem(amount);
-                
-                // 2. ViewModel이 선택한 아이템을 TableView에서도 선택 상태로 만듦
-                // PosItem target = vm.selectedItemProperty().get();
-                // if (target != null) {
-                //     table.getSelectionModel().select(target);
-                    
-                //     // 3. 해당 위치로 스크롤 이동
-                //     table.scrollTo(target);
-                // }
-            }
-        } catch (NumberFormatException ex) {
-            log.error("[QUICK AMOUNT] Failed to parse amount", ex);
-        }
-    }
-
-
-    @FXML
-    private void onClose(MouseEvent  e) {
-
-        log.info("[CLEAR] reset POS state");
-
-        vm.clear();
-        System.exit(0); 
-    }
-
-    // =========================
-    // Payment
-    // =========================
-    @FXML
-    private void onPayment() {
-
-        double total = vm.totalAmountProperty().get();
-
-        try {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setHeaderText("결제");
-            alert.setContentText("총 결제 금액: " + total);
-            alert.showAndWait();
-
-        } catch (Exception e) {
-            log.error("[PAYMENT] failed", e);
-        }
-    }
-    
-    @FXML
-    private void onActionCart(ActionEvent event) {
-        System.out.println("onActionCart");
-    }
-
-    @FXML
-    private void onActionDiscountVolumn(ActionEvent event) {
-        System.out.println("onActionDiscountVolumn");
-    }
-
-    @FXML
-    private void onActionScanner(ActionEvent event) {
-        System.out.println("onActionScanner");
-    }
-
-    @FXML
-    private void onActionCancel(ActionEvent event) {
-        System.out.println("onActionCancel");
-    }
-
-    @FXML
-    private void onActionPrint(ActionEvent event) {
-        System.out.println("onActionPrint");
-    }
-
-    @FXML
-    private void onActionQty(ActionEvent event) {
-        System.out.println("onActionQty");
-    }
-
-    @FXML
-    private void onActionCash(ActionEvent event) {
-        System.out.println("onActionCash");
-    }
-
-    @FXML
-    private void onActionCredit(ActionEvent event) {
-        System.out.println("onActionCredit");
-    }
-
-    @FXML
-    private void onActionCashout(ActionEvent event) {
-        System.out.println("onActionCashout");
-    }
-
-    @FXML
-    private void onActionDrawer(ActionEvent event) {
-        System.out.println("onActionDrawer");
-    }
-
-    @FXML
-    private void onPos(ActionEvent event) {
-        System.out.println("onPos");
-    }
-
-    @FXML
-    private void onPrint(ActionEvent event) {
-        System.out.println("onPrint");
-    }
-
+    // Action Buttons
     @FXML private Button buttonCart1;
     @FXML private Button buttonCart2;
     @FXML private Button buttonCart3;
@@ -488,16 +131,415 @@ public class PosViewController {
     @FXML private Button buttonCredit;
     @FXML private Button buttonCashout;
     @FXML private Button buttonDrawer;
+    
+    // Image Views
     @FXML private ImageView posImageView;
     @FXML private ImageView printImageView;
 
-    private void startClock() {
-        // 1초마다 실행되는 Timeline 생성
-        Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
-            labelTime.setText(LocalDateTime.now().format(FORMATTER));
-        }), new KeyFrame(Duration.seconds(1)));
-
-        clock.setCycleCount(Animation.INDEFINITE); // 무한 반복
-        clock.play(); // 시계 시작
+    // =========================
+    // Initialize (View lifecycle)
+    // =========================
+    
+    /**
+     * FXML 로딩 후 자동 호출되는 초기화 메서드
+     * UI 컴포넌트 초기화, 데이터 바인딩, 바코드 스캐너 설정, 시계 시작 등을 수행합니다.
+     */
+    @FXML
+    public void initialize() {
+        log.info("[INIT] PosViewController initialized");
+        initializeUIComponents();
+        bindTopLabels();
+        setupTableColumns();
+        setupBarcodeScanner();
+        startClock();
+        hideUnusedCartButtons();
     }
+
+    /**
+     * UI 컴포넌트의 초기 상태를 설정합니다.
+     */
+    private void initializeUIComponents() {
+        // 추가 UI 초기화 로직
+    }
+
+    /**
+     * 사용하지 않는 장바구니 버튼(Cart2, Cart3)을 숨깁니다.
+     * setVisible(false)와 setManaged(false)로 공간도 제거합니다.
+     */
+    private void hideUnusedCartButtons() {
+        buttonCart2.setVisible(false);
+        buttonCart2.setManaged(false);
+        buttonCart3.setVisible(false);
+        buttonCart3.setManaged(false);
+    }
+
+    // =========================
+    // Barcode Scanner Setup
+    // =========================
+    
+    /**
+     * 바코드 스캐너 입력 엔진을 설정합니다.
+     * 콜백을 등록하고 Scene이 준비되면 스캐너를 해당 Scene에 연결합니다.
+     */
+    private void setupBarcodeScanner() {
+        log.info("[SCANNER] initializing BarcodeInputEngine");
+        barcodeInputEngine.setOnBarcode(this::handleBarcode);
+        
+        table.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                log.info("[SCANNER] attaching to scene");
+                barcodeInputEngine.attach(newScene);
+            }
+        });
+    }
+
+    /**
+     * 스캐너로부터 전달받은 바코드를 처리합니다.
+     * 
+     * @param code 스캔된 바코드 문자열
+     */
+    private void handleBarcode(String code) {
+        if (code == null || code.isBlank()) {
+            log.warn("[SCAN] ignored empty barcode");
+            return;
+        }
+
+        log.info("[SCAN] received barcode: {}", code);
+        
+        Platform.runLater(() -> {
+            log.info("[SCAN] sending to ViewModel: {}", code);
+            viewModel.scan(code);
+            log.info("[SCAN] ViewModel scan executed: {}", code);
+        });
+    }
+
+    // =========================
+    // Table Setup
+    // =========================
+    
+    /**
+     * 테이블 컬럼 설정의 메인 진입점
+     * 테이블 속성, 컬럼 바인딩, 재고 스타일, 선택 동기화를 설정합니다.
+     */
+    private void setupTableColumns() {
+        configureTableProperties();
+        setupColumnBindings();
+        setupStockCellStyle();
+        setupSelectionSync();
+        log.info("[TABLE] binding completed");
+    }
+
+    /**
+     * 테이블 기본 속성을 설정합니다.
+     * 편집 가능 여부 및 데이터 소스(items)을 바인딩합니다.
+     */
+    private void configureTableProperties() {
+        table.setEditable(true);
+        table.setItems(viewModel.getItems());
+    }
+
+    /**
+     * 각 테이블 컬럼의 속성과 바인딩을 설정합니다.
+     * 번호, 액션 버튼(삭제, 수량 증감, 할인, 가격변경), 데이터 컬럼을 구성합니다.
+     */
+    private void setupColumnBindings() {
+        // Basic columns
+        TableColumnUtil.createNumberColumn(table, colNo, 70);
+        
+        // Action buttons
+        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, BUTTON_COLUMN_WIDTH, 
+            event -> getSelectedItem().ifPresent(viewModel::removeItem));
+        
+        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, BUTTON_COLUMN_WIDTH, 
+            event -> getSelectedItem().ifPresent(viewModel::decreaseQty));
+        
+        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, BUTTON_COLUMN_WIDTH, 
+            event -> getSelectedItem().ifPresent(viewModel::increaseQty));
+        
+        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, BUTTON_COLUMN_WIDTH, 
+            this::onDiscount);
+        
+        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, BUTTON_COLUMN_WIDTH, 
+            this::onChangePrice);
+
+        // Data columns
+        TableColumnUtil.makeStringColumn(colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, false, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeStringColumn(colDesc, PosItem::descriptionProperty, PosItem::setDescription, false, TableColumnUtil.LEFT, null);
+        TableColumnUtil.makeStringColumn(colComment, PosItem::commentProperty, PosItem::setComment, false, TableColumnUtil.LEFT, null);
+        
+        TableColumnUtil.makeIntegerColumn(colQty, PosItem::qtyProperty, PosItem::setQty, true, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeIntegerColumn(colStock, PosItem::stockProperty, PosItem::setStock, false, TableColumnUtil.CENTER, null);
+        
+        TableColumnUtil.makeCurrencyColumn(colPrice, PosItem::sellingPriceProperty, false, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(colTotal, PosItem::finalAmountProperty, false, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(colDiscount, PosItem::discountTotalProperty, false, TableColumnUtil.RIGHT, null);
+    }
+
+    /**
+     * ViewModel과 TableView 간 선택 항목 동기화를 설정합니다.
+     * 양방향 바인딩으로 테이블 선택과 ViewModel의 selectedItem을 일치시킵니다.
+     */
+    private void setupSelectionSync() {
+        // ViewModel -> TableView 동기화
+        viewModel.selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                table.getSelectionModel().select(newVal);
+                table.scrollTo(newVal);
+            } else {
+                table.getSelectionModel().clearSelection();
+            }
+        });
+
+        // TableView -> ViewModel 동기화
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            viewModel.selectedItemProperty().set(newVal);
+        });
+    }
+
+    /**
+     * 재고 컬럼의 셀 스타일을 설정합니다.
+     * 재고가 0 미만(부족)일 경우 빨간색 굵게 표시합니다.
+     */
+    private void setupStockCellStyle() {
+        colStock.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(Integer value, boolean empty) {
+                super.updateItem(value, empty);
+                
+                if (empty || value == null) {
+                    setText(null);
+                    setStyle("");
+                    return;
+                }
+                
+                setText(value.toString());
+                setStyle(STYLE_BASE_CELL + (value < 0 ? STYLE_LOW_STOCK : STYLE_NORMAL_STOCK));
+            }
+        });
+    }
+
+    /**
+     * 현재 테이블에서 선택된 항목을 Optional로 반환합니다.
+     * 
+     * @return 선택된 PosItem (없을 경우 Optional.empty)
+     */
+    private Optional<PosItem> getSelectedItem() {
+        return Optional.ofNullable(table.getSelectionModel().getSelectedItem());
+    }
+
+    // =========================
+    // Top Labels Binding
+    // =========================
+    
+    /**
+     * 상단 정보 레이블들을 ViewModel 속성과 바인딩합니다.
+     * 총 금액, 총 수량, 할인액, 스캔 상태 정보를 실시간으로 표시합니다.
+     */
+    private void bindTopLabels() {
+        labelTotalAmount.textProperty().bind(viewModel.totalAmountProperty().asString("Total: %.2f"));
+        labelTotalQty.textProperty().bind(viewModel.totalQtyProperty().asString("Total Qty: %d"));
+        labelDiscount.textProperty().bind(viewModel.discountProperty().asString("Discount: %.2f"));
+        labelInfo.textProperty().bind(viewModel.scanStatusProperty());
+    }
+
+    // =========================
+    // Dialog Handlers
+    // =========================
+    
+    /**
+     * 가격 변경 버튼 클릭 이벤트 핸들러
+     * 선택된 항목의 가격 변경 다이얼로그를 표시합니다.
+     * 
+     * @param event 마우스 클릭 이벤트
+     */
+    private void onChangePrice(MouseEvent event) {
+        getSelectedItem().ifPresent(this::showPriceChangeDialog);
+    }
+
+    /**
+     * 할인 버튼 클릭 이벤트 핸들러
+     * 선택된 항목의 할인 설정 다이얼로그를 표시합니다.
+     * 
+     * @param event 마우스 클릭 이벤트
+     */
+    private void onDiscount(MouseEvent event) {
+        getSelectedItem().ifPresent(this::showDiscountDialog);
+    }
+
+    /**
+     * 가격 변경 다이얼로그를 표시합니다.
+     * 
+     * @param item 가격을 변경할 상품
+     */
+    private void showPriceChangeDialog(PosItem item) {
+        showDialog(ItemPriceChangeDialogController.class, 
+            controller -> controller.initData(item.getBarcode(), item.getSellingPrice(), 
+                newPrice -> {
+                    viewModel.changeItemPrice(item, newPrice);
+                    table.refresh();
+                })
+        );
+    }
+
+    /**
+     * 할인 설정 다이얼로그를 표시합니다.
+     * 
+     * @param item 할인을 적용할 상품
+     */
+    private void showDiscountDialog(PosItem item) {
+        showDialog(ItemDiscountDialogController.class,
+            controller -> controller.initData(item.getBarcode(), item.getSellingPrice(),
+                revisedPrice -> {
+                    viewModel.discountItemPrice(item, revisedPrice);
+                    table.refresh();
+                })
+        );
+    }
+
+    /**
+     * 다이얼로그를 생성하고 표시하는 제네릭 메서드
+     * 
+     * @param <T> 다이얼로그 컨트롤러 타입
+     * @param controllerClass 컨트롤러 클래스
+     * @param initializer 다이얼로그 초기화 콜백
+     */
+    private <T> void showDialog(Class<T> controllerClass, DialogInitializer<T> initializer) {
+        FxControllerAndView<T, Parent> dialog = fxWeaver.load(controllerClass);
+        dialog.getView().ifPresent(view -> {
+            initializer.initialize(dialog.getController());
+            
+            Stage stage = new Stage();
+            stage.setScene(new Scene(view));
+            stage.initStyle(StageStyle.UNDECORATED);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.show();
+        });
+    }
+
+    /**
+     * 다이얼로그 초기화를 위한 함수형 인터페이스
+     * 
+     * @param <T> 다이얼로그 컨트롤러 타입
+     */
+    @FunctionalInterface
+    private interface DialogInitializer<T> {
+        /**
+         * 다이얼로그 컨트롤러를 초기화합니다.
+         * 
+         * @param controller 초기화할 컨트롤러 인스턴스
+         */
+        void initialize(T controller);
+    }
+
+    // =========================
+    // UI Event Handlers
+    // =========================
+    
+    /**
+     * 빠른 금액 버튼 클릭 이벤트 핸들러
+     * 버튼에 표시된 금액을 기준으로 임의의 상품을 장바구니에 추가합니다.
+     * 
+     * @param event 버튼 클릭 이벤트
+     */
+    @FXML
+    private void onQuickAmount(ActionEvent event) {
+        try {
+            Button button = (Button) event.getSource();
+            String amountText = button.getText().replaceAll(BUTTON_AMOUNT_REGEX, "");
+            
+            if (!amountText.isEmpty()) {
+                double amount = Double.parseDouble(amountText);
+                viewModel.addQuickAmountItem(amount);
+            }
+        } catch (NumberFormatException ex) {
+            log.error("[QUICK AMOUNT] Failed to parse amount", ex);
+        }
+    }
+
+    /**
+     * POS 종료 및 화면 닫기 이벤트 핸들러
+     * ViewModel 상태 초기화 후 애플리케이션을 종료합니다.
+     * 
+     * @param event 마우스 클릭 이벤트
+     */
+    @FXML
+    private void onClose(MouseEvent event) {
+        log.info("[CLEAR] reset POS state");
+        viewModel.clear();
+        System.exit(0);
+    }
+
+    /**
+     * 결제 버튼 클릭 이벤트 핸들러
+     * 현재 총 결제 금액을 표시하는 알림창을 띄웁니다.
+     */
+    @FXML
+    private void onPayment() {
+        double total = viewModel.totalAmountProperty().get();
+        try {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setHeaderText("결제");
+            alert.setContentText("총 결제 금액: " + String.format("%.2f", total));
+            alert.showAndWait();
+        } catch (Exception e) {
+            log.error("[PAYMENT] failed", e);
+        }
+    }
+
+    // =========================
+    // Utility Methods
+    // =========================
+    
+    /**
+     * 현재 시간을 1초 간격으로 업데이트하여 화면에 표시합니다.
+     * Timeline 애니메이션을 사용하여 주기적으로 시간 문자열을 갱신합니다.
+     */
+    private void startClock() {
+        Timeline clock = new Timeline(
+            new KeyFrame(Duration.ZERO, e -> labelTime.setText(LocalDateTime.now().format(TIME_FORMATTER))),
+            new KeyFrame(Duration.seconds(1))
+        );
+        clock.setCycleCount(Animation.INDEFINITE);
+        clock.play();
+    }
+
+    // =========================
+    // Placeholder Handlers (To be implemented)
+    // =========================
+    
+    /** 장바구니 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onActionCart(ActionEvent event) { log.debug("onActionCart - Not yet implemented"); }
+    
+    /** 볼륨 할인 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onActionDiscountVolumn(ActionEvent event) { log.debug("onActionDiscountVolumn - Not yet implemented"); }
+    
+    /** 스캐너 설정 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onActionScanner(ActionEvent event) { log.debug("onActionScanner - Not yet implemented"); }
+    
+    /** 취소 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onActionCancel(ActionEvent event) { log.debug("onActionCancel - Not yet implemented"); }
+    
+    /** 출력 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onActionPrint(ActionEvent event) { log.debug("onActionPrint - Not yet implemented"); }
+    
+    /** 수량 변경 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onActionQty(ActionEvent event) { log.debug("onActionQty - Not yet implemented"); }
+    
+    /** 현금 결제 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onActionCash(ActionEvent event) { log.debug("onActionCash - Not yet implemented"); }
+    
+    /** 카드 결제 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onActionCredit(ActionEvent event) { log.debug("onActionCredit - Not yet implemented"); }
+    
+    /** 현금 인출 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onActionCashout(ActionEvent event) { log.debug("onActionCashout - Not yet implemented"); }
+    
+    /** 서랍 열기 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onActionDrawer(ActionEvent event) { log.debug("onActionDrawer - Not yet implemented"); }
+    
+    /** POS 설정 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onPos(ActionEvent event) { log.debug("onPos - Not yet implemented"); }
+    
+    /** 출력 설정 버튼 클릭 핸들러 (향후 구현 예정) */
+    @FXML private void onPrint(ActionEvent event) { log.debug("onPrint - Not yet implemented"); }
 }
