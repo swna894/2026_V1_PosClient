@@ -11,35 +11,43 @@ import com.swna.javafx.application.pos.PosService;
 import com.swna.javafx.domain.pos.PosItem;
 
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
-@Log4j2
+
+@Slf4j
 @Component
 @Scope("prototype")
 public class PosViewModel {
 
+    // =========================================================================
+    // 상수 (Constants)
+    // =========================================================================
+    private static final String STATUS_READY = "Scan ready";
+    private static final String STATUS_SCANNING = "Scanning...";
+    private static final String STATUS_SUCCESS = "Scan successful ✓ Code: %s";
+    private static final String STATUS_FAIL_NOT_FOUND = "Item not found ❌"; // 상품 없음 ❌
+    private static final String STATUS_FAIL_ERROR = "Search failed ❌";      // 상품 조회 실패 ❌
+    private static final String STATUS_QUICK_ADD = "Add Quick Item : $%.2f";
+    
+    private static final String MANUAL_BARCODE_PREFIX = "M-";
+    private static final String TIMESTAMP_PATTERN = "MMddHHmm";
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN);
+
+    // =========================================================================
+    // 필드 및 상태 (Fields & Properties)
+    // =========================================================================
     private final PosService posService;
 
-    // =========================
-    // 상태
-    // =========================
-    // 1. [핵심] Extractor 설정: 아이템 내부의 값이 바뀔 때 리스트가 반응하도록 합니다.
+    /** 판매 아이템 리스트 (내부 속성 변경 감지 포함) */
     private final ObservableList<PosItem> items = FXCollections.observableArrayList(item -> 
         new javafx.beans.Observable[] { 
             item.qtyProperty(), 
             item.finalAmountProperty(),
             item.discountTotalProperty(),
-            item.unitDiscountProperty()  // unitDiscount 변경도 감지
+            item.unitDiscountProperty() 
         }
     );
 
@@ -48,22 +56,20 @@ public class PosViewModel {
     private final IntegerProperty totalQty = new SimpleIntegerProperty(0);
 
     private final StringProperty scannedCode = new SimpleStringProperty("");
-    private final StringProperty scanStatus = new SimpleStringProperty("Scan ready");
+    private final StringProperty scanStatus = new SimpleStringProperty(STATUS_READY);
 
     private final ObjectProperty<PosItem> selectedItem = new SimpleObjectProperty<>();
 
-    // =========================
-    // 생성자
-    // =========================
+    // =========================================================================
+    // 생성자 및 초기화 (Constructor & Initialization)
+    // =========================================================================
     public PosViewModel(PosService posService) {
         this.posService = posService;
-        // 2. 바인딩 초기화 호출
         initTotalBinding();
     }
 
     /**
-     * 🔥 [핵심] 수동 recalc() 대신 바인딩 사용
-     * items 리스트에 변화(추가, 삭제, 내부 값 변경)가 생기면 자동으로 계산됩니다.
+     * 리스트 변경에 따른 합계 및 수량 자동 계산 바인딩 설정
      */
     private void initTotalBinding() {
         totalAmount.bind(Bindings.createDoubleBinding(
@@ -76,31 +82,32 @@ public class PosViewModel {
             items
         ));
         
-        // 전체 할인액 합계도 바인딩 가능
         discount.bind(Bindings.createDoubleBinding(
             () -> items.stream().mapToDouble(PosItem::getDiscountTotal).sum(),
             items
         ));
     }
-    
-    // =========================
-    // 🔥 핵심: 비동기 스캔
-    // =========================
-    public void scan(String barcode) {
 
+    // =========================================================================
+    // 핵심 비즈니스 로직 (Core Logic - Scan & Add)
+    // =========================================================================
+    
+    /**
+     * 바코드를 이용한 상품 스캔 (비동기)
+     * @param barcode 스캔된 바코드 문자열
+     */
+    public void scan(String barcode) {
         if (barcode == null || barcode.isBlank()) return;
 
-        scanStatus.set("Scanning...");
+        scanStatus.set(STATUS_SCANNING);
 
         posService.scan(barcode)
                 .subscribe(item -> {
-
                     Optional<PosItem> existing = items.stream()
                             .filter(i -> i.getCode().equals(item.getCode()))
                             .findFirst();
 
                     PosItem target;
-
                     if (existing.isPresent()) {
                         target = existing.get();
                         target.increaseQty();
@@ -112,38 +119,36 @@ public class PosViewModel {
 
                     selectedItem.set(target);
                     scannedCode.set(barcode);
-                    scanStatus.set("Scan successful ✓ Code: " + barcode);
+                    scanStatus.set(String.format(STATUS_SUCCESS, barcode));
 
                 }, error -> {
-                    scanStatus.set("상품 조회 실패 ❌");
+                    scanStatus.set(STATUS_FAIL_ERROR);
                 }, () -> {
                     if (items.isEmpty()) {
-                        scanStatus.set("상품 없음 ❌");
+                        scanStatus.set(STATUS_FAIL_NOT_FOUND);
                     }
                 });
     }
 
+    /**
+     * 금액 기반 퀵 아이템(Open Item) 추가
+     * @param amount 설정할 금액
+     */
     public void addQuickAmountItem(double amount) {
-        // 1. 기존 리스트 확인 (동일 가격의 수동 상품)
         Optional<PosItem> existing = items.stream()
-                .filter(i -> i.getBarcode().startsWith("M-"))
+                .filter(i -> i.getBarcode().startsWith(MANUAL_BARCODE_PREFIX))
                 .filter(i -> i.getSellingPrice() == amount)
                 .findFirst();
 
         PosItem target;
-
         if (existing.isPresent()) {
             target = existing.get();
             target.increaseQty();
         } else {
             target = new PosItem();
+            String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
             
-            // 2. 날짜/시간 포맷 설정 (연월일시분)
-            // 예: 2026년 5월 1일 21시 10분 -> 2605012110
-            String timestamp = LocalDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("MMddHHmm"));
-            
-            target.setBarcode("M-" + timestamp + "-" + amount);
+            target.setBarcode(String.format("%s%s-%.2f", MANUAL_BARCODE_PREFIX, timestamp, amount));
             target.setDescription(String.format("Open Quick Item ($%.2f)", amount));
             target.setSellingPrice(amount);
             target.setOriginalPrice(amount);
@@ -152,77 +157,26 @@ public class PosViewModel {
             items.add(target);
         }
 
-        // [변경 부분] 정렬 로직 적용
         sortItems(target);
-
         selectedItem.set(target);
-        scanStatus.set(String.format("Add Quick Item : $%.2f", amount));
+        scanStatus.set(String.format(STATUS_QUICK_ADD, amount));
     }
 
-    private void sortItems(PosItem topItem) {
-        items.sort((a, b) -> {
-            // 1. 방금 입력/수정된 아이템(topItem)을 최상단으로
-            if (a == topItem) return -1;
-            if (b == topItem) return 1;
+    // =========================================================================
+    // 아이템 편집 로직 (Item Operations - Qty, Price, Discount)
+    // =========================================================================
 
-            // 2. 나머지는 바코드 알파벳 순으로 정렬
-            return a.getBarcode().compareTo(b.getBarcode());
-        });
-    }
-
-    /**
-     * 아이템의 단가를 변경하고 전체 합계를 재계산합니다.
-     * @param item 가격을 변경할 대상 아이템
-     * @param newPrice 다이얼로그로부터 전달받은 새로운 단가
-     */
-    public void discountItemPrice(PosItem item, double newPrice) {
-        if (item == null) return;
-        log.info("[VM] Updating price for item: {} -> {}", item.getBarcode(), newPrice);
-        
-        double originalPrice = item.getSellingPrice(); // 원래 가격 가져오기
-        double priceDifference = originalPrice - newPrice; // 가격 차이 (단가 할인 금액)
-        
-        // 새로운 판매 가격 설정
-        item.setSellingPrice(newPrice);
-        
-        // 단가 기준 할인 설정 (수량과 무관하게 단가 차이를 저장)
-        if (priceDifference > 0) {
-            // 가격이 인하된 경우: 단가 할인으로 설정
-            item.setUnitDiscount(priceDifference);
-        } else if (priceDifference < 0) {
-            // 가격이 인상된 경우: 단가 할인 제거
-            item.setUnitDiscount(0);
-        }
-        log.info("[VM] Price update completed. Unit discount: {}", item.getUnitDiscount());
-    }
-    
-    public void changeItemPrice(PosItem item, double newPrice) {
-        if (item == null) return;
-        log.info("[VM] Updating price for item: {} -> {}", item.getBarcode(), newPrice);
-        
-        // 새로운 판매 가격 설정
-        item.setUnitDiscount(0);
-        item.setSellingPrice(newPrice);
-        
-        log.info("[VM] Price update completed. Unit discount: {}", item.getUnitDiscount());
-    }
-    
-
-    // =========================
-    // 수량
-    // =========================
+    /** 아이템 수량 증가 */
     public void increaseQty(PosItem item) {
         if (item == null) return;
         item.increaseQty();
         selectedItem.set(item);
-        // discountTotal과 finalAmount는 바인딩을 통해 자동 업데이트됨
-        log.info("[VM] Increased qty to {}, unit discount: {}, total discount: {}", 
-                 item.getQty(), item.getUnitDiscount(), item.getDiscountTotal());
+        log.info("[VM] Increased qty: {}", item.getBarcode());
     }
 
+    /** 아이템 수량 감소 (0이 될 경우 리스트에서 제거) */
     public void decreaseQty(PosItem item) {
         if (item == null) return;
-
         item.decreaseQty();
 
         if (item.getQty() <= 0) {
@@ -231,65 +185,88 @@ public class PosViewModel {
         } else {
             selectedItem.set(item);
         }
-        // discountTotal과 finalAmount는 바인딩을 통해 자동 업데이트됨
-        log.info("[VM] Decreased qty to {}, unit discount: {}, total discount: {}", 
-                 item != null ? item.getQty() : 0, 
-                 item != null ? item.getUnitDiscount() : 0, 
-                 item != null ? item.getDiscountTotal() : 0);
+        log.info("[VM] Decreased qty: {}", item.getBarcode());
     }
 
+    /** 아이템 수동 제거 */
     public void removeItem(PosItem item) {
         if (item != null) {
             items.remove(item);
-            // 필요 시 여기서 전체 합계(totalAmount) 등을 다시 계산하는 로직 수행
         }
     }
 
-    // =========================
-    // 할인
-    // =========================
-    public void applyDiscountPercent(double percent) {
-        PosItem item = selectedItem.get();
+    /** 단가 변경 (할인 차액 기록 포함) */
+    public void discountItemPrice(PosItem item, double newPrice) {
         if (item == null) return;
-        item.applyDiscount(percent, 0);
-    }
-
-    public void applyDiscountAmount(double amount) {
-        PosItem item = selectedItem.get();
-        if (item == null) return;
-        item.applyDiscount(0, amount);
+        
+        double originalPrice = item.getSellingPrice();
+        double priceDifference = originalPrice - newPrice;
+        
+        item.setSellingPrice(newPrice);
+        
+        if (priceDifference > 0) {
+            item.setUnitDiscount(priceDifference);
+        } else {
+            item.setUnitDiscount(0);
+        }
+        log.info("[VM] Price discounted: {} -> {}", originalPrice, newPrice);
     }
     
-    /**
-     * 단가 기준 할인 적용 (개당 할인)
-     */
-    public void applyUnitDiscount(double unitDiscountAmount) {
-        PosItem item = selectedItem.get();
+    /** 아이템 가격 직접 수정 (할인 초기화) */
+    public void changeItemPrice(PosItem item, double newPrice) {
         if (item == null) return;
-        item.applyUnitDiscount(unitDiscountAmount);
+        item.setUnitDiscount(0);
+        item.setSellingPrice(newPrice);
+        log.info("[VM] Price changed: {}", newPrice);
     }
 
-    // =========================
-    // 초기화
-    // =========================
+    /** 퍼센트 할인 적용 */
+    public void applyDiscountPercent(double percent) {
+        PosItem item = selectedItem.get();
+        if (item != null) item.applyDiscount(percent, 0);
+    }
+
+    /** 고정 금액 할인 적용 */
+    public void applyDiscountAmount(double amount) {
+        PosItem item = selectedItem.get();
+        if (item != null) item.applyDiscount(0, amount);
+    }
+    
+    /** 단가 기준 개별 할인 적용 */
+    public void applyUnitDiscount(double unitDiscountAmount) {
+        PosItem item = selectedItem.get();
+        if (item != null) item.applyUnitDiscount(unitDiscountAmount);
+    }
+
+    // =========================================================================
+    // 유틸리티 및 초기화 (Utility & Clear)
+    // =========================================================================
+
+    /** 리스트 초기화 */
     public void clear() {
         items.clear();
         selectedItem.set(null);
         scannedCode.set("");
-        scanStatus.set("Scan ready");
+        scanStatus.set(STATUS_READY);
     }
 
-    // =========================
-    // Getter
-    // =========================
-    public ObservableList<PosItem> getItems() { return items; }
+    /** 최근 작업 아이템을 최상단으로 정렬 */
+    private void sortItems(PosItem topItem) {
+        items.sort((a, b) -> {
+            if (a == topItem) return -1;
+            if (b == topItem) return 1;
+            return a.getBarcode().compareTo(b.getBarcode());
+        });
+    }
 
+    // =========================================================================
+    // Getter Properties
+    // =========================================================================
+    public ObservableList<PosItem> getItems() { return items; }
     public DoubleProperty totalAmountProperty() { return totalAmount; }
     public DoubleProperty discountProperty() { return discount; }
     public IntegerProperty totalQtyProperty() { return totalQty; }
-
     public StringProperty scannedCodeProperty() { return scannedCode; }
     public StringProperty scanStatusProperty() { return scanStatus; }
-
     public ObjectProperty<PosItem> selectedItemProperty() { return selectedItem; }
 }
