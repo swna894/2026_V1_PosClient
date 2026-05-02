@@ -1,12 +1,12 @@
-package com.swna.javafx.view_ui.order;
+package com.swna.javafx.controller.order;
 
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.common.event.EventBus;
 import com.swna.javafx.common.event.OrderSelectedEvent;
+import com.swna.javafx.controller.base.BaseController;
 import com.swna.javafx.domain.order.OrderItem;
 import com.swna.javafx.navigation.SceneManager;
-import com.swna.javafx.view_ui.base.BaseController;
 import com.swna.javafx.viewmodel.order.OrderItemViewModel;
 
 import javafx.fxml.FXML;

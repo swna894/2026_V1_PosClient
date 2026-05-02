@@ -1,4 +1,4 @@
-package com.swna.javafx.view_ui.pos;
+package com.swna.javafx.controller.pos;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.common.constant.IconPaths;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
+import com.swna.javafx.controller.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.domain.pos.PosItem;
 import com.swna.javafx.infrastructure.scanner.BarcodeInputEngine;
 import com.swna.javafx.viewmodel.pos.PosViewModel;
@@ -21,6 +22,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -29,11 +32,14 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxControllerAndView;
+import net.rgielen.fxweaver.core.FxWeaver;
 import net.rgielen.fxweaver.core.FxmlView;
 
 @Slf4j // 🔥 Logger 활성화 (SLF4J)
@@ -47,6 +53,7 @@ public class PosViewController {
     // ViewModel (비즈니스 상태 담당)
     // =========================
     private final PosViewModel vm;
+    private final FxWeaver fxWeaver;
 
     // =========================
     // Barcode Scanner Input Engine
@@ -225,7 +232,7 @@ public class PosViewController {
         TableColumnUtil.makeIntegerColumn(colStock, PosItem::stockProperty, PosItem::setStock, false, TableColumnUtil.CENTER, null);
 
         // 11. 할인 처리 버튼 (중앙 정렬)
-        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, 50, this::actionEvent);
+        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, 50, this::onDiscout);
 
         // 12. 가격 변경 버튼 (중앙 정렬)
         TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, 50, this::actionEvent);
@@ -290,7 +297,39 @@ public class PosViewController {
     // Table Action Event
     // =========================
     private void actionEvent(MouseEvent event) {
+        System.err.println("[TABLE ACTION] clicked");
         log.debug("[TABLE ACTION] clicked: {}", event.getSource());
+    }
+
+    // PosViewController 내부
+
+    private void onDiscout(MouseEvent event) {
+        PosItem selectedItem = table.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) return;
+
+        // FxWeaver를 통해 다이얼로그 로드
+        FxControllerAndView<ItemDiscountDialogController, Parent> dialog =
+                fxWeaver.load(ItemDiscountDialogController.class);
+
+        // 1. Optional 값 존재 여부를 확인하고 처리
+        dialog.getView().ifPresent(view -> {
+            // 데이터 초기화 및 콜백 등록
+            dialog.getController().initData(selectedItem.getBarcode(), selectedItem.getSellingPrice(), 
+                revisedPrice -> {
+                    vm.updateItemPrice(selectedItem, revisedPrice);
+                    table.refresh();
+                });
+
+            Stage stage = new Stage();
+            stage.setScene(new Scene(view));
+
+            // 2. OS 기본 헤더(Title Bar) 제거
+            stage.initStyle(javafx.stage.StageStyle.UNDECORATED); 
+            
+            // 모달 설정 및 출력[cite: 1]
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            stage.show();
+        });
     }
 
     // =========================

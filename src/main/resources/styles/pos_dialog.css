@@ -1,0 +1,68 @@
+/* 기본 배경: 깊은 청록색 그라데이션 */
+.dialog-container {
+   -fx-background-color: linear-gradient(to bottom, #3a6364, #2c4a4b);
+   -fx-border-color: #ffffff;
+   -fx-border-width: 2;
+   -fx-border-radius: 5;
+   -fx-background-radius: 5;
+}
+
+/* 텍스트 스타일 */
+.title-label {
+   -fx-font-size: 22px;
+   -fx-font-weight: bold;
+   -fx-text-fill: white;
+}
+
+.info-header {
+   -fx-text-fill: #b2cfd0;
+   -fx-font-size: 14px;
+}
+
+.info-value {
+   -fx-text-fill: white;
+   -fx-font-weight: bold;
+   -fx-font-size: 16px;
+}
+
+.field-label {
+   -fx-font-size: 18px;
+   -fx-font-weight: bold;
+   -fx-text-fill: white;
+}
+
+/* 입력 필드: 가독성 강조 */
+.input-field {
+   -fx-background-color: white;
+   -fx-text-fill: #2c4a4b;
+   -fx-font-size: 16px;
+   -fx-font-weight: bold;
+   -fx-alignment: center;
+   -fx-background-radius: 3;
+}
+
+/* 버튼 스타일: 깔끔한 대비 */
+.btn-confirm {
+   -fx-background-color: #ffffff;
+   -fx-text-fill: #2c4a4b;
+   -fx-font-weight: bold;
+   -fx-padding: 10 20;
+   -fx-cursor: hand;
+}
+
+.btn-cancel {
+   -fx-background-color: transparent;
+   -fx-text-fill: #ff9999;
+   -fx-border-color: #ff9999;
+   -fx-font-weight: bold;
+   -fx-padding: 10 20;
+   -fx-cursor: hand;
+}
+
+.btn-confirm:hover {
+   -fx-background-color: #e0e0e0;
+}
+
+.btn-cancel:hover {
+   -fx-background-color: rgba(255, 153, 153, 0.1);
+}

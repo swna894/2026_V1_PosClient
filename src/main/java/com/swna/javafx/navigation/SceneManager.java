@@ -6,7 +6,7 @@ import java.util.Deque;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.view_ui.base.support.DataReceiver;
+import com.swna.javafx.controller.base.support.DataReceiver;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

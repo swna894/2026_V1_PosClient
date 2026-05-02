@@ -18,7 +18,7 @@
 
 <BorderPane prefHeight="565.0" prefWidth="1273.0" styleClass="pos-root"
    stylesheets="@../../styles/pos.css" xmlns="http://javafx.com/javafx/22"
-   xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.view_ui.pos.PosViewController">
+   xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.controller.pos.PosViewController">
 
    <!-- ===================================================== -->
    <!-- TOP -->

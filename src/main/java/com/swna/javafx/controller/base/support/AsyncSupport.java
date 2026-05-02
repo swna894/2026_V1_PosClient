@@ -1,4 +1,4 @@
-package com.swna.javafx.view_ui.base.support;
+package com.swna.javafx.controller.base.support;
 
 import javafx.concurrent.Task;
 

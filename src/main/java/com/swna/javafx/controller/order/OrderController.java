@@ -1,4 +1,4 @@
-package com.swna.javafx.view_ui.order;
+package com.swna.javafx.controller.order;
 
 import java.time.LocalDateTime;
 
@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.common.event.EventBus;
 import com.swna.javafx.common.event.OrderSelectedEvent;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
+import com.swna.javafx.controller.base.BaseController;
 import com.swna.javafx.domain.order.Order;
 import com.swna.javafx.navigation.SceneManager;
-import com.swna.javafx.view_ui.base.BaseController;
 import com.swna.javafx.viewmodel.order.OrderViewModel;
 
 import javafx.fxml.FXML;

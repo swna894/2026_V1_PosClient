@@ -21,7 +21,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @Component
 @Scope("prototype")
 public class PosViewModel {
@@ -167,7 +169,18 @@ public class PosViewModel {
         });
     }
 
-    // =========================
+    /**
+     * 아이템의 단가를 변경하고 전체 합계를 재계산합니다.
+     * @param item 가격을 변경할 대상 아이템
+     * @param newPrice 다이얼로그로부터 전달받은 새로운 단가
+     */
+    public void updateItemPrice(PosItem item, double newPrice) {
+        if (item == null) return;
+        log.info("[VM] Updating price for item: {} -> {}", item.getBarcode(), newPrice);
+        item.setSellingPrice(newPrice); 
+        log.info("[VM] Price update completed. ");
+    }
+        // =========================
     // 수량
     // =========================
     public void increaseQty(PosItem item) {
@@ -220,14 +233,6 @@ public class PosViewModel {
         scannedCode.set("");
         scanStatus.set("Scan ready");
     }
-
-    // =========================
-    // 계산
-    // =========================
-    // private void recalc() {
-    //     totalAmount.set(items.stream().mapToDouble(i -> i.finalAmountProperty().get()).sum() );
-    //     totalQty.set( items.stream() .mapToInt(PosItem::getQty).sum() );
-    // }
 
     // =========================
     // Getter

@@ -1,10 +1,10 @@
-package com.swna.javafx.view_ui.base;
+package com.swna.javafx.controller.base;
 
+import com.swna.javafx.controller.base.support.AlertSupport;
+import com.swna.javafx.controller.base.support.AsyncSupport;
+import com.swna.javafx.controller.base.support.ExceptionSupport;
+import com.swna.javafx.controller.base.support.NavigationSupport;
 import com.swna.javafx.navigation.SceneManager;
-import com.swna.javafx.view_ui.base.support.AlertSupport;
-import com.swna.javafx.view_ui.base.support.AsyncSupport;
-import com.swna.javafx.view_ui.base.support.ExceptionSupport;
-import com.swna.javafx.view_ui.base.support.NavigationSupport;
 
 public abstract class BaseController implements AlertSupport, NavigationSupport, AsyncSupport, ExceptionSupport {
 

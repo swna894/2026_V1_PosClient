@@ -1,13 +1,13 @@
-package com.swna.javafx.view_ui.admin.product;
+package com.swna.javafx.controller.admin.product;
 
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.common.event.AddOrderItemEvent;
 import com.swna.javafx.common.event.EventBus;
 import com.swna.javafx.common.ui.table.TableViewHelper;
+import com.swna.javafx.controller.base.BaseController;
 import com.swna.javafx.domain.admin.product.Product;
 import com.swna.javafx.navigation.SceneManager;
-import com.swna.javafx.view_ui.base.BaseController;
 import com.swna.javafx.viewmodel.product.ProductViewModel;
 
 import javafx.fxml.FXML;

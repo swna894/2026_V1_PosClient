@@ -1,4 +1,4 @@
-package com.swna.javafx.view_ui.login;
+package com.swna.javafx.controller.login;
 
 import org.springframework.stereotype.Component;
 
