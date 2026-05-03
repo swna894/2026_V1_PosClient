@@ -24,14 +24,10 @@ public class PdfLabelGenerator {
 
     private final BarcodeGenerator barcodeGenerator;
 
-    // 설정값: 이 값을 변경하면 바코드 크기와 배치 개수가 자동으로 조절됩니다.
-    private static final int COLS = 4; 
-    private static final int ROWS = 10;
-    private static final String FILE_NAME = "dynamic_labels_optimized.pdf";
+    private static final int COLS = 5; 
+    private static final int ROWS = 13;
+    private static final String FILE_NAME = "barcode_labels.pdf";
 
-    /**
-     * 내부 메서드의 파라미터 폭주를 방지하기 위한 Parameter Object[cite: 10, 11]
-     */
     private record LabelContext(
         Document document,
         ProductLabelDto dto,
@@ -56,16 +52,14 @@ public class PdfLabelGenerator {
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf, PageSize.A4)) {
 
-            // 1. 페이지 가용 영역 계산[cite: 11]
             float margin = 25f; 
             float pageWidth = PageSize.A4.getWidth() - (margin * 2);
             float pageHeight = PageSize.A4.getHeight() - (margin * 2);
 
-            // 2. 단일 라벨의 크기 동적 계산[cite: 11]
             float labelWidth = pageWidth / COLS;
             float labelHeight = pageHeight / ROWS;
 
-            // 3. 라벨 크기에 비례한 구성 요소 수치 결정[cite: 10, 11]
+            // 기본 폰트 크기 계산 (전체 레이아웃의 기준점)
             float fontSize = Math.min(labelHeight * 0.12f, 11f); 
             float barcodeWidth = labelWidth * 0.85f;            
             float barcodeHeight = labelHeight * 0.35f;           
@@ -90,8 +84,6 @@ public class PdfLabelGenerator {
                 );
                 renderLabel(ctx);
             }
-
-            log.info("PDF 생성 완료: {}", finalOutputPath);
         } catch (Exception e) {
             log.error("PDF 생성 오류: {}", e.getMessage());
             throw e;
@@ -99,11 +91,12 @@ public class PdfLabelGenerator {
     }
 
     private void renderLabel(LabelContext ctx) throws Exception {
-        // 1. Y축 시작점 계산[cite: 11]
-        float currentY = ctx.y() + ctx.labelHeight() - ctx.fontSize() - 4;
+        // [수정] 상품명 전용 폰트 크기 (기본값의 85%로 축소)
+        float descFontSize = ctx.fontSize() * 0.85f;
+        float currentY = ctx.y() + ctx.labelHeight() - descFontSize - 4;
 
-        // 2. 동적 글자 수 제한 계산[cite: 11]
-        float avgCharWidth = ctx.fontSize() * 0.65f; 
+        // [수정] 작아진 폰트에 맞춰 글자 수 제한 다시 계산 (더 많은 글자 수용 가능)
+        float avgCharWidth = descFontSize * 0.65f; 
         int dynamicMaxLength = (int) (ctx.labelWidth() / avgCharWidth);
         
         String description = ctx.dto().description();
@@ -111,27 +104,25 @@ public class PdfLabelGenerator {
             description = description.substring(0, Math.max(0, dynamicMaxLength - 1)) + "..";
         }
 
-        // 3. 상품명 출력 (중앙 정렬)
+        // 1. 상품명 (축소된 폰트 적용)[cite: 7, 11]
         ctx.document().add(new Paragraph(description)
-                .setFontSize(ctx.fontSize())
+                .setFontSize(descFontSize)
                 .setMultipliedLeading(1.0f) 
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFixedPosition(ctx.x(), currentY, ctx.labelWidth()));
 
-        // 4. 가격 출력 (상품명 아래)
+        // 2. 가격 (기본 폰트 크기 유지하여 강조)[cite: 7, 11]
         currentY -= (ctx.fontSize() + 2);
-        ctx.document().add(new Paragraph("₩ " + ctx.dto().price())
+        ctx.document().add(new Paragraph("$ " + ctx.dto().price())
                 .setFontSize(ctx.fontSize())
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFixedPosition(ctx.x(), currentY, ctx.labelWidth()));
 
-        // 5. 바코드 이미지 출력 (중앙 정렬 및 간격 조정)[cite: 6, 7, 11]
+        // 3. 바코드 이미지[cite: 6, 7, 11]
         byte[] imageBytes = barcodeGenerator.generate(ctx.dto().barcode());
         Image image = new Image(ImageDataFactory.create(imageBytes));
         
         float imageX = ctx.x() + (ctx.labelWidth() - ctx.barcodeWidth()) / 2;
-        
-        // 가격과 바코드 사이 간격(5f) 추가
         currentY -= (ctx.barcodeHeight() + 5f); 
         
         image.setFixedPosition(imageX, currentY);
@@ -139,11 +130,12 @@ public class PdfLabelGenerator {
         image.setHeight(ctx.barcodeHeight());
         ctx.document().add(image);
 
-        // 6. 바코드 번호 출력 (바코드 아래 간격 추가)
-        // 이미지 하단과 텍스트 사이 여백을 위해 fontSize의 1.2배만큼 간격을 줍니다.
-        currentY -= (ctx.fontSize() * 1.2f); 
+        // 4. 바코드 번호 (이전 요청대로 큼직하게 유지)[cite: 7, 11]
+        float barcodeFontSize = ctx.fontSize() * 0.9f; 
+        currentY -= (barcodeFontSize + 2f); 
+
         ctx.document().add(new Paragraph(ctx.dto().barcode())
-                .setFontSize(ctx.fontSize() * 0.75f) 
+                .setFontSize(barcodeFontSize)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFixedPosition(ctx.x(), currentY, ctx.labelWidth()));
     }
