@@ -13,12 +13,12 @@ import com.swna.javafx.common.ui.table.TableColumnUtil;
 import com.swna.javafx.controller.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.controller.pos.dialog.ItemPriceChangeDialogController;
 import com.swna.javafx.domain.pos.PosItem;
-import com.swna.javafx.infrastructure.scanner.BarcodeInputEngine;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
 import com.swna.javafx.viewmodel.pos.PosViewModel;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -88,9 +88,8 @@ public class PosViewController {
     /** FXML 다이얼로그 로딩을 위한 FxWeaver */
     private final FxWeaver fxWeaver;
     private final SafeBarcodeScanner safeBarcodeScanner;
-    
-    /** 바코드 스캐너 입력 처리 엔진 */
-    private final BarcodeInputEngine barcodeInputEngine = new BarcodeInputEngine();
+
+    private PauseTransition infoTimer;
 
     // =========================
     // UI Components (Grouped by purpose)
@@ -156,10 +155,7 @@ public class PosViewController {
         startClock();
         hideUnusedCartButtons();
 
-        // 모든 버튼의 포커스 점유 방지 기능 호출
-        //disableAllButtonsFocus();
-
-        // 기본 포커스를 테이블로 설정
+        setupInfoTimer();
         table.requestFocus();
     }
 
@@ -191,7 +187,6 @@ public class PosViewController {
      */
     private void setupBarcodeScanner() {
         log.info("[SCANNER] initializing BarcodeInputEngine");
-        
         
         Platform.runLater(() -> {
             Scene scene = table.getScene();
@@ -484,25 +479,25 @@ public class PosViewController {
     // =========================
     // Utility Methods
     // =========================
-    /**
-     * 화면 내의 모든 버튼이 포커스를 받지 않도록 설정합니다.
-     * 이를 통해 바코드 스캔 후 들어오는 'Enter' 신호가 버튼을 재실행하는 것을 방지합니다.
-     */
-    private void disableAllButtonsFocus() {
-        Platform.runLater(() -> {
-            if (table.getScene() != null) {
-                // CSS 클래스 ".button"을 가진 모든 노드를 찾아 처리합니다.
-                table.getScene().getRoot().lookupAll(".button").forEach(node -> {
-                    if (node instanceof Button) {
-                        node.setFocusTraversable(false);
-                        log.trace("[UI] Disabled focus for button: {}", ((Button) node).getText());
-                    }
-                });
-            } else {
-                log.warn("[UI] Failed to disable button focus: Scene is null");
-            }
+
+    private void setupInfoTimer() {
+    // 3분(180초) 대기 설정
+        infoTimer = new PauseTransition(Duration.minutes(3));
+        
+        // 시간이 다 되면 실행할 동작
+        infoTimer.setOnFinished(event -> {
+            // ViewModel의 스캔 상태를 빈 값으로 변경 (레이블이 자동으로 비워짐)
+            viewModel.scanStatusProperty().set(""); 
+            log.info("[UI] labelInfo cleared due to inactivity (3 mins)");
         });
-    }
+
+        // labelInfo의 텍스트(ViewModel 속성)가 변경될 때마다 타이머를 리셋
+        viewModel.scanStatusProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.isEmpty()) {
+                infoTimer.playFromStart(); // 텍스트가 들어오면 3분 타이머 다시 시작
+            }
+    });
+}
 
     /**
      * 현재 시간을 1초 간격으로 업데이트하여 화면에 표시합니다.

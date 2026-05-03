@@ -50,7 +50,7 @@
 
             <Region HBox.hgrow="ALWAYS" />
 
-            <Label fx:id="labelInfo" alignment="BOTTOM_RIGHT" prefHeight="135.0" prefWidth="400.0"
+            <Label fx:id="labelInfo" alignment="BOTTOM_RIGHT" prefHeight="135.0" prefWidth="-1.0"
                styleClass="top-label-status" text="Scan Ready">
                <HBox.margin>
                   <Insets bottom="15.0" />

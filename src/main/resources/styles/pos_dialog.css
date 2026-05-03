@@ -144,17 +144,48 @@
    color: white;
 }
 
+.btn {
+   -fx-font-size: 14px;
+   -fx-font-weight: bold;
+   -fx-pref-height: 32px;
+   -fx-background-color:
+      #707070,
+      linear-gradient(#fcfcfc, #f3f3f3),
+      linear-gradient(#f2f2f2 0%, #ebebeb 49%, #dddddd 50%, #cfcfcf 100%);
+   -fx-background-insets: 0, 1, 2;
+   -fx-background-radius: 3, 2, 1;
+}
+
+.btn:hover {
+   -fx-background-color: #6F4CBB;
+   -fx-text-fill: white;
+}
+
+.btn:pressed {
+   -fx-background-color: #2F2B43;
+}
+
+.btn-lg {
+   -fx-pref-width: 180px;
+   -fx-pref-height: 40px;
+   -fx-padding: 3 30 3 30;
+}
+
+
+
 /* 버튼 스타일: 깔끔한 대비 */
 /* 확인 버튼: 골드 포인트 */
 .btn-confirm {
    -fx-background-color: #b2cfd0;
    background-color: #b2cfd0;
    -fx-background-radius: 5;
+   -fx-pref-width: 180px;
 }
 
-.btn-confirm:hover {
-   -fx-background-color: #9abec0;
-   background-color: #9abec0;
+.btn-confirm:hover,
+.btn-cancel:hover {
+   -fx-background-color: #6F4CBB;
+   -fx-text-fill: white;
 }
 
 /* 취소 버튼: 투명한 테두리 스타일 */
@@ -162,9 +193,5 @@
    -fx-background-color: #4a7a7b;
    background-color: #4a7a7b;
    -fx-background-radius: 5;
-}
-
-.btn-cancel:hover {
-   -fx-background-color: #9abec0;
-   background-color: #9abec0;
+   -fx-pref-width: 180px;
 }

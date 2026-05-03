@@ -12,7 +12,9 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.controller.pos.dialog.ItemPriceChangeDialogController">
+<VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css"
+   xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.controller.pos.dialog.ItemPriceChangeDialogController">
 
    <padding>
       <Insets bottom="25" left="30" right="30" top="25" />
@@ -41,14 +43,20 @@
       </columnConstraints>
 
       <!-- Original Price 행 -->
-      <Label alignment="CENTER_RIGHT" prefHeight="27.0" prefWidth="144.0" styleClass="field-label" text="Original Price : " GridPane.columnIndex="0" GridPane.rowIndex="0" />
-      <Label fx:id="lblOriginalPrice" styleClass="info-value" text="0.00" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+      <Label alignment="CENTER_RIGHT" prefHeight="27.0" prefWidth="144.0" styleClass="field-label"
+         text="Original Price : " GridPane.columnIndex="0" GridPane.rowIndex="0" />
+      <Label fx:id="lblOriginalPrice" styleClass="info-value" text="0.00" GridPane.columnIndex="1"
+         GridPane.rowIndex="0" />
 
       <!-- New Price 행 -->
-      <StackPane fx:id="paneNewPrice" onMouseClicked="#handlePriceRowClick" style="-fx-cursor: hand;" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+      <StackPane fx:id="paneNewPrice" onMouseClicked="#handlePriceRowClick"
+         style="-fx-cursor: hand;" GridPane.columnIndex="0" GridPane.columnSpan="2"
+         GridPane.rowIndex="1" />
 
-      <Label mouseTransparent="true" styleClass="field-label" text="New Price : " GridPane.columnIndex="0" GridPane.rowIndex="1" />
-      <TextField fx:id="txtNewPrice" styleClass="text-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+      <Label mouseTransparent="true" styleClass="field-label" text="New Price : "
+         GridPane.columnIndex="0" GridPane.rowIndex="1" />
+      <TextField fx:id="txtNewPrice" styleClass="text-field" GridPane.columnIndex="1"
+         GridPane.rowIndex="1" />
 
       <rowConstraints>
          <RowConstraints minHeight="45" />
