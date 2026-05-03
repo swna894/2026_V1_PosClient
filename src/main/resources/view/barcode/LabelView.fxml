@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+   xmlns:fx="http://javafx.com/fxml"
+   fx:controller="com.swna.javafx.controller.barcode.LabelController">
+
+   <!-- ========================= -->
+   <!-- TOP -->
+   <!-- ========================= -->
+
+   <top>
+
+      <VBox spacing="10">
+
+         <padding>
+            <Insets top="15"
+               right="15"
+               bottom="10"
+               left="15" />
+         </padding>
+
+         <Label text="Barcode Label PDF Generator"
+            style="-fx-font-size: 18px;
+                          -fx-font-weight: bold;" />
+
+         <Label text="A4 65 Labels (5 x 13)"
+            style="-fx-font-size: 12px;" />
+
+      </VBox>
+
+   </top>
+
+   <!-- ========================= -->
+   <!-- CENTER -->
+   <!-- ========================= -->
+
+   <center>
+
+      <VBox spacing="20"
+         alignment="CENTER">
+
+         <padding>
+            <Insets top="20"
+               right="20"
+               bottom="20"
+               left="20" />
+         </padding>
+
+         <!-- 진행 표시 -->
+         <ProgressIndicator fx:id="progressIndicator"
+            prefWidth="80"
+            prefHeight="80"
+            visible="false" />
+
+         <!-- 상태 메시지 -->
+         <Label fx:id="lblStatus"
+            text="Ready"
+            style="-fx-font-size: 14px;
+                          -fx-text-fill: #333333;" />
+
+      </VBox>
+
+   </center>
+
+   <!-- ========================= -->
+   <!-- BOTTOM -->
+   <!-- ========================= -->
+
+   <bottom>
+
+      <HBox spacing="10"
+         alignment="CENTER_RIGHT">
+
+         <padding>
+            <Insets top="10"
+               right="15"
+               bottom="15"
+               left="15" />
+         </padding>
+
+         <!-- 생성 버튼 -->
+         <Button fx:id="btnGenerate"
+            text="Generate PDF"
+            prefWidth="140"
+            prefHeight="40"
+            onAction="#onGenerate"
+            style="-fx-font-size: 14px;" />
+
+         <!-- 취소 버튼 -->
+         <Button fx:id="btnCancel"
+            text="Cancel"
+            prefWidth="100"
+            prefHeight="40"
+            onAction="#onCancel"
+            disable="true"
+            style="-fx-font-size: 14px;" />
+
+      </HBox>
+
+   </bottom>
+
+</BorderPane>
