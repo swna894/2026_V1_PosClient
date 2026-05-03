@@ -1,11 +1,11 @@
-package com.swna.javafx.repository.pos;
+package com.swna.javafx.pos.repository;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.swna.javafx.common.response.ApiResponse;
-import com.swna.javafx.dto.pos.ProductResponse;
+import com.swna.javafx.pos.dto.ProductResponse;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;

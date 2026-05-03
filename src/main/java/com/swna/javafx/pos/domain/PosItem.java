@@ -1,4 +1,4 @@
-package com.swna.javafx.domain.pos;
+package com.swna.javafx.pos.domain;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;

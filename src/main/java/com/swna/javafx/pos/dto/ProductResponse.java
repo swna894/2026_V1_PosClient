@@ -1,4 +1,4 @@
-package com.swna.javafx.dto.pos;
+package com.swna.javafx.pos.dto;
 
 public record ProductResponse(
         String code,

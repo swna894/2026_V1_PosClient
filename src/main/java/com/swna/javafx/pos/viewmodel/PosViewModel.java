@@ -1,4 +1,4 @@
-package com.swna.javafx.viewmodel.pos;
+package com.swna.javafx.pos.viewmodel;
 
 import java.awt.Toolkit;
 
@@ -10,8 +10,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.common.util.SoundManager;
-import com.swna.javafx.domain.pos.PosItem;
-import com.swna.javafx.service.pos.PosService;
+import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.service.PosService;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;

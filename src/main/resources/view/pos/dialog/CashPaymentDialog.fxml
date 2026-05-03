@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css"
+   xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.pos.dialog.CashPaymentDialogController">
+
+   <padding>
+      <Insets bottom="25" left="30" right="30" top="25" />
+   </padding>
+
+   <VBox alignment="CENTER" spacing="10">
+      <Label styleClass="title-label" text="Cash Payment" />
+      <Separator prefWidth="250.0" />
+   </VBox>
+
+   <GridPane hgap="15" vgap="12">
+      <columnConstraints>
+         <ColumnConstraints percentWidth="50" halignment="RIGHT" />
+         <ColumnConstraints percentWidth="50" halignment="LEFT" />
+      </columnConstraints>
+
+      <Label styleClass="field-label" text="Amount : " GridPane.columnIndex="0"
+         GridPane.rowIndex="0" />
+      <Label fx:id="lblAmount" styleClass="info-value" text="\$5.50" GridPane.columnIndex="1"
+         GridPane.rowIndex="0" />
+
+      <Label styleClass="field-label" text="D/C : " GridPane.columnIndex="0" GridPane.rowIndex="1" />
+      <Label fx:id="lblDiscount" styleClass="info-value" text="\$0.00" GridPane.columnIndex="1"
+         GridPane.rowIndex="1" />
+
+      <Label styleClass="field-label" text="Cash paid : " GridPane.columnIndex="0"
+         GridPane.rowIndex="2" />
+      <TextField fx:id="txtCashPaid" prefWidth="120" styleClass="text-field" text="5.5"
+         GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+      <Label styleClass="field-label" text="Balance : " GridPane.columnIndex="0"
+         GridPane.rowIndex="3" />
+      <Label fx:id="lblBalance" styleClass="info-value" text="\$0.00" GridPane.columnIndex="1"
+         GridPane.rowIndex="3" />
+
+      <rowConstraints>
+         <RowConstraints minHeight="40" />
+         <RowConstraints minHeight="40" />
+         <RowConstraints minHeight="50" />
+         <RowConstraints minHeight="40" />
+      </rowConstraints>
+   </GridPane>
+
+   <VBox spacing="10" alignment="CENTER">
+      <Separator prefWidth="250.0" style="-fx-opacity: 0.5;" />
+      <HBox alignment="CENTER" spacing="15">
+         <Button onAction="#handleConfirm" styleClass="btn-confirm" text="CONFIRM" />
+         <Button onAction="#handleCancel" styleClass="btn-cancel" text="CANCEL [ESC]" />
+      </HBox>
+   </VBox>
+</VBox>

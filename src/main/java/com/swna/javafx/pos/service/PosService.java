@@ -1,12 +1,12 @@
-package com.swna.javafx.service.pos;
+package com.swna.javafx.pos.service;
 
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.swna.javafx.domain.pos.PosItem;
-import com.swna.javafx.dto.pos.ProductResponse;
-import com.swna.javafx.repository.pos.ProductRepository;
+import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.dto.ProductResponse;
+import com.swna.javafx.pos.repository.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

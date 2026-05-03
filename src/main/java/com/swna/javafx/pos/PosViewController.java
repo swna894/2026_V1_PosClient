@@ -1,4 +1,4 @@
-package com.swna.javafx.controller.pos;
+package com.swna.javafx.pos;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.common.constant.IconPaths;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
-import com.swna.javafx.controller.pos.dialog.ItemDiscountDialogController;
-import com.swna.javafx.controller.pos.dialog.ItemPriceChangeDialogController;
-import com.swna.javafx.domain.pos.PosItem;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
-import com.swna.javafx.viewmodel.pos.PosViewModel;
+import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
+import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
+import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.viewmodel.PosViewModel;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;

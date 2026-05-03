@@ -1,4 +1,4 @@
-package com.swna.javafx.controller.pos.dialog;
+package com.swna.javafx.pos.dialog;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
