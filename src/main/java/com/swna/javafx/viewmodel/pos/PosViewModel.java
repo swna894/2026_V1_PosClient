@@ -1,5 +1,7 @@
 package com.swna.javafx.viewmodel.pos;
 
+import java.awt.Toolkit;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -8,8 +10,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.application.pos.PosService;
+import com.swna.javafx.common.util.SoundManager;
 import com.swna.javafx.domain.pos.PosItem;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -121,9 +125,8 @@ public class PosViewModel {
                     scannedCode.set(barcode);
                     scanStatus.set(String.format(STATUS_SUCCESS, barcode));
 
-                }, error -> {
-                    scanStatus.set(STATUS_FAIL_ERROR);
-                }, () -> {
+                }, error -> scanStatus.set(STATUS_FAIL_ERROR)
+                , () -> {
                     if (items.isEmpty()) {
                         scanStatus.set(STATUS_FAIL_NOT_FOUND);
                     }
@@ -192,6 +195,7 @@ public class PosViewModel {
     public void removeItem(PosItem item) {
         if (item != null) {
             items.remove(item);
+            Platform.runLater(SoundManager::playError); 
         }
     }
 

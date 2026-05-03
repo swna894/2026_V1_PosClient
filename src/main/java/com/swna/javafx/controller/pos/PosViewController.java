@@ -290,9 +290,9 @@ public class PosViewController {
         });
 
         // TableView -> ViewModel 동기화
-        table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            viewModel.selectedItemProperty().set(newVal);
-        });
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> 
+            viewModel.selectedItemProperty().set(newVal)
+        );
     }
 
     /**

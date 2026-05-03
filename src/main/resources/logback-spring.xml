@@ -17,6 +17,10 @@
       </encoder>
    </appender>
 
+   <!-- logback-spring.xml 의 <configuration> 태그 안에 추가 -->
+   <logger name="javafx.css" level="OFF" />
+   <logger name="com.sun.javafx.css" level="OFF" />
+
    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
       <encoder>
          <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
