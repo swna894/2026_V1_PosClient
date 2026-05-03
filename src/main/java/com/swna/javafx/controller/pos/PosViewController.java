@@ -156,6 +156,10 @@ public class PosViewController {
         startClock();
         hideUnusedCartButtons();
 
+        // 모든 버튼의 포커스 점유 방지 기능 호출
+        //disableAllButtonsFocus();
+
+        // 기본 포커스를 테이블로 설정
         table.requestFocus();
     }
 
@@ -440,6 +444,7 @@ public class PosViewController {
             if (!amountText.isEmpty()) {
                 double amount = Double.parseDouble(amountText);
                 viewModel.addQuickAmountItem(amount);
+                table.requestFocus();
             }
         } catch (NumberFormatException ex) {
             log.error("[QUICK AMOUNT] Failed to parse amount", ex);
@@ -479,7 +484,26 @@ public class PosViewController {
     // =========================
     // Utility Methods
     // =========================
-    
+    /**
+     * 화면 내의 모든 버튼이 포커스를 받지 않도록 설정합니다.
+     * 이를 통해 바코드 스캔 후 들어오는 'Enter' 신호가 버튼을 재실행하는 것을 방지합니다.
+     */
+    private void disableAllButtonsFocus() {
+        Platform.runLater(() -> {
+            if (table.getScene() != null) {
+                // CSS 클래스 ".button"을 가진 모든 노드를 찾아 처리합니다.
+                table.getScene().getRoot().lookupAll(".button").forEach(node -> {
+                    if (node instanceof Button) {
+                        node.setFocusTraversable(false);
+                        log.trace("[UI] Disabled focus for button: {}", ((Button) node).getText());
+                    }
+                });
+            } else {
+                log.warn("[UI] Failed to disable button focus: Scene is null");
+            }
+        });
+    }
+
     /**
      * 현재 시간을 1초 간격으로 업데이트하여 화면에 표시합니다.
      * Timeline 애니메이션을 사용하여 주기적으로 시간 문자열을 갱신합니다.

@@ -36,7 +36,7 @@ public class PosViewModel {
     private static final String STATUS_FAIL_ERROR = "Search failed ❌";      // 상품 조회 실패 ❌
     private static final String STATUS_QUICK_ADD = "Add Quick Item : $%.2f";
     
-    private static final String MANUAL_BARCODE_PREFIX = "M-";
+    private static final String MANUAL_BARCODE_PREFIX = "Q_Item_";
 
 
     // =========================================================================
@@ -92,27 +92,28 @@ public class PosViewModel {
         if (barcode == null || barcode.isBlank()) return;
         
         scanStatus.set(STATUS_SCANNING);
-
         posService.scan(barcode)
-                .subscribe(item -> {
-                    Optional<PosItem> existing = items.stream()
-                            .filter(i -> i.getCode().equals(item.getCode()))
-                            .findFirst();
+        .subscribe(item -> {
+            Platform.runLater(() -> {
+                        Optional<PosItem> existing = items.stream()
+                                .filter(i -> i.getBarcode().equals(item.getBarcode()))
+                                .findFirst();
 
-                    PosItem target;
-                    if (existing.isPresent()) {
-                        target = existing.get();
-                        target.increaseQty();
-                    } else {
-                        item.increaseQty();
-                        items.add(item);
-                        target = item;
-                    }
-
-                    sortItems(target);
-                    selectedItem.set(target);
-                    scannedCode.set(barcode);
-                    scanStatus.set(String.format(STATUS_SUCCESS, barcode));
+                        PosItem target;
+                        if (existing.isPresent()) {
+                            target = existing.get();
+                            target.increaseQty();
+                        } else {
+                            item.increaseQty();
+                            items.add(item);
+                            target = item;
+                        }
+                    
+                        sortItems(target);
+                        selectedItem.set(target);
+                        scannedCode.set(barcode);
+                        scanStatus.set(String.format(STATUS_SUCCESS, barcode));
+                    });
 
                 }, error -> scanStatus.set(STATUS_FAIL_ERROR)
                 , () -> {
