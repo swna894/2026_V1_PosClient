@@ -17,7 +17,7 @@ public class ProductClient {
     public Mono<ProductResponse> findByBarcode(String barcode) {
 
         return webClient.get()
-                .uri("/api/products/barcode/{barcode}", barcode)
+                .uri("/products/barcode/{barcode}", barcode)
                 .retrieve()
                 .bodyToMono(ProductResponse.class);
     }

@@ -38,7 +38,7 @@
 }
 
 .table-center-pos .table-row-cell:hover {
-   -fx-background-color: #ccffee;
+   -fx-background-color: #dddddd;
 }
 
 .table-center-pos .table-row-cell:selected {

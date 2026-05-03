@@ -37,8 +37,7 @@ public class PosViewModel {
     private static final String STATUS_QUICK_ADD = "Add Quick Item : $%.2f";
     
     private static final String MANUAL_BARCODE_PREFIX = "M-";
-    private static final String TIMESTAMP_PATTERN = "MMddHHmm";
-    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN);
+
 
     // =========================================================================
     // 필드 및 상태 (Fields & Properties)
@@ -76,20 +75,9 @@ public class PosViewModel {
      * 리스트 변경에 따른 합계 및 수량 자동 계산 바인딩 설정
      */
     private void initTotalBinding() {
-        totalAmount.bind(Bindings.createDoubleBinding(
-            () -> items.stream().mapToDouble(PosItem::getFinalAmount).sum(),
-            items
-        ));
-
-        totalQty.bind(Bindings.createIntegerBinding(
-            () -> items.stream().mapToInt(PosItem::getQty).sum(),
-            items
-        ));
-        
-        discount.bind(Bindings.createDoubleBinding(
-            () -> items.stream().mapToDouble(PosItem::getDiscountTotal).sum(),
-            items
-        ));
+        totalAmount.bind(Bindings.createDoubleBinding( () -> items.stream().mapToDouble(PosItem::getFinalAmount).sum(), items ));
+        totalQty.bind(Bindings.createIntegerBinding( () -> items.stream().mapToInt(PosItem::getQty).sum(), items));
+        discount.bind(Bindings.createDoubleBinding( () -> items.stream().mapToDouble(PosItem::getDiscountTotal).sum(), items ));
     }
 
     // =========================================================================
@@ -102,7 +90,7 @@ public class PosViewModel {
      */
     public void scan(String barcode) {
         if (barcode == null || barcode.isBlank()) return;
-
+        
         scanStatus.set(STATUS_SCANNING);
 
         posService.scan(barcode)
@@ -121,6 +109,7 @@ public class PosViewModel {
                         target = item;
                     }
 
+                    sortItems(target);
                     selectedItem.set(target);
                     scannedCode.set(barcode);
                     scanStatus.set(String.format(STATUS_SUCCESS, barcode));
@@ -128,7 +117,7 @@ public class PosViewModel {
                 }, error -> scanStatus.set(STATUS_FAIL_ERROR)
                 , () -> {
                     if (items.isEmpty()) {
-                        scanStatus.set(STATUS_FAIL_NOT_FOUND);
+                       Platform.runLater(() -> scanStatus.set(STATUS_FAIL_NOT_FOUND));
                     }
                 });
     }
@@ -148,15 +137,7 @@ public class PosViewModel {
             target = existing.get();
             target.increaseQty();
         } else {
-            target = new PosItem();
-            String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
-            
-            target.setBarcode(String.format("%s%s-%.2f", MANUAL_BARCODE_PREFIX, timestamp, amount));
-            target.setDescription(String.format("Open Quick Item ($%.2f)", amount));
-            target.setSellingPrice(amount);
-            target.setOriginalPrice(amount);
-            target.increaseQty();
-            
+            target = PosItem.createQuickItem(MANUAL_BARCODE_PREFIX, amount);
             items.add(target);
         }
 

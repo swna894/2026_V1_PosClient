@@ -14,6 +14,7 @@ import com.swna.javafx.controller.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.controller.pos.dialog.ItemPriceChangeDialogController;
 import com.swna.javafx.domain.pos.PosItem;
 import com.swna.javafx.infrastructure.scanner.BarcodeInputEngine;
+import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
 import com.swna.javafx.viewmodel.pos.PosViewModel;
 
 import javafx.animation.Animation;
@@ -86,6 +87,7 @@ public class PosViewController {
     
     /** FXML 다이얼로그 로딩을 위한 FxWeaver */
     private final FxWeaver fxWeaver;
+    private final SafeBarcodeScanner safeBarcodeScanner;
     
     /** 바코드 스캐너 입력 처리 엔진 */
     private final BarcodeInputEngine barcodeInputEngine = new BarcodeInputEngine();
@@ -147,13 +149,14 @@ public class PosViewController {
      */
     @FXML
     public void initialize() {
-        log.info("[INIT] PosViewController initialized");
         initializeUIComponents();
         bindTopLabels();
         setupTableColumns();
         setupBarcodeScanner();
         startClock();
         hideUnusedCartButtons();
+
+        table.requestFocus();
     }
 
     /**
@@ -184,12 +187,15 @@ public class PosViewController {
      */
     private void setupBarcodeScanner() {
         log.info("[SCANNER] initializing BarcodeInputEngine");
-        barcodeInputEngine.setOnBarcode(this::handleBarcode);
         
-        table.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene != null) {
-                log.info("[SCANNER] attaching to scene");
-                barcodeInputEngine.attach(newScene);
+        
+        Platform.runLater(() -> {
+            Scene scene = table.getScene();
+            if (scene != null) {
+                safeBarcodeScanner.setScanListener(this::handleBarcode);
+                safeBarcodeScanner.register(scene);
+            } else {
+                log.error("[SCANNER] Scene is still null even in runLater");
             }
         });
     }
@@ -204,14 +210,7 @@ public class PosViewController {
             log.warn("[SCAN] ignored empty barcode");
             return;
         }
-
-        log.info("[SCAN] received barcode: {}", code);
-        
-        Platform.runLater(() -> {
-            log.info("[SCAN] sending to ViewModel: {}", code);
-            viewModel.scan(code);
-            log.info("[SCAN] ViewModel scan executed: {}", code);
-        });
+        Platform.runLater( () -> viewModel.scan(code) );
     }
 
     // =========================
@@ -227,7 +226,6 @@ public class PosViewController {
         setupColumnBindings();
         setupStockCellStyle();
         setupSelectionSync();
-        log.info("[TABLE] binding completed");
     }
 
     /**
@@ -248,20 +246,11 @@ public class PosViewController {
         TableColumnUtil.createNumberColumn(table, colNo, 70);
         
         // Action buttons
-        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, BUTTON_COLUMN_WIDTH, 
-            event -> getSelectedItem().ifPresent(viewModel::removeItem));
-        
-        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, BUTTON_COLUMN_WIDTH, 
-            event -> getSelectedItem().ifPresent(viewModel::decreaseQty));
-        
-        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, BUTTON_COLUMN_WIDTH, 
-            event -> getSelectedItem().ifPresent(viewModel::increaseQty));
-        
-        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, BUTTON_COLUMN_WIDTH, 
-            this::onDiscount);
-        
-        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, BUTTON_COLUMN_WIDTH, 
-            this::onChangePrice);
+        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, BUTTON_COLUMN_WIDTH,  event -> getSelectedItem().ifPresent(viewModel::removeItem));  
+        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, BUTTON_COLUMN_WIDTH,  event -> getSelectedItem().ifPresent(viewModel::decreaseQty));
+        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, BUTTON_COLUMN_WIDTH, event -> getSelectedItem().ifPresent(viewModel::increaseQty));
+        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, BUTTON_COLUMN_WIDTH,  this::onDiscount);
+        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, BUTTON_COLUMN_WIDTH,  this::onChangePrice);
 
         // Data columns
         TableColumnUtil.makeStringColumn(colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, false, TableColumnUtil.CENTER, null);

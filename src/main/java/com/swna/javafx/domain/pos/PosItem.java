@@ -3,6 +3,7 @@ package com.swna.javafx.domain.pos;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * POS 아이템 도메인 클래스
@@ -59,12 +60,32 @@ public class PosItem {
     private final DoubleProperty discountTotal = new SimpleDoubleProperty();
     private final DoubleProperty finalAmount = new SimpleDoubleProperty();
 
+    private static final String TIMESTAMP_PATTERN = "MMddHHmm";
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN);
     // ============================================================
     // 4. 생성자 및 바인딩 설정
     // ============================================================
     public PosItem() {
         initBindings();
         initCommentBinding();
+    }
+
+    /**
+ * Quick/Open Item 생성
+ */
+    public static PosItem createQuickItem(String manualBarcodePrefix, double amount ) {
+        PosItem item = new PosItem();
+        String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
+
+        item.setBarcode( String.format( "%s%s-%.2f", manualBarcodePrefix,timestamp, amount) );
+        item.setDescription( String.format(  "Open Quick Item ($%.2f)",amount) );
+
+        item.setSellingPrice(amount);
+        item.setOriginalPrice(amount);
+        // 최초 수량 1
+        item.increaseQty();
+
+        return item;
     }
 
     /**
@@ -99,8 +120,7 @@ public class PosItem {
 
     /**
      * 단가 할인 정보를 comment에 자동으로 표시하는 바인딩
-     */
-/**
+     *
      * 가격 변경 시 기존 가격과 새 가격을 comment에 자동으로 표시하는 바인딩
      */
     private void initCommentBinding() {

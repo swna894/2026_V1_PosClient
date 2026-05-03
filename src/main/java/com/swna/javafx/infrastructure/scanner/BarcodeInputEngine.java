@@ -28,26 +28,19 @@ public class BarcodeInputEngine {
     }
 
     public void attach(Scene scene) {
-        scene.setOnKeyPressed(this::handleKeyEvent);
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyEvent);
     }
 
     // 🔥 1. 이벤트 분리
     private void handleKeyEvent(KeyEvent e) {
-
         long now = System.currentTimeMillis();
 
-        if (buffer.isEmpty()) {
-            startTime = now;
-        }
-
+        if (buffer.isEmpty()) {  startTime = now;  }
         boolean fast = isFastInput(now);
         lastTime = now;
 
-        if (isEnter(e)) {
-            handleEnter(now, fast);
-        } else {
-            appendInput(e);
-        }
+        if (isEnter(e)) { handleEnter(now, fast);
+        } else { appendInput(e); }
     }
 
     // 🔥 2. Enter 처리 분리
@@ -55,17 +48,9 @@ public class BarcodeInputEngine {
 
         String code = buffer.toString();
         buffer.setLength(0);
-
         long duration = now - startTime;
-
-        if (!isBarcode(code, duration, fast)) {
-            return;
-        }
-
-        if (shouldIgnoreDuplicate(code, now)) {
-            return;
-        }
-
+        if (!isBarcode(code, duration, fast)) { return; }
+        if (shouldIgnoreDuplicate(code, now)) {  return; }
         processBarcode(code, now);
     }
 
@@ -74,9 +59,7 @@ public class BarcodeInputEngine {
         lastCode = code;
         lastProcessedTime = now;
 
-        if (onBarcode != null) {
-            onBarcode.accept(code);
-        }
+        if (onBarcode != null) { onBarcode.accept(code); }
     }
 
     // 🔥 4. 작은 메서드로 분리 (가독성 + complexity 감소)
