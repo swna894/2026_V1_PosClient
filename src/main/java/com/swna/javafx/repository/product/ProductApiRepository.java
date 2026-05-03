@@ -8,17 +8,19 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.swna.javafx.domain.admin.product.PageResult;
 import com.swna.javafx.domain.admin.product.Product;
+import com.swna.javafx.infrastructure.barcode.ProductLabelDto;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 
 @Repository
 @RequiredArgsConstructor
 public class ProductApiRepository {
 
-    private final WebClient client;
+    private final WebClient webClient;
 
     public List<Product> fetchProducts() {
-        return client.get()
+        return webClient.get()
                 .uri("/products")
                 .retrieve()
                 .bodyToFlux(Product.class)
@@ -27,7 +29,7 @@ public class ProductApiRepository {
     }
 
     public PageResult<Product> fetchProducts(String keyword, int page, int size) {
-        return client.get()
+        return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/products")
                         .queryParam("keyword", keyword)
@@ -39,5 +41,10 @@ public class ProductApiRepository {
                 .block();
     }
 
-    
+    public Flux<ProductLabelDto> getAllProductLabels() {
+        return webClient.get()
+                .uri("/products/labels")
+                .retrieve()
+                .bodyToFlux(ProductLabelDto.class);
+    } 
 }

@@ -27,37 +27,23 @@ public class ProductApiClient {
         log.info("REQUEST LABEL DATA");
 
         return webClient.get()
-                .uri("/api/products/labels")
+                .uri("/products/labels")
                 .retrieve()
 
                 // HTTP 에러 처리
                 .onStatus(
                         status -> status.is4xxClientError(),
                         response -> {
-                            log.error(
-                                    "CLIENT ERROR : {}",
-                                    response.statusCode()
-                            );
-                            return Mono.error(
-                                    new RuntimeException(
-                                            "CLIENT ERROR"
-                                    )
-                            );
+                            log.error( "CLIENT ERROR : {}", response.statusCode() );
+                            return Mono.error( new RuntimeException(  "CLIENT ERROR" ) );
                         }
                 )
 
                 .onStatus(
                         status -> status.is5xxServerError(),
                         response -> {
-                            log.error(
-                                    "SERVER ERROR : {}",
-                                    response.statusCode()
-                            );
-                            return Mono.error(
-                                    new RuntimeException(
-                                            "SERVER ERROR"
-                                    )
-                            );
+                            log.error( "SERVER ERROR : {}",  response.statusCode() );
+                            return Mono.error( new RuntimeException(  "SERVER ERROR" )  );
                         }
                 )
 

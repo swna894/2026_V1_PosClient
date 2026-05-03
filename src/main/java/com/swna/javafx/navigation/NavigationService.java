@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.common.store.AuthState;
 import com.swna.javafx.common.store.AuthStore;
+import com.swna.javafx.controller.barcode.LabelController;
 import com.swna.javafx.controller.login.LoginViewController;
 import com.swna.javafx.controller.pos.PosViewController;
 
@@ -89,7 +90,7 @@ public class NavigationService {
 
             newStage.initStyle(StageStyle.DECORATED);
 
-            Parent root = fxWeaver.loadView(PosViewController.class);
+            Parent root = fxWeaver.loadView(LabelController.class);
 
             Scene scene = new Scene(root);
             newStage.setScene(scene);

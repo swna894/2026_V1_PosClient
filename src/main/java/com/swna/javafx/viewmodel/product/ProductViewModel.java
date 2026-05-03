@@ -53,7 +53,6 @@ public class ProductViewModel extends BaseViewModel {
     
  // ================= ERP 핵심: Paging API =================
     public void load() {
-
         runAsync(
             () -> useCase.getProducts(
                     keyword.get(),
@@ -81,7 +80,6 @@ public class ProductViewModel extends BaseViewModel {
     // ================= API 호출 =================
     // ================= 전체 조회 =================
     public void loadProducts() {
-
         runAsync(
             repository::fetchProducts,
             products::setAll

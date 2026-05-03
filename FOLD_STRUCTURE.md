@@ -75,7 +75,7 @@
    │   ├─ FxConfig.java
    │   └─ WebClientConfig.java
 
-   ├─ ui/
+   ├─ controller/
    │   ├─ pos/
    │   │   ├─ PosMainView.fxml
    │   │   ├─ PosMainController.java

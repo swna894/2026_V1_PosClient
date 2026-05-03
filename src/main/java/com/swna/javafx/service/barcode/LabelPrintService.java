@@ -1,16 +1,15 @@
 package com.swna.javafx.service.barcode;
 
-import javafx.application.Platform;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
+import java.time.Duration;
+import java.util.List;
 import org.springframework.stereotype.Service;
-
 import com.swna.javafx.common.util.PdfOpenUtil;
 import com.swna.javafx.infrastructure.barcode.PdfLabelGenerator;
 import com.swna.javafx.infrastructure.barcode.ProductApiClient;
-
+import com.swna.javafx.infrastructure.barcode.ProductLabelDto;
+import javafx.application.Platform;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -22,57 +21,38 @@ public class LabelPrintService {
     private final ProductApiClient apiClient;
     private final PdfLabelGenerator pdfGenerator;
 
-    /**
-     * 65칸 바코드 PDF 생성
-     */
-    public Mono<Void> generateLabels() {
-
-        log.info("LABEL PDF GENERATE START");
-
+    /** UI 리스트용 데이터 가져오기[cite: 5] */
+    public Mono<List<ProductLabelDto>> getLabelDataList() {
         return apiClient.getLabels()
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnSuccess(list -> log.info("Fetched {} labels", list.size()))
+                .doOnError(e -> log.error("Fetch error", e));
+    }
 
-                // timeout
-                .timeout(java.time.Duration.ofSeconds(10))
-                // retry
+    /** PDF 생성 및 자동 열기 프로세스[cite: 5] */
+    public Mono<Void> generateLabels() {
+        return apiClient.getLabels()
+                .timeout(Duration.ofSeconds(10))
                 .retry(2)
-                // IO 작업은 별도 Thread
-                .subscribeOn(  Schedulers.boundedElastic()  )
-                .flatMap(products -> {
-                    return Mono.fromRunnable(() -> {
-                        try {
-                            log.info( "PDF GENERATE START size={}", products.size() );
-                            // PDF 생성
-                            pdfGenerator.generate(products);
-                            log.info("PDF GENERATE COMPLETE" );
-                            // JavaFX UI Thread
-                            Platform.runLater(() -> {
-                                try {
-                                    // PDF 열기
-                                    PdfOpenUtil.open( "labels65.pdf");
-                                    log.info("PDF OPEN COMPLETE" );
-                                } catch (Exception e) {
-                                    log.error(  "PDF OPEN ERROR", e );
-                                }
-                            });
-
-                        } catch (Exception e) {
-                            log.error( "PDF GENERATE ERROR", e );
-                            throw new RuntimeException(e);
-                        }
-                    });
-                })
-
-                // 성공 처리
-                .doOnSuccess(v ->  log.info(  "LABEL PROCESS COMPLETE" ) )
-                // 실패 처리
-                .doOnError(error ->  log.error( "LABEL PROCESS ERROR",  error ) )
-
-                // 실패 이후 fallback
-                .onErrorResume(error -> {
-                    log.warn( "LABEL PROCESS FALLBACK" );
-                    // 앱 종료 방지
-                    return Mono.empty();
-                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(this::processPdfGeneration)
                 .then();
+    }
+
+    private Mono<Void> processPdfGeneration(List<ProductLabelDto> products) {
+        return Mono.fromRunnable(() -> {
+            try {
+                pdfGenerator.generate(products);
+                Platform.runLater(() -> {
+                    try {
+                        PdfOpenUtil.open("labels65.pdf");
+                    } catch (Exception e) {
+                        log.error("File open error", e);
+                    }
+                });
+            } catch (Exception e) {
+                throw new RuntimeException("PDF Generation failed", e);
+            }
+        });
     }
 }

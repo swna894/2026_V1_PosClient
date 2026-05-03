@@ -60,7 +60,6 @@ public class PosViewController {
     // Constants
     // =========================
     /** 시간 표시 포맷 (월/일 오전/오후 시:분:초) */
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("MM/dd a HH:mm:ss", Locale.ENGLISH);
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("a HH:mm:ss", Locale.ENGLISH);
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     

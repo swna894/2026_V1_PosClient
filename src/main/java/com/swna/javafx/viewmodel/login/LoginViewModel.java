@@ -47,6 +47,7 @@ public class LoginViewModel extends BaseViewModel {
         email.addListener((o, a, b) -> clearMessages());
         password.addListener((o, a, b) -> clearMessages());
  
+        // TODO:   배포시 변경 필요
         email.set("admin@gmail.com");
         password.set("1234");
     }

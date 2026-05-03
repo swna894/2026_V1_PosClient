@@ -1,110 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressIndicator?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
    xmlns:fx="http://javafx.com/fxml"
-   fx:controller="com.swna.javafx.controller.barcode.LabelController">
+   fx:controller="com.swna.javafx.controller.barcode.LabelController"
+   prefWidth="800" prefHeight="600">
 
-   <!-- ========================= -->
-   <!-- TOP -->
-   <!-- ========================= -->
-
+   <!-- 상단 타이틀 영역 -->
    <top>
-
       <VBox spacing="10">
-
          <padding>
-            <Insets top="15"
-               right="15"
-               bottom="10"
-               left="15" />
+            <Insets top="15" right="15" bottom="10" left="15" />
          </padding>
-
          <Label text="Barcode Label PDF Generator"
-            style="-fx-font-size: 18px;
-                          -fx-font-weight: bold;" />
-
-         <Label text="A4 65 Labels (5 x 13)"
-            style="-fx-font-size: 12px;" />
-
+            style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+         <Label text="A4 65 Labels (5 x 13)" style="-fx-font-size: 12px;" />
       </VBox>
-
    </top>
 
-   <!-- ========================= -->
-   <!-- CENTER -->
-   <!-- ========================= -->
-
+   <!-- 중앙 영역: 테이블과 미리보기 분할 -->
    <center>
+      <SplitPane dividerPositions="0.6">
+         <items>
+            <!-- 왼쪽: 상품 목록 테이블 -->
+            <VBox spacing="10">
+               <padding>
+                  <Insets top="10" right="10" bottom="10" left="10" />
+               </padding>
+               <!-- [수정 사항] TableColumn에 fx:id를 부여하고 내부 cellValueFactory 삭제 -->
+               <TableView fx:id="productTable" VBox.vgrow="ALWAYS">
+                  <columns>
+                     <TableColumn fx:id="barcodeColumn" text="바코드" prefWidth="150" />
+                     <TableColumn fx:id="descriptionColumn" text="상품명" prefWidth="200" />
+                     <TableColumn fx:id="priceColumn" text="가격" prefWidth="100" />
+                  </columns>
+               </TableView>
+            </VBox>
 
-      <VBox spacing="20"
-         alignment="CENTER">
+            <!-- 오른쪽: 출력 미리보기 (printArea) -->
+            <VBox fx:id="printArea" spacing="20" alignment="CENTER"
+               style="-fx-background-color: white; -fx-border-color: #cccccc;">
+               <padding>
+                  <Insets top="20" right="20" bottom="20" left="20" />
+               </padding>
+               <Label fx:id="previewName" style="-fx-font-size: 16px; -fx-font-weight: bold;"
+                  text="선택된 상품 없음" />
+               <ImageView fx:id="barcodeImageView" fitWidth="200" fitHeight="100"
+                  pickOnBounds="true" preserveRatio="true" />
+               <Label fx:id="previewBarcodeText" style="-fx-font-family: 'Monospaced';"
+                  text="000000000000" />
 
-         <padding>
-            <Insets top="20"
-               right="20"
-               bottom="20"
-               left="20" />
-         </padding>
-
-         <!-- 진행 표시 -->
-         <ProgressIndicator fx:id="progressIndicator"
-            prefWidth="80"
-            prefHeight="80"
-            visible="false" />
-
-         <!-- 상태 메시지 -->
-         <Label fx:id="lblStatus"
-            text="Ready"
-            style="-fx-font-size: 14px;
-                          -fx-text-fill: #333333;" />
-
-      </VBox>
-
+               <ProgressIndicator fx:id="progressIndicator" visible="false" />
+               <Label fx:id="lblStatus" text="Ready" />
+            </VBox>
+         </items>
+      </SplitPane>
    </center>
 
-   <!-- ========================= -->
-   <!-- BOTTOM -->
-   <!-- ========================= -->
-
+   <!-- 하단 버튼 영역 -->
    <bottom>
-
-      <HBox spacing="10"
-         alignment="CENTER_RIGHT">
-
+      <HBox spacing="10" alignment="CENTER_RIGHT">
          <padding>
-            <Insets top="10"
-               right="15"
-               bottom="15"
-               left="15" />
+            <Insets top="10" right="15" bottom="15" left="15" />
          </padding>
-
-         <!-- 생성 버튼 -->
-         <Button fx:id="btnGenerate"
-            text="Generate PDF"
-            prefWidth="140"
+         <Button text="Print" onAction="#handlePrint" prefWidth="100" prefHeight="40" />
+         <Button fx:id="btnGenerate" text="Generate PDF" onAction="#onGenerate" prefWidth="140"
             prefHeight="40"
-            onAction="#onGenerate"
-            style="-fx-font-size: 14px;" />
-
-         <!-- 취소 버튼 -->
-         <Button fx:id="btnCancel"
-            text="Cancel"
-            prefWidth="100"
-            prefHeight="40"
-            onAction="#onCancel"
-            disable="true"
-            style="-fx-font-size: 14px;" />
-
+            style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;" />
+         <Button fx:id="btnCancel" text="Cancel" onAction="#onCancel" prefWidth="100"
+            prefHeight="40" />
       </HBox>
-
    </bottom>
-
 </BorderPane>

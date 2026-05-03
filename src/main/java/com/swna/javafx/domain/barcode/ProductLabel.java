@@ -19,12 +19,12 @@ public class ProductLabel {
     /**
      * 바코드 번호
      */
-    private final String code;
+    private final String barcode;
 
     /**
      * 상품명
      */
-    private final String name;
+    private final String description;
 
     /**
      * 가격
@@ -35,57 +35,45 @@ public class ProductLabel {
      * 생성 시 유효성 검증
      */
     public ProductLabel(
-            String code,
-            String name,
+            String barcode,
+            String description,
             Integer price
     ) {
 
-        validateCode(code);
-        validateName(name);
+        validateCode(barcode);
+        validateName(description);
         validatePrice(price);
 
-        this.code = code;
-        this.name = name;
+        this.barcode = barcode;
+        this.description = description;
         this.price = price;
     }
 
     /**
      * 바코드 검증
      */
-    private void validateCode(String code) {
+    private void validateCode(String barcode) {
 
-        if (code == null || code.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "Barcode code is required"
-            );
+        if (barcode == null || barcode.isBlank()) {
+            throw new IllegalArgumentException(  "Barcode code is required" );
         }
 
-        if (code.length() > 30) {
-
-            throw new IllegalArgumentException(
-                    "Barcode code too long"
-            );
+        if (barcode.length() > 30) {
+            throw new IllegalArgumentException( "Barcode code too long" );
         }
     }
 
     /**
      * 상품명 검증
      */
-    private void validateName(String name) {
+    private void validateName(String description) {
 
-        if (name == null || name.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "Product name is required"
-            );
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException(  "Product name is required" );
         }
 
-        if (name.length() > 100) {
-
-            throw new IllegalArgumentException(
-                    "Product name too long"
-            );
+        if (description.length() > 100) {
+            throw new IllegalArgumentException( "Product name too long"  );
         }
     }
 
@@ -95,35 +83,25 @@ public class ProductLabel {
     private void validatePrice(Integer price) {
 
         if (price == null) {
-
-            throw new IllegalArgumentException(
-                    "Price is required"
-            );
+            throw new IllegalArgumentException( "Price is required"  );
         }
 
         if (price < 0) {
-
-            throw new IllegalArgumentException(
-                    "Price must be positive"
-            );
+            throw new IllegalArgumentException( "Price must be positive" );
         }
     }
 
     /**
      * 표시용 가격 문자열
      */
-    public String displayPrice() {
-
-        return "₩" + String.format("%,d", price);
+    public String displayPrice() { return "$" + String.format("%,d", price);
     }
 
     /**
      * 바코드 표시 가능 여부
      */
     public boolean printable() {
-
-        return code != null
-                && !code.isBlank();
+        return barcode != null && !barcode.isBlank();
     }
 
     /**
@@ -132,20 +110,13 @@ public class ProductLabel {
     @Override
     public boolean equals(Object o) {
 
-        if (this == o) {
-            return true;
-        }
-
-        if (!(o instanceof ProductLabel that)) {
-            return false;
-        }
-
-        return Objects.equals(code, that.code);
+        if (this == o) {  return true;}
+        if (!(o instanceof ProductLabel that)) {return false;}
+        return Objects.equals(barcode, that.barcode);
     }
 
     @Override
     public int hashCode() {
-
-        return Objects.hash(code);
+        return Objects.hash(barcode);
     }
 }
