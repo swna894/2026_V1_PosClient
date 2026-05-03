@@ -1,10 +1,5 @@
 package com.swna.javafx.infrastructure.barcode;
 
-import java.nio.file.Paths;
-import java.util.List;
-
-import org.springframework.stereotype.Component;
-
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -15,9 +10,12 @@ import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.properties.AreaBreakType;
 import com.itextpdf.layout.properties.TextAlignment;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.nio.file.Paths;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -26,93 +24,127 @@ public class PdfLabelGenerator {
 
     private final BarcodeGenerator barcodeGenerator;
 
-    private static final int COLS = 5;
-    private static final int ROWS = 13;
-    private static final int LABELS_PER_PAGE = COLS * ROWS; // 페이지당 최대 개수 (65개)
-    private static final String FILE_NAME = "labels_multi_page.pdf";
-
-    private String getDownloadPath() {
-        String userHome = System.getProperty("user.home");
-        return Paths.get(userHome, "Downloads", FILE_NAME).toString();
-    }
+    // 설정값: 이 값을 변경하면 바코드 크기와 배치 개수가 자동으로 조절됩니다.
+    private static final int COLS = 4; 
+    private static final int ROWS = 10;
+    private static final String FILE_NAME = "dynamic_labels_optimized.pdf";
 
     /**
-     * @param products 출력할 상품 DTO 목록
+     * 내부 메서드의 파라미터 폭주를 방지하기 위한 Parameter Object[cite: 10, 11]
      */
+    private record LabelContext(
+        Document document,
+        ProductLabelDto dto,
+        float x,
+        float y,
+        float labelWidth,
+        float labelHeight,
+        float fontSize,
+        float barcodeWidth,
+        float barcodeHeight
+    ) {}
+
     public void generate(List<ProductLabelDto> products) throws Exception {
         if (products == null || products.isEmpty()) {
-            log.warn("Product list is empty. PDF generation skipped.");
+            log.warn("상품 목록이 비어 있어 PDF 생성을 중단합니다.");
             return;
         }
 
-        String finalOutputPath = getDownloadPath();
+        String finalOutputPath = Paths.get(System.getProperty("user.home"), "Downloads", FILE_NAME).toString();
         
         try (PdfWriter writer = new PdfWriter(finalOutputPath);
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf, PageSize.A4)) {
 
-            float startX = 15;
-            float startY = 800; // 첫 번째 행의 Y 좌표
-            float labelWidth = 110;
-            float labelHeight = 58;
+            // 1. 페이지 가용 영역 계산[cite: 11]
+            float margin = 25f; 
+            float pageWidth = PageSize.A4.getWidth() - (margin * 2);
+            float pageHeight = PageSize.A4.getHeight() - (margin * 2);
+
+            // 2. 단일 라벨의 크기 동적 계산[cite: 11]
+            float labelWidth = pageWidth / COLS;
+            float labelHeight = pageHeight / ROWS;
+
+            // 3. 라벨 크기에 비례한 구성 요소 수치 결정[cite: 10, 11]
+            float fontSize = Math.min(labelHeight * 0.12f, 11f); 
+            float barcodeWidth = labelWidth * 0.85f;            
+            float barcodeHeight = labelHeight * 0.35f;           
+
+            int labelsPerPage = COLS * ROWS;
 
             for (int i = 0; i < products.size(); i++) {
-                // 핵심: 페이지당 개수를 초과하면 새로운 페이지 추가
-                if (i > 0 && i % LABELS_PER_PAGE == 0) {
+                if (i > 0 && i % labelsPerPage == 0) {
                     document.add(new AreaBreak(AreaBreakType.NEXT_PAGE));
                 }
 
-                ProductLabelDto dto = products.get(i);
-                
-                // 현재 페이지 내에서의 위치 계산 (0 ~ 64)
-                int indexInPage = i % LABELS_PER_PAGE;
+                int indexInPage = i % labelsPerPage;
                 int col = indexInPage % COLS;
                 int row = indexInPage / COLS;
 
-                float x = startX + (col * labelWidth);
-                float y = startY - (row * labelHeight);
+                float x = margin + (col * labelWidth);
+                float y = (PageSize.A4.getHeight() - margin) - ((row + 1) * labelHeight);
 
-                renderLabel(document, dto, x, y);
+                LabelContext ctx = new LabelContext(
+                    document, products.get(i), x, y, 
+                    labelWidth, labelHeight, fontSize, barcodeWidth, barcodeHeight
+                );
+                renderLabel(ctx);
             }
 
-            log.info("PDF Multi-page generation completed. Total labels: {}", products.size());
+            log.info("PDF 생성 완료: {}", finalOutputPath);
         } catch (Exception e) {
-            log.error("Critical error during PDF generation: {}", e.getMessage(), e);
+            log.error("PDF 생성 오류: {}", e.getMessage());
             throw e;
         }
     }
 
-    private void renderLabel(Document document, ProductLabelDto dto, float x, float y) throws Exception {
-        float labelWidth = 110;
+    private void renderLabel(LabelContext ctx) throws Exception {
+        // 1. Y축 시작점 계산[cite: 11]
+        float currentY = ctx.y() + ctx.labelHeight() - ctx.fontSize() - 4;
 
-        // 1. 상품명 (중앙 정렬)[cite: 7, 9]
-        document.add(new Paragraph(dto.description())
-                .setFontSize(7)
+        // 2. 동적 글자 수 제한 계산[cite: 11]
+        float avgCharWidth = ctx.fontSize() * 0.65f; 
+        int dynamicMaxLength = (int) (ctx.labelWidth() / avgCharWidth);
+        
+        String description = ctx.dto().description();
+        if (description != null && description.length() > dynamicMaxLength) {
+            description = description.substring(0, Math.max(0, dynamicMaxLength - 1)) + "..";
+        }
+
+        // 3. 상품명 출력 (중앙 정렬)
+        ctx.document().add(new Paragraph(description)
+                .setFontSize(ctx.fontSize())
+                .setMultipliedLeading(1.0f) 
                 .setTextAlignment(TextAlignment.CENTER)
-                .setFixedPosition(x, y, labelWidth));
+                .setFixedPosition(ctx.x(), currentY, ctx.labelWidth()));
 
-        // 2. 가격 (중앙 정렬)[cite: 7, 9]
-        document.add(new Paragraph("$" + dto.price())
-                .setFontSize(7)
+        // 4. 가격 출력 (상품명 아래)
+        currentY -= (ctx.fontSize() + 2);
+        ctx.document().add(new Paragraph("₩ " + ctx.dto().price())
+                .setFontSize(ctx.fontSize())
                 .setTextAlignment(TextAlignment.CENTER)
-                .setFixedPosition(x, y - 8, labelWidth));
+                .setFixedPosition(ctx.x(), currentY, ctx.labelWidth()));
 
-        // 3. 바코드 이미지 (중앙 정렬)[cite: 6, 7]
-        byte[] imageBytes = barcodeGenerator.generate(dto.barcode());
+        // 5. 바코드 이미지 출력 (중앙 정렬 및 간격 조정)[cite: 6, 7, 11]
+        byte[] imageBytes = barcodeGenerator.generate(ctx.dto().barcode());
         Image image = new Image(ImageDataFactory.create(imageBytes));
         
-        float imageWidth = 90;
-        float imageX = x + (labelWidth - imageWidth) / 2; 
+        float imageX = ctx.x() + (ctx.labelWidth() - ctx.barcodeWidth()) / 2;
         
-        image.setFixedPosition(imageX, y - 32);
-        image.setWidth(imageWidth);
-        image.setHeight(20);
-        document.add(image);
+        // 가격과 바코드 사이 간격(5f) 추가
+        currentY -= (ctx.barcodeHeight() + 5f); 
+        
+        image.setFixedPosition(imageX, currentY);
+        image.setWidth(ctx.barcodeWidth());
+        image.setHeight(ctx.barcodeHeight());
+        ctx.document().add(image);
 
-        // 4. 바코드 번호 (중앙 정렬)[cite: 7, 9]
-        document.add(new Paragraph(dto.barcode())
-                .setFontSize(6)
+        // 6. 바코드 번호 출력 (바코드 아래 간격 추가)
+        // 이미지 하단과 텍스트 사이 여백을 위해 fontSize의 1.2배만큼 간격을 줍니다.
+        currentY -= (ctx.fontSize() * 1.2f); 
+        ctx.document().add(new Paragraph(ctx.dto().barcode())
+                .setFontSize(ctx.fontSize() * 0.75f) 
                 .setTextAlignment(TextAlignment.CENTER)
-                .setFixedPosition(x, y - 40, labelWidth));
+                .setFixedPosition(ctx.x(), currentY, ctx.labelWidth()));
     }
 }
