@@ -16,14 +16,18 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="565.0" prefWidth="1273.0" styleClass="root-boardpane" stylesheets="@../../styles/pos_main.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.controller.pos.PosViewController">
+<BorderPane prefHeight="565.0" prefWidth="1273.0" styleClass="root-boardpane"
+   stylesheets="@../../styles/pos_main.css" xmlns="http://javafx.com/javafx/22"
+   xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.controller.pos.PosViewController">
 
    <!-- ===================================================== -->
    <!-- TOP -->
    <!-- ===================================================== -->
 
    <top>
-      <HBox alignment="CENTER_LEFT" prefHeight="95.0" prefWidth="1456.0" spacing="30.0" styleClass="top-panel-hBox" BorderPane.alignment="CENTER">
+      <HBox alignment="CENTER_LEFT" prefHeight="95.0" prefWidth="1456.0" spacing="30.0"
+         styleClass="top-panel-hBox" BorderPane.alignment="CENTER">
          <padding>
             <Insets left="10.0" right="10.0" />
          </padding>
@@ -37,17 +41,21 @@
 
             <VBox alignment="CENTER_LEFT" prefHeight="97.0" prefWidth="286.0">
                <children>
-                  <Label fx:id="labelTotalQty" prefHeight="34.0" prefWidth="287.0" styleClass="top-label-coununt" text="Total Qty: 0" />
-                  <Label fx:id="labelDiscount" prefHeight="29.0" prefWidth="289.0" styleClass="top-label-coununt" text="Discount: 0.00" />
+                  <Label fx:id="labelTotalQty" prefHeight="34.0" prefWidth="287.0"
+                     styleClass="top-label-coununt" text="Total Qty: 0" />
+                  <Label fx:id="labelDiscount" prefHeight="29.0" prefWidth="289.0"
+                     styleClass="top-label-coununt" text="Discount: 0.00" />
                </children>
             </VBox>
 
             <Region HBox.hgrow="ALWAYS" />
 
-            <VBox alignment="CENTER_RIGHT" spacing="8.0">
+            <Label fx:id="labelInfo" prefHeight="21.0" prefWidth="400.0"
+               styleClass="top-label-status" text="Scan Ready" />
+            <VBox alignment="CENTER_RIGHT" spacing="0.0" styleClass="time-container">
                <children>
-                  <Label fx:id="labelInfo" prefHeight="21.0" prefWidth="400.0" styleClass="top-label-status" text="Scan Ready" />
-                  <Label fx:id="labelTime" styleClass="top-label-clock" text="05/02 PM 22:55:00" />
+                  <Label fx:id="labelClockTime" styleClass="top-label-clock-time" text="오전 11:05" />
+                  <Label fx:id="labelClockDate" styleClass="top-label-clock-date" text="2026-05-03" />
                </children>
             </VBox>
 
@@ -61,7 +69,8 @@
 
    <center>
 
-      <TableView fx:id="table" prefHeight="500" styleClass="table-center-pos" BorderPane.alignment="CENTER">
+      <TableView fx:id="table" prefHeight="500" styleClass="table-center-pos"
+         BorderPane.alignment="CENTER">
 
          <columns>
 
@@ -99,64 +108,88 @@
       <GridPane hgap="10" styleClass="right-panel-quick" vgap="10">
 
          <!-- Row 0 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$0.5" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$0.5"
+            GridPane.columnIndex="0" GridPane.rowIndex="0" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$0.7" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$0.7"
+            GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
          <!-- Row 1 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$1.0" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$1.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="1" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$1.2" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$1.2"
+            GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
          <!-- Row 2 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$1.5" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$1.5"
+            GridPane.columnIndex="0" GridPane.rowIndex="2" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$2.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$2.0"
+            GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
          <!-- Row 3 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$2.5" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$2.5"
+            GridPane.columnIndex="0" GridPane.rowIndex="3" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$3.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$3.0"
+            GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
          <!-- Row 4 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$3.5" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$3.5"
+            GridPane.columnIndex="0" GridPane.rowIndex="4" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$4.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$4.0"
+            GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
          <!-- Row 5 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$5.0" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$5.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="5" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$5.5" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$5.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="5" />
 
          <!-- Row 6 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$6.0" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$6.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="6" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$6.5" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$6.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="6" />
 
          <!-- Row 7 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$7.0" GridPane.columnIndex="0" GridPane.rowIndex="7" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$7.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="7" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$7.5" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$7.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="7" />
 
          <!-- Row 8 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$8.0" GridPane.columnIndex="0" GridPane.rowIndex="8" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$8.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="8" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$8.5" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$8.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="8" />
 
          <!-- Row 9 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$9.0" GridPane.columnIndex="0" GridPane.rowIndex="9" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$9.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="9" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$9.5" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$9.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="9" />
 
          <!-- Row 10 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$10.0" GridPane.columnIndex="0" GridPane.rowIndex="10" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$10.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="10" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$10.5" GridPane.columnIndex="1" GridPane.rowIndex="10" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$10.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="10" />
 
          <!-- Row 11 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$11.0" GridPane.columnIndex="0" GridPane.rowIndex="11" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$11.0"
+            GridPane.columnIndex="0" GridPane.rowIndex="11" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$11.5" GridPane.columnIndex="1" GridPane.rowIndex="11" />
+         <Button onAction="#onQuickAmount" styleClass="grid-button" text="\$11.5"
+            GridPane.columnIndex="1" GridPane.rowIndex="11" />
 
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" percentWidth="50" />
@@ -249,7 +282,8 @@
          <!-- DISCOUNT -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonDiscountVolumn" onAction="#onActionDiscountVolumn" styleClass="btn,btn-lg" text="[F5]">
+         <Button fx:id="buttonDiscountVolumn" onAction="#onActionDiscountVolumn"
+            styleClass="btn,btn-lg" text="[F5]">
 
             <graphic>
 
@@ -269,7 +303,8 @@
          <!-- SCANNER -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonScanner" onAction="#onActionScanner" styleClass="btn,btn-lg" text="[F6]">
+         <Button fx:id="buttonScanner" onAction="#onActionScanner" styleClass="btn,btn-lg"
+            text="[F6]">
 
             <tooltip>
                <Tooltip text="Receipt scanning" />
@@ -373,7 +408,8 @@
          <!-- CREDIT -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonCredit" onAction="#onActionCredit" styleClass="btn,btn-lg" text="[F11]">
+         <Button fx:id="buttonCredit" onAction="#onActionCredit" styleClass="btn,btn-lg"
+            text="[F11]">
 
             <graphic>
 
@@ -393,7 +429,8 @@
          <!-- CASHOUT -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonCashout" onAction="#onActionCashout" styleClass="btn,btn-lg" text="[F12]">
+         <Button fx:id="buttonCashout" onAction="#onActionCashout" styleClass="btn,btn-lg"
+            text="[F12]">
 
             <graphic>
 
@@ -413,7 +450,8 @@
          <!-- DRAWER -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonDrawer" onAction="#onActionDrawer" styleClass="btn,btn-lg, button-hidden-cashbox" text="[F1]">
+         <Button fx:id="buttonDrawer" onAction="#onActionDrawer"
+            styleClass="btn,btn-lg, button-hidden-cashbox" text="[F1]">
 
             <graphic>
 
@@ -437,11 +475,13 @@
          <!-- POS STATUS -->
          <!-- ================================================= -->
 
-         <Button mnemonicParsing="false" onAction="#onPos" prefHeight="34" styleClass="btn,btn-lg" text="OFF">
+         <Button mnemonicParsing="false" onAction="#onPos" prefHeight="34" styleClass="btn,btn-lg"
+            text="OFF">
 
             <graphic>
 
-               <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+               <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
+                  preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/20_pos.png" />
@@ -457,11 +497,13 @@
          <!-- PRINT STATUS -->
          <!-- ================================================= -->
 
-         <Button mnemonicParsing="false" onAction="#onPrint" prefHeight="34" styleClass="btn,btn-lg" text="OFF">
+         <Button mnemonicParsing="false" onAction="#onPrint" prefHeight="34" styleClass="btn,btn-lg"
+            text="OFF">
 
             <graphic>
 
-               <ImageView fx:id="printImageView" fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+               <ImageView fx:id="printImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
+                  preserveRatio="true">
 
                   <image>
                      <Image url="@../../images/print_24px.png" />

@@ -32,61 +32,41 @@ public class LabelController {
     /**
      * PDF 생성 버튼
      */
-    @FXML
-    private Button btnGenerate;
+    @FXML private Button btnGenerate;
 
     /**
      * 취소 버튼
      */
-    @FXML
-    private Button btnCancel;
+    @FXML private Button btnCancel;
 
     /**
      * 로딩 표시
      */
-    @FXML
-    private ProgressIndicator progressIndicator;
+    @FXML private ProgressIndicator progressIndicator;
 
     /**
      * 상태 메시지
      */
-    @FXML
-    private Label lblStatus;
+    @FXML private Label lblStatus;
 
     /**
      * 초기화
      */
-    @FXML
-    public void initialize() {
+    @FXML public void initialize() {
 
-        log.info(
-                "LABEL CONTROLLER INITIALIZE"
-        );
+        log.info( "LABEL CONTROLLER INITIALIZE");
 
         // loading 상태 바인딩
-        progressIndicator.visibleProperty()
-                .bind(
-                        viewModel.getLoading()
-                );
+        progressIndicator.visibleProperty().bind( viewModel.getLoading() );
 
         // 생성 버튼 비활성화
-        btnGenerate.disableProperty()
-                .bind(
-                        viewModel.getLoading()
-                );
+        btnGenerate.disableProperty().bind( viewModel.getLoading() );
 
         // 취소 버튼 활성화
-        btnCancel.disableProperty()
-                .bind(
-                        viewModel.getLoading()
-                                .not()
-                );
+        btnCancel.disableProperty().bind( viewModel.getLoading().not() );
 
         // 상태 메시지 바인딩
-        lblStatus.textProperty()
-                .bind(
-                        viewModel.getStatus()
-                );
+        lblStatus.textProperty().bind( viewModel.getStatus() );
     }
 
     /**
@@ -94,11 +74,7 @@ public class LabelController {
      */
     @FXML
     public void onGenerate() {
-
-        log.info(
-                "BUTTON GENERATE CLICK"
-        );
-
+        log.info( "BUTTON GENERATE CLICK" );
         viewModel.generateLabels();
     }
 
@@ -107,11 +83,7 @@ public class LabelController {
      */
     @FXML
     public void onCancel() {
-
-        log.warn(
-                "BUTTON CANCEL CLICK"
-        );
-
+        log.warn( "BUTTON CANCEL CLICK" );
         viewModel.cancel();
     }
 
@@ -119,11 +91,7 @@ public class LabelController {
      * 화면 종료 시 처리
      */
     public void dispose() {
-
-        log.info(
-                "LABEL CONTROLLER DISPOSE"
-        );
-
+        log.info( "LABEL CONTROLLER DISPOSE" );
         viewModel.cancel();
     }
 }

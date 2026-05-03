@@ -61,6 +61,8 @@ public class PosViewController {
     // =========================
     /** 시간 표시 포맷 (월/일 오전/오후 시:분:초) */
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("MM/dd a HH:mm:ss", Locale.ENGLISH);
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("a HH:mm:ss", Locale.ENGLISH);
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
     /** 금액 버튼에서 숫자만 추출하기 위한 정규식 패턴 */
     private static final String BUTTON_AMOUNT_REGEX = "[^0-9.]";
@@ -113,7 +115,8 @@ public class PosViewController {
     // Info Labels
     @FXML private Label labelDiscount;
     @FXML private Label labelInfo;
-    @FXML private Label labelTime;
+    @FXML private Label labelClockTime;
+    @FXML private Label labelClockDate;
     @FXML private Label labelTotalAmount;
     @FXML private Label labelTotalQty;
 
@@ -495,8 +498,14 @@ public class PosViewController {
      */
     private void startClock() {
         Timeline clock = new Timeline(
-            new KeyFrame(Duration.ZERO, e -> labelTime.setText(LocalDateTime.now().format(TIME_FORMATTER))),
-            new KeyFrame(Duration.seconds(1))
+            new KeyFrame(Duration.ZERO, e -> {
+                LocalDateTime now = LocalDateTime.now();
+                
+                // 각각의 레이블에 맞는 포맷으로 텍스트 설정
+                labelClockTime.setText(now.format(TIME_FORMAT));
+                labelClockDate.setText(now.format(DATE_FORMAT));
+            }),
+            new KeyFrame(Duration.seconds(1)) // 1초마다 갱신
         );
         clock.setCycleCount(Animation.INDEFINITE);
         clock.play();

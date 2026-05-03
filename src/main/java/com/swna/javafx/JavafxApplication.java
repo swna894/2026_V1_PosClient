@@ -7,7 +7,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import com.swna.javafx.common.store.AuthState;
 import com.swna.javafx.common.store.AuthStore;
 import com.swna.javafx.common.store.TokenStore;
-import com.swna.javafx.ui.NavigationService;
+import com.swna.javafx.navigation.NavigationService;
 
 import atlantafx.base.theme.PrimerDark;
 import javafx.application.Application;

@@ -1,4 +1,4 @@
-package com.swna.javafx.ui;
+package com.swna.javafx.navigation;
 
 import org.springframework.stereotype.Component;
 

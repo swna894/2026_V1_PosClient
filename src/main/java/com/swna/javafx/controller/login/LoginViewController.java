@@ -2,7 +2,7 @@ package com.swna.javafx.controller.login;
 
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.ui.ViewInfo;
+import com.swna.javafx.navigation.ViewInfo;
 import com.swna.javafx.viewmodel.login.LoginViewModel;
 
 import javafx.event.ActionEvent;

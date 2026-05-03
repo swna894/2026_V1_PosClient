@@ -147,8 +147,20 @@
    -fx-font-style: italic;
 }
 
-.top-label-clock {
+.time-container {
+   /* 두 레이블 사이의 간격을 0으로 만들거나, 
+       이미지처럼 더 붙이고 싶다면 음수(-2px 등)를 사용하세요. */
+   -fx-spacing: 0;
+}
+
+.top-label-clock-time {
    -fx-font-family: "Bookman Old Style";
-   -fx-font-size: 39px;
+   -fx-font-size: 18px;
+   -fx-font-weight: bold;
+}
+
+.top-label-clock-date {
+   -fx-font-family: "Bookman Old Style";
+   -fx-font-size: 13px;
    -fx-font-weight: bold;
 }
