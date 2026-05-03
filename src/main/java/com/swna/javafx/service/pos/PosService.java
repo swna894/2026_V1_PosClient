@@ -1,20 +1,23 @@
-package com.swna.javafx.application.pos;
+package com.swna.javafx.service.pos;
+
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
+
 import com.swna.javafx.domain.pos.PosItem;
 import com.swna.javafx.dto.pos.ProductResponse;
-import com.swna.javafx.infrastructure.pos.ProductClient;
+import com.swna.javafx.repository.pos.ProductRepository;
+
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j; // 추가
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
-import java.time.LocalDateTime;
 
 @Slf4j 
 @Service
 @RequiredArgsConstructor
 public class PosService {
 
-    private final ProductClient productClient;
+    private final ProductRepository productClient;
 
     // =========================
     // Scan (Async)
@@ -27,13 +30,22 @@ public class PosService {
 
         log.debug("Starting product lookup for barcode: {}", barcode);
 
+        // 1. productClient 호출 결과가 ApiResponse<ProductResponse>를 반환하도록 처리
         return productClient.findByBarcode(barcode)
-                .map(response -> {
-                    log.info("Product found: {} ({})", response.description(), barcode);
-                    return toPosItem(response);
+                .flatMap(response -> {
+                    // 2. 응답이 성공(success=true)이고 데이터가 존재하는지 확인
+                    if (response.success() && response.data() != null) {
+                        log.info("Product found: {} ({})", response.data().description(), barcode);
+                        return Mono.just(toPosItem(response.data()));
+                    } else {
+                        // 3. 서버에서 에러 응답을 보냈거나 데이터가 없는 경우 처리
+                        log.warn("Product not found or error response for barcode: {}. Code: {}, Message: {}", 
+                                 barcode, response.code(), response.message());
+                        return Mono.empty();
+                    }
                 })
                 .doOnError(e -> 
-                    log.error("Failed to retrieve product for barcode: {}. Error: {}", barcode, e.getMessage())
+                    log.error("Network or Server error for barcode: {}. Error: {}", barcode, e.getMessage())
                 )
                 .onErrorResume(e -> Mono.empty());
     }
@@ -46,40 +58,36 @@ public class PosService {
         
         PosItem item = new PosItem();
 
-        // Basic Information
+        // Basic Information[cite: 2]
         item.setCode(p.code());
         item.setBarcode(p.barcode());
         item.setDescription(p.description());
 
-        // Pricing logic
+        // Pricing logic[cite: 2]
         double original = safe(p.originalPrice(), p.sellingPrice());
         double selling  = safe(p.sellingPrice(), original);
 
         item.setOriginalPrice(original);
         item.setSellingPrice(selling);
 
-        // Inventory / Quantity
+        // Inventory / Quantity[cite: 2]
         item.setStock(p.stock());
         item.setQty(0); 
 
-        // Initialize discounts
+        // Initialize discounts[cite: 2]
         item.applyDiscount(0, 0);
 
-        // Timestamp
+        // Timestamp[cite: 2]
         item.setUpdated(LocalDateTime.now());
 
         return item;
     }
 
     // =========================
-    // null-safe utility
+    // null-safe utility[cite: 2]
     // =========================
     private double safe(Double value, Double fallback) {
         if (value != null) return value;
-        if (fallback == null) {
-            log.trace("Both value and fallback are null, defaulting to 0.0");
-            return 0.0;
-        }
-        return fallback;
+        return (fallback != null) ? fallback : 0.0;
     }
 }

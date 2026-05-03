@@ -8,7 +8,7 @@ import com.swna.javafx.common.ui.table.TableViewHelper;
 import com.swna.javafx.controller.base.BaseController;
 import com.swna.javafx.domain.admin.product.Product;
 import com.swna.javafx.navigation.SceneManager;
-import com.swna.javafx.viewmodel.product.ProductViewModel;
+import com.swna.javafx.product.viewmodel.ProductViewModel;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;

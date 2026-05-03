@@ -1,4 +1,4 @@
-package com.swna.javafx.repository.product;
+package com.swna.javafx.product.repository;
 
 import java.util.List;
 

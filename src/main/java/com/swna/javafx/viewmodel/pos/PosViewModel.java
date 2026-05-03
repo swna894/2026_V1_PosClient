@@ -9,9 +9,9 @@ import java.util.Optional;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.application.pos.PosService;
 import com.swna.javafx.common.util.SoundManager;
 import com.swna.javafx.domain.pos.PosItem;
+import com.swna.javafx.service.pos.PosService;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -93,8 +93,8 @@ public class PosViewModel {
         
         scanStatus.set(STATUS_SCANNING);
         posService.scan(barcode)
-        .subscribe(item -> {
-            Platform.runLater(() -> {
+                .subscribe(item -> 
+                    Platform.runLater(() -> {
                         Optional<PosItem> existing = items.stream()
                                 .filter(i -> i.getBarcode().equals(item.getBarcode()))
                                 .findFirst();
@@ -113,14 +113,13 @@ public class PosViewModel {
                         selectedItem.set(target);
                         scannedCode.set(barcode);
                         scanStatus.set(String.format(STATUS_SUCCESS, barcode));
-                    });
-
-                }, error -> scanStatus.set(STATUS_FAIL_ERROR)
-                , () -> {
-                    if (items.isEmpty()) {
-                       Platform.runLater(() -> scanStatus.set(STATUS_FAIL_NOT_FOUND));
-                    }
-                });
+                    }), 
+                    error -> scanStatus.set(STATUS_FAIL_ERROR), () ->   {
+                                if (items.isEmpty()) {
+                                    Platform.runLater(() -> scanStatus.set(STATUS_FAIL_NOT_FOUND));
+                                }
+                                                                        }
+                );
     }
 
     /**

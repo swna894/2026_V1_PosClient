@@ -1,4 +1,4 @@
-package com.swna.javafx.dto.product;
+package com.swna.javafx.product.dto;
 
 import lombok.Getter;
 

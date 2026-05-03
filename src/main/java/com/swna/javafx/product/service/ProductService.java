@@ -1,4 +1,4 @@
-package com.swna.javafx.service.product;
+package com.swna.javafx.product.service;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.swna.javafx.domain.admin.product.Product;
 import com.swna.javafx.infrastructure.barcode.ProductLabelDto;
-import com.swna.javafx.repository.product.ProductApiRepository;
+import com.swna.javafx.product.repository.ProductApiRepository;
 
 import lombok.RequiredArgsConstructor;
 

@@ -1,4 +1,4 @@
-package com.swna.javafx.viewmodel.product;
+package com.swna.javafx.product.viewmodel;
 
 import com.swna.javafx.infrastructure.barcode.BarcodeGenerator;
 import com.swna.javafx.infrastructure.barcode.PdfLabelGenerator;

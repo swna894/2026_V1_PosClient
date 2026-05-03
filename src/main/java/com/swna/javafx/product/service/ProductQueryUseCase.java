@@ -1,11 +1,11 @@
-package com.swna.javafx.service.product;
+package com.swna.javafx.product.service;
 
 import org.springframework.stereotype.Service;
 
 import com.swna.javafx.domain.admin.product.PageResult;
 import com.swna.javafx.domain.admin.product.Product;
 import com.swna.javafx.infrastructure.cashe.ProductCache;
-import com.swna.javafx.repository.product.ProductApiRepository;
+import com.swna.javafx.product.repository.ProductApiRepository;
 
 @Service
 public class ProductQueryUseCase {
