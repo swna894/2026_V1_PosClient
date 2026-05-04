@@ -1,5 +1,6 @@
 package com.swna.javafx.pos;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.common.constant.IconPaths;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
+import com.swna.javafx.pos.dialog.CreditDialogController;
+import com.swna.javafx.pos.dialog.CashDialogController;
+import com.swna.javafx.pos.dialog.CashoutDialogController;
 import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
 import com.swna.javafx.pos.domain.PosItem;
@@ -540,14 +544,117 @@ public class PosViewController {
     /** 수량 변경 버튼 클릭 핸들러 (향후 구현 예정) */
     @FXML private void onActionQty(ActionEvent event) { log.debug("onActionQty - Not yet implemented"); }
     
-    /** 현금 결제 버튼 클릭 핸들러 (향후 구현 예정) */
-    @FXML private void onActionCash(ActionEvent event) { log.debug("onActionCash - Not yet implemented"); }
+   /**
+     * 현금 결제 버튼 클릭 핸들러
+     * 현금 결제 다이얼로그를 띄우고, 받은 금액을 입력받아 결제를 처리합니다.
+     */
+    @FXML 
+    private void onActionCash(ActionEvent event) { 
+        log.info("[CASH PAYMENT] Initiating cash payment process");
+
+        // 1. 현재 결제할 총 금액과 할인액 가져오기
+        BigDecimal totalAmount = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
+        BigDecimal discountAmount = BigDecimal.valueOf(viewModel.discountProperty().get());
+
+        // 장바구니가 비어있는지 확인
+        if (totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            viewModel.scanStatusProperty().set("No items to pay.");
+            return;
+        }
+
+        // 2. 현금 결제 다이얼로그 표시
+        showDialog(CashDialogController.class, controller ->
+            // 다이얼로그 초기화 및 콜백 등록
+            controller.initData(totalAmount, discountAmount, receivedCash -> {
+                // [CALLBACK] 사용자가 'CONFIRM'을 눌렀을 때 실행될 로직
+                System.err.println("Received Cash: " + receivedCash);
+                log.info("[CASH PAYMENT] Received Cash: {}, Total: {}", receivedCash, totalAmount);
+                
+                // 서버 송부 및 비즈니스 로직 수행 (ViewModel에 위임)
+                boolean success = viewModel.processCashPayment(receivedCash);
+                
+                if (success) {
+                    viewModel.scanStatusProperty().set("Payment Successful. Change: " + receivedCash.subtract(totalAmount));
+                    table.refresh(); // 필요시 테이블 갱신
+                } else {
+                    viewModel.scanStatusProperty().set("Payment Failed. Please try again.");
+                }
+            })
+        );
+    }
     
     /** 카드 결제 버튼 클릭 핸들러 (향후 구현 예정) */
-    @FXML private void onActionCredit(ActionEvent event) { log.debug("onActionCredit - Not yet implemented"); }
+   @FXML
+    private void onActionCredit(ActionEvent event) {
+        log.info("[CREDIT+CASH] Initiating mixed payment process");
+
+        // 1. 현재 결제할 총 금액과 할인액 가져오기
+        BigDecimal totalAmount = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
+        BigDecimal discountAmount = BigDecimal.valueOf(viewModel.discountProperty().get());
+
+        if (totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            viewModel.scanStatusProperty().set("No items to pay.");
+            return;
+        }
+
+        // 2. 다이얼로그 표시 (CardDialogController 호출)
+        showDialog(CreditDialogController.class, controller -> 
+            controller.initData(totalAmount, discountAmount, (cashPart, creditPart) -> {
+                // [CALLBACK] CONFIRM 클릭 시 실행
+                log.info("[MIXED PAYMENT] Cash: {}, Credit: {}", cashPart, creditPart);
+
+                // ViewModel을 통한 복합 결제 로직 수행
+                boolean success = viewModel.processMixedPayment(cashPart, creditPart);
+
+                if (success) {
+                    viewModel.scanStatusProperty().set(
+                        String.format("Mixed Payment Success. Cash: $%.2f, Credit: $%.2f", cashPart, creditPart)
+                    );
+                    table.refresh();
+                } else {
+                    viewModel.scanStatusProperty().set("Payment Failed. Please try again.");
+                }
+            })
+        );
+    }
     
     /** 현금 인출 버튼 클릭 핸들러 (향후 구현 예정) */
-    @FXML private void onActionCashout(ActionEvent event) { log.debug("onActionCashout - Not yet implemented"); }
+   @FXML
+    private void onActionCashout(ActionEvent event) {
+        log.info("[CASHOUT PAYMENT] Initiating credit + cashout process");
+
+        // 1. 현재 결제할 총 금액과 할인액 가져오기 (BigDecimal 정밀도 유지)
+        BigDecimal totalAmount = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
+        BigDecimal discountAmount = BigDecimal.valueOf(viewModel.discountProperty().get());
+
+        // 장바구니가 비어있는지 확인
+        if (totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            viewModel.scanStatusProperty().set("No items to pay for cashout.");
+            return;
+        }
+
+        // 2. Credit + Cashout 다이얼로그 표시 (공통 showDialog 메서드 활용)
+        showDialog(CashoutDialogController.class, controller -> 
+            // 다이얼로그 초기화 및 콜백 등록
+            controller.initData(totalAmount, discountAmount, (cashoutAmount, totalCredit) -> {
+                // [CALLBACK] 사용자가 'CONFIRM'을 눌렀을 때 실행될 로직
+                log.info("[CASHOUT PAYMENT] Cashout: {}, Total EFTPOS: {}", cashoutAmount, totalCredit);
+
+                // 서버 송부 및 비즈니스 로직 수행 (ViewModel에 위임)
+                // ViewModel에 processCashoutPayment(cashout, totalCredit) 메서드가 있다고 가정
+                boolean success = viewModel.processCashoutPayment(cashoutAmount, totalCredit);
+
+                if (success) {
+                    viewModel.scanStatusProperty().set(
+                        String.format("Cashout Success. EFTPOS: $%.2f, Cashout: $%.2f", totalCredit, cashoutAmount)
+                    );
+                    table.refresh(); // 필요시 장바구니/테이블 갱신
+                } else {
+                    viewModel.scanStatusProperty().set("Cashout Payment Failed. Please try again.");
+                }
+            })
+        );
+    }
     
     /** 서랍 열기 버튼 클릭 핸들러 (향후 구현 예정) */
     @FXML private void onActionDrawer(ActionEvent event) { log.debug("onActionDrawer - Not yet implemented"); }

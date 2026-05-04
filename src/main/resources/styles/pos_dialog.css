@@ -129,8 +129,8 @@
    -fx-font-weight: bold;
    font-weight: bold;
 
-   -fx-font-size: 16px;
-   font-size: 16px;
+   -fx-font-size: 24px;
+   font-size: 24px;
 }
 
 .field-label {
@@ -188,6 +188,7 @@
 .btn-confirm:hover,
 .btn-cancel:hover {
    -fx-background-color: #6F4CBB;
+   background-color: #6F4CBB;
    -fx-text-fill: white;
 }
 

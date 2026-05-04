@@ -13,14 +13,14 @@
 
 <VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css"
    xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.swna.javafx.pos.dialog.CashDialogController">
+   fx:controller="com.swna.javafx.pos.dialog.CashoutDialogController">
 
    <padding>
       <Insets bottom="25" left="30" right="30" top="25" />
    </padding>
 
    <VBox alignment="CENTER" spacing="10">
-      <Label styleClass="title-label" text="Cash Payment" />
+      <Label styleClass="title-label" text="Credit + Cashout" />
       <Separator prefWidth="250.0" />
    </VBox>
 
@@ -39,14 +39,14 @@
       <Label fx:id="lblDiscount" styleClass="info-value" text="\$0.00" GridPane.columnIndex="1"
          GridPane.rowIndex="1" />
 
-      <Label styleClass="field-label" text="Cash paid : " GridPane.columnIndex="0"
+      <Label styleClass="field-label" text="Cashout : " GridPane.columnIndex="0"
          GridPane.rowIndex="2" />
-      <TextField fx:id="txtCash" prefWidth="120" styleClass="text-field" text="5.5"
+      <TextField fx:id="txtCashout" prefWidth="120" styleClass="text-field" text="0.0"
          GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
-      <Label styleClass="field-label" text="Balance : " GridPane.columnIndex="0"
+      <Label styleClass="field-label" text="Credit : " GridPane.columnIndex="0"
          GridPane.rowIndex="3" />
-      <Label fx:id="lblBalance" styleClass="info-value" text="\$0.00" GridPane.columnIndex="1"
+      <Label fx:id="lblEftpos" styleClass="info-value" text="\$5.50" GridPane.columnIndex="1"
          GridPane.rowIndex="3" />
 
       <rowConstraints>
