@@ -249,11 +249,11 @@ public class PosViewController {
         TableColumnUtil.createNumberColumn(table, colNo, 70);
         
         // Action buttons
-        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, BUTTON_COLUMN_WIDTH,  event -> getSelectedItem().ifPresent(viewModel::removeItem));  
-        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, BUTTON_COLUMN_WIDTH,  event -> getSelectedItem().ifPresent(viewModel::decreaseQty));
-        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, BUTTON_COLUMN_WIDTH, event -> getSelectedItem().ifPresent(viewModel::increaseQty));
-        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, BUTTON_COLUMN_WIDTH,  this::onDiscount);
-        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, BUTTON_COLUMN_WIDTH,  this::onChangePrice);
+        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, BUTTON_COLUMN_WIDTH,  item -> viewModel.removeItem(item));  
+        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, BUTTON_COLUMN_WIDTH,  item -> viewModel.decreaseQty(item));
+        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, BUTTON_COLUMN_WIDTH, item -> viewModel.increaseQty(item));
+        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, BUTTON_COLUMN_WIDTH, item -> onDiscount(item));
+        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, BUTTON_COLUMN_WIDTH,  item -> onChangePrice(item));
 
         // Data columns
         TableColumnUtil.makeStringColumn(colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, false, TableColumnUtil.CENTER, null);
@@ -345,8 +345,10 @@ public class PosViewController {
      * 
      * @param event 마우스 클릭 이벤트
      */
-    private void onChangePrice(MouseEvent event) {
-        getSelectedItem().ifPresent(this::showPriceChangeDialog);
+    private void onDiscount(PosItem item) {
+        if (item != null) {
+            showDiscountDialog(item);
+        }
     }
 
     /**
@@ -355,10 +357,11 @@ public class PosViewController {
      * 
      * @param event 마우스 클릭 이벤트
      */
-    private void onDiscount(MouseEvent event) {
-        getSelectedItem().ifPresent(this::showDiscountDialog);
+    private void onChangePrice(PosItem item) {
+        if (item != null) {
+            showPriceChangeDialog(item);
+        }
     }
-
     /**
      * 가격 변경 다이얼로그를 표시합니다.
      * 
@@ -527,7 +530,31 @@ public class PosViewController {
     // =========================
     
     /** 장바구니 버튼 클릭 핸들러 (향후 구현 예정) */
-    @FXML private void onActionCart(ActionEvent event) { log.debug("onActionCart - Not yet implemented"); }
+    @FXML
+    private void onActionCart(ActionEvent event) {
+        Button button = (Button) event.getSource();
+        // 현재 상품 존재 → HOLD 저장
+        if (viewModel.hasItems()) {
+            viewModel.holdCart();
+            table.refresh();
+            button.getStyleClass().add("cart-held");
+            return;
+        }
+
+        // 현재 비어있고 HOLD 존재 → 복원
+        if (viewModel.hasHoldItems()) {
+            viewModel.resumeCart();
+            table.refresh();
+            if (!table.getItems().isEmpty()) {
+                table.getSelectionModel().select(0);
+                table.requestFocus();
+            }
+            button.getStyleClass().remove("cart-held");
+            return;
+        }
+
+        viewModel.scanStatusProperty().set("No hold cart");
+    }
     
     /** 볼륨 할인 버튼 클릭 핸들러 (향후 구현 예정) */
     @FXML private void onActionDiscountVolumn(ActionEvent event) { log.debug("onActionDiscountVolumn - Not yet implemented"); }

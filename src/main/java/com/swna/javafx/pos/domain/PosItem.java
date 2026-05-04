@@ -70,9 +70,27 @@ public class PosItem {
         initCommentBinding();
     }
 
+    public PosItem(PosItem source) {
+        // 1. 상태 값 복사
+        this.barcode.set(source.getBarcode());
+        this.description.set(source.getDescription());
+        this.qty.set(source.getQty());
+        this.stock.set(source.getStock());
+        this.originalPrice.set(source.getOriginalPrice());
+        this.sellingPrice.set(source.getSellingPrice());
+        this.unitDiscount.set(source.getUnitDiscount());
+        this.discountRate.set(source.getDiscountRate());
+        this.discountAmount.set(source.getDiscountAmount());
+        this.comment.set(source.getComment());
+
+        // 2. [핵심] 복구 후 액션(가격변경/할인) 시 계산 로직이 작동하도록 바인딩 재연결
+        initBindings(); 
+        initCommentBinding();
+    }
+
     /**
- * Quick/Open Item 생성
- */
+     * Quick/Open Item 생성
+     */
     public static PosItem createQuickItem(String manualBarcodePrefix, double amount ) {
         PosItem item = new PosItem();
         item.setBarcode( String.format( "%s%.2f", manualBarcodePrefix, amount) );

@@ -230,7 +230,6 @@
    <!-- ===================================================== -->
 
    <bottom>
-
       <HBox spacing="5" styleClass="root-boardpane">
 
          <!-- ================================================= -->
@@ -239,53 +238,44 @@
 
          <Button fx:id="buttonCart1" onAction="#onActionCart" focusTraversable="false"
             styleClass="btn,btn-lg" text="[F2]">
-
+            <tooltip>
+               <Tooltip text="ADD TO CART" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/add_cart_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <Button fx:id="buttonCart2" onAction="#onActionCart" focusTraversable="false"
             styleClass="btn,btn-lg" text="[F3]">
-
+            <tooltip>
+               <Tooltip text="ADD TO CART" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/add_cart_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <Button fx:id="buttonCart3" onAction="#onActionCart" focusTraversable="false"
             styleClass="btn,btn-lg" text="[F4]">
-
+            <tooltip>
+               <Tooltip text="ADD TO CART" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/add_cart_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- ================================================= -->
@@ -294,19 +284,16 @@
 
          <Button fx:id="buttonDiscountVolumn" onAction="#onActionDiscountVolumn"
             focusTraversable="false" styleClass="btn,btn-lg" text="[F5]">
-
+            <tooltip>
+               <Tooltip text="VOLUMN DISCOUNT" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/discount_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- ================================================= -->
@@ -315,23 +302,16 @@
 
          <Button fx:id="buttonScanner" onAction="#onActionScanner" focusTraversable="false"
             styleClass="btn,btn-lg" text="[F6]">
-
             <tooltip>
-               <Tooltip text="Receipt scanning" />
+               <Tooltip text="RECEIPT SCANNING" />
             </tooltip>
-
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/20_barcode.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- ================================================= -->
@@ -340,19 +320,16 @@
 
          <Button fx:id="buttonCancel" onAction="#onActionCancel" focusTraversable="false"
             styleClass="btn,btn-lg" text="[F7]">
-
+            <tooltip>
+               <Tooltip text="CLEAR ALL" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/delete_doc_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- ================================================= -->
@@ -361,19 +338,16 @@
 
          <Button fx:id="buttonPrint" onAction="#onActionPrint" focusTraversable="false"
             styleClass="btn,btn-lg" text="[F8]">
-
+            <tooltip>
+               <Tooltip text="PRINTing" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/print_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- ================================================= -->
@@ -382,19 +356,16 @@
 
          <Button fx:id="buttonQty" onAction="#onActionQty" focusTraversable="false"
             styleClass="btn,btn-lg" text="[F9]">
-
+            <tooltip>
+               <Tooltip text="CHANGE QTY" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/number_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- ================================================= -->
@@ -403,19 +374,16 @@
 
          <Button fx:id="buttonCash" onAction="#onActionCash" focusTraversable="false"
             styleClass="btn,btn-lg" text="[F10]">
-
+            <tooltip>
+               <Tooltip text="CASH PAYMENT" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/cash_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- ================================================= -->
@@ -424,19 +392,16 @@
 
          <Button fx:id="buttonCredit" onAction="#onActionCredit" focusTraversable="false"
             styleClass="btn,btn-lg" text="[F11]">
-
+            <tooltip>
+               <Tooltip text="CREDIT PAYMENT" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/card_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- ================================================= -->
@@ -445,19 +410,16 @@
 
          <Button fx:id="buttonCashout" onAction="#onActionCashout" focusTraversable="false"
             styleClass="btn,btn-lg" text="[F12]">
-
+            <tooltip>
+               <Tooltip text="CREDIT AND CASHOUT PAYMENT" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/cashout_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- ================================================= -->
@@ -466,19 +428,16 @@
 
          <Button fx:id="buttonDrawer" onAction="#onActionDrawer" focusTraversable="false"
             styleClass="btn,btn-lg, button-hidden-cashbox" text="[F1]">
-
+            <tooltip>
+               <Tooltip text="OPEN CASHBOX" />
+            </tooltip>
             <graphic>
-
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/drawer_24px.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- Spacer -->
@@ -491,20 +450,14 @@
 
          <Button mnemonicParsing="false" onAction="#onPos" prefHeight="34" focusTraversable="false"
             styleClass="btn,btn-lg" text="OFF">
-
             <graphic>
-
                <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
-
                   <image>
                      <Image url="@../../images/20_pos.png" />
                   </image>
-
                </ImageView>
-
             </graphic>
-
          </Button>
 
          <!-- ================================================= -->

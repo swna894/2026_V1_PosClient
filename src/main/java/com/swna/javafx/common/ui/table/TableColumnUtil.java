@@ -5,6 +5,7 @@ import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.ObjIntConsumer;
@@ -349,36 +350,60 @@ public class TableColumnUtil {
             String title,
             String iconPath,
             Integer width,
-            EventHandler<MouseEvent> actionEvent
+            Consumer<T> action
     ) {
+
         setupStaticColumnProps(column, title, iconPath, width);
 
         column.setCellFactory(param -> new TableCell<>() {
+
             private final Button button = new Button();
+
             {
-                if (iconPath != null) button.setGraphic(loadIconView(iconPath));
+                if (iconPath != null) {
+                    button.setGraphic(loadIconView(iconPath));
+                }
+
                 button.setAlignment(Pos.CENTER);
-                //button.setMaxWidth(Double.MAX_VALUE);
-                //button.setMaxHeight(Double.MAX_VALUE);
+
                 button.setMinWidth(45);
                 button.setPrefWidth(45);
+
                 button.setMinHeight(34);
                 button.setPrefHeight(34);
+
                 button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
                 button.setPadding(Insets.EMPTY);
+
                 button.setStyle("-fx-background-color:transparent; -fx-alignment: center;");
+
                 button.setOnMouseEntered(e -> {
                     getTableView().getSelectionModel().select(getIndex());
                     button.setStyle("-fx-background-color:#6F4CBB;");
                 });
-                button.setOnMouseExited(e -> button.setStyle(STYLE_TRANSPARENT));
-                button.setOnMousePressed(actionEvent);
+
+                button.setOnMouseExited(e ->
+                        button.setStyle(STYLE_TRANSPARENT));
+
+                // 핵심 수정 부분
+                button.setOnAction(e -> {
+
+                    T item = getTableRow().getItem();
+
+                    if (item != null) {
+                        action.accept(item);
+                    }
+                });
             }
 
             @Override
             public void updateItem(Void item, boolean empty) {
+
                 super.updateItem(item, empty);
+
                 setGraphic(empty ? null : button);
+
                 setAlignment(Pos.CENTER);
             }
         });

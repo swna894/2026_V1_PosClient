@@ -54,9 +54,19 @@ public class PosViewModel {
             item.qtyProperty(), 
             item.finalAmountProperty(),
             item.discountTotalProperty(),
-            item.unitDiscountProperty() 
+            item.unitDiscountProperty(),
+            item.commentProperty(),
+            item.sellingPriceProperty()
         }
     );
+
+    /**
+     * HOLD 장바구니
+     *
+     * F1 버튼으로 현재 장바구니를 임시 저장할 때 사용
+     * 현재 구조에서는 HOLD 1개만 관리
+     */
+    private final ObservableList<PosItem> holdItems = FXCollections.observableArrayList(); // [수정] 필드에서 초기화
 
     private final DoubleProperty totalAmount = new SimpleDoubleProperty(0);
     private final DoubleProperty discount = new SimpleDoubleProperty(0);
@@ -225,6 +235,76 @@ public class PosViewModel {
     public void applyUnitDiscount(double unitDiscountAmount) {
         PosItem item = selectedItem.get();
         if (item != null) item.applyUnitDiscount(unitDiscountAmount);
+    }
+
+    // =========================================================================
+    // HOLD CART 기능
+    // =========================================================================
+
+    /**
+     * 현재 장바구니를 HOLD 저장
+     *
+     * 사용 예:
+     * 고객 A 주문 중 HOLD
+     * → 다른 고객 결제 진행
+     * → 다시 복원 가능
+     */
+/** 현재 장바구니를 HOLD 저장 */
+    public void holdCart() {
+        if (items.isEmpty()) {
+            scanStatus.set("No items to hold");
+            return;
+        }
+
+        holdItems.clear(); // [수정] 리스트 객체를 새로 만들지 않고 비우기만 함[cite: 2]
+
+        // Deep Copy 저장 (객체 참조 연결을 끊어 상태 보존)
+        for (PosItem item : items) {
+            holdItems.add(new PosItem(item)); //[cite: 2]
+        }
+
+        items.clear(); // 현재 장바구니 비우기[cite: 2]
+        selectedItem.set(null);
+        scanStatus.set("Cart saved");
+        log.info("[VM] HOLD cart saved. Count: {}", holdItems.size());
+    }
+
+    /** HOLD 장바구니 복원 */
+    public void resumeCart() {
+        if (holdItems.isEmpty()) { // [수정] isEmpty() 체크[cite: 2]
+            scanStatus.set("No hold cart");
+            return;
+        }
+
+        items.clear();
+        items.addAll(holdItems); // 새로운 객체들이 items 리스트에 추가됨[cite: 2]
+        
+        holdItems.clear();
+        scanStatus.set("Cart resumed");
+        log.info("[VM] HOLD cart resumed. Count: {}", items.size());
+    }
+
+    /**
+     * 현재 장바구니 존재 여부
+     */
+    public boolean hasItems() {
+        return !items.isEmpty();
+    }
+
+    /**
+     * HOLD 장바구니 존재 여부
+     */
+    public boolean hasHoldItems() {
+        return !holdItems.isEmpty();
+    }
+
+    /**
+     * PosItem Deep Copy
+     *
+     * HOLD 저장 시 동일 객체 참조 문제 방지
+     */
+    private PosItem copyItem(PosItem source) {
+        return new PosItem(source);
     }
 
     // =========================================================================
