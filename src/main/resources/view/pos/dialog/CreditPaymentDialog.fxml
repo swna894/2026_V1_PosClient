@@ -46,7 +46,7 @@
 
       <Label styleClass="field-label" text="Credit : " GridPane.columnIndex="0"
          GridPane.rowIndex="3" />
-      <Label fx:id="lblEftpos" styleClass="info-value" text="\$5.50" GridPane.columnIndex="1"
+      <Label fx:id="lblCredit" styleClass="info-value" text="\$5.50" GridPane.columnIndex="1"
          GridPane.rowIndex="3" />
 
       <rowConstraints>
