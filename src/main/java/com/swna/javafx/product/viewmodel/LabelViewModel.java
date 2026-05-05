@@ -1,10 +1,11 @@
 package com.swna.javafx.product.viewmodel;
 
-import com.swna.javafx.infrastructure.barcode.BarcodeGenerator;
-import com.swna.javafx.infrastructure.barcode.PdfLabelGenerator;
-import com.swna.javafx.infrastructure.barcode.ProductLabelDto;
-import com.swna.javafx.service.barcode.LabelPrintService;
-import com.swna.javafx.viewmodel.BaseViewModel;
+import com.swna.javafx.barcode.infrastructre.BarcodeGenerator;
+import com.swna.javafx.barcode.infrastructre.PdfLabelGenerator;
+import com.swna.javafx.barcode.infrastructre.ProductLabelDto;
+import com.swna.javafx.barcode.service.BarcodeLabelPrintService;
+import com.swna.javafx.common.viewmodel.BaseViewModel;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class LabelViewModel extends BaseViewModel {
 
-    private final LabelPrintService labelPrintService;
+    private final BarcodeLabelPrintService labelPrintService;
     private final BarcodeGenerator barcodeGenerator;
     private final PdfLabelGenerator pdfGenerator;
 

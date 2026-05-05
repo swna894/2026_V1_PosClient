@@ -12,9 +12,9 @@ import com.swna.javafx.common.store.AuthState;
 import com.swna.javafx.common.store.AuthStore;
 import com.swna.javafx.common.store.Role;
 import com.swna.javafx.common.store.TokenStore;
+import com.swna.javafx.common.viewmodel.BaseViewModel;
 import com.swna.javafx.login.auth.AuthService;
 import com.swna.javafx.login.dto.LoginResponse;
-import com.swna.javafx.viewmodel.BaseViewModel;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;

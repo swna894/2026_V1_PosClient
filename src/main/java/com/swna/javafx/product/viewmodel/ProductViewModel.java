@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.domain.admin.product.Product;
+import com.swna.javafx.admin.product.Product;
+import com.swna.javafx.common.viewmodel.BaseViewModel;
 import com.swna.javafx.product.repository.ProductApiRepository;
 import com.swna.javafx.product.service.ProductQueryUseCase;
-import com.swna.javafx.viewmodel.BaseViewModel;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;

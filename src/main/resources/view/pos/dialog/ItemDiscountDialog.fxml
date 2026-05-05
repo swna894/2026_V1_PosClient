@@ -75,7 +75,7 @@
    <VBox spacing="10" alignment="CENTER">
       <Separator prefWidth="250.0" style="-fx-opacity: 0.5;" />
       <HBox alignment="CENTER" spacing="15">
-         <Button onAction="#handleConfirm" styleClass="btn-confirm" text="CONFIRM" />
+         <Button onAction="#handleConfirm" styleClass="btn-confirm" text="CONFIRM [ENTER]" />
          <Button onAction="#handleCancel" styleClass="btn-cancel" text="CANCEL [ESC]" />
       </HBox>
    </VBox>

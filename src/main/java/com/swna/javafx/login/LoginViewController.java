@@ -2,8 +2,8 @@ package com.swna.javafx.login;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.common.navigation.ViewInfo;
 import com.swna.javafx.login.viewModel.LoginViewModel;
-import com.swna.javafx.navigation.ViewInfo;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

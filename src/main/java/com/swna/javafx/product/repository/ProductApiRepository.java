@@ -6,9 +6,9 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.swna.javafx.domain.admin.product.PageResult;
-import com.swna.javafx.domain.admin.product.Product;
-import com.swna.javafx.infrastructure.barcode.ProductLabelDto;
+import com.swna.javafx.admin.product.PageResult;
+import com.swna.javafx.admin.product.Product;
+import com.swna.javafx.barcode.infrastructre.ProductLabelDto;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;

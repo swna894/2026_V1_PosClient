@@ -1,6 +1,6 @@
 package com.swna.javafx.controller.base.support;
 
-import com.swna.javafx.navigation.SceneManager;
+import com.swna.javafx.common.navigation.SceneManager;
 
 public interface NavigationSupport {
 
