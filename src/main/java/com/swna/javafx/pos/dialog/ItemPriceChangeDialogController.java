@@ -14,6 +14,8 @@ import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.pos.domain.PosItem;
+
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
@@ -69,11 +71,11 @@ public class ItemPriceChangeDialogController {
         });
     }
 
-    public void initData(String barcode, double price, Consumer<Double> callback) {
-        this.lblItemBarcode.setText(barcode);
-        this.lblOriginalPrice.setText(String.format("%.2f", price));
+    public void initData(PosItem item, Consumer<Double> callback) {
+        this.lblItemBarcode.setText(item.getBarcode());
+        this.lblOriginalPrice.setText(String.format("%.2f", item.getOriginalPrice()));
         this.onResultCallback = callback;
-        this.txtNewPrice.setText(String.format("%.2f", price));
+        this.txtNewPrice.setText(String.format("%.2f", item.getOriginalPrice()));
 
         // 초기 포커스 설정[cite: 2]
         Platform.runLater(() -> {

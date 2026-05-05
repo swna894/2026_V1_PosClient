@@ -1,359 +1,122 @@
 package com.swna.javafx.pos.viewmodel;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
+import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.service.PosService;
+import com.swna.javafx.pos.viewmodel.handler.ScanHandler;
+import com.swna.javafx.pos.viewmodel.manager.CartManager;
+import com.swna.javafx.pos.viewmodel.manager.DiscountManager;
+import com.swna.javafx.pos.viewmodel.manager.HoldManager;
+import javafx.beans.property.*;
+import javafx.collections.ObservableList;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.common.util.SoundManager;
-import com.swna.javafx.pos.domain.PosItem;
-import com.swna.javafx.pos.service.PosService;
-
-import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import lombok.extern.slf4j.Slf4j;
-
+import java.math.BigDecimal;
 
 @Slf4j
 @Component
 @Scope("prototype")
 public class PosViewModel {
-
-    // =========================================================================
-    // 상수 (Constants)
-    // =========================================================================
-    private static final String STATUS_READY = "Scan ready";
-    private static final String STATUS_SCANNING = "Scanning...";
-    private static final String STATUS_SUCCESS = "Scan successful ✓ Code: %s";
-    private static final String STATUS_FAIL_NOT_FOUND = "Item not found ❌"; // 상품 없음 ❌
-    private static final String STATUS_FAIL_ERROR = "Search failed ❌";      // 상품 조회 실패 ❌
-    private static final String STATUS_QUICK_ADD = "Add Quick Item : $%.2f";
     
-    private static final String MANUAL_BARCODE_PREFIX = "Q_Item_";
-
-
-    // =========================================================================
-    // 필드 및 상태 (Fields & Properties)
-    // =========================================================================
-    private final PosService posService;
-
-    /** 판매 아이템 리스트 (내부 속성 변경 감지 포함) */
-    private final ObservableList<PosItem> posItems = FXCollections.observableArrayList(item -> 
-        new javafx.beans.Observable[] { 
-            item.qtyProperty(), 
-            item.finalAmountProperty(),
-            item.discountTotalProperty(),
-            item.unitDiscountProperty(),
-            item.commentProperty(),
-            item.sellingPriceProperty()
-        }
-    );
-
-    /**
-     * HOLD 장바구니
-     *
-     * F1 버튼으로 현재 장바구니를 임시 저장할 때 사용
-     * 현재 구조에서는 HOLD 1개만 관리
-     */
-    private final ObservableList<PosItem> holdItems = FXCollections.observableArrayList(); // [수정] 필드에서 초기화
-
-    private final DoubleProperty totalAmount = new SimpleDoubleProperty(0);
-    private final DoubleProperty discount = new SimpleDoubleProperty(0);
-    private final IntegerProperty totalQty = new SimpleIntegerProperty(0);
-
+    // ========== Managers ==========
+    private final CartManager cartManager;
+    private final DiscountManager discountManager;
+    private final HoldManager holdManager;
+    private final ScanHandler scanHandler;
+    
+    // ========== UI 상태 ==========
     private final StringProperty scannedCode = new SimpleStringProperty("");
-    private final StringProperty scanStatus = new SimpleStringProperty(STATUS_READY);
-
-    private final ObjectProperty<PosItem> selectedItem = new SimpleObjectProperty<>();
-
-    // =========================================================================
-    // 생성자 및 초기화 (Constructor & Initialization)
-    // =========================================================================
+    private final StringProperty scanStatus = new SimpleStringProperty("Scan ready");
+    
     public PosViewModel(PosService posService) {
-        this.posService = posService;
-        initTotalBinding();
-    }
-
-    /**
-     * 리스트 변경에 따른 합계 및 수량 자동 계산 바인딩 설정
-     */
-    private void initTotalBinding() {
-        totalAmount.bind(Bindings.createDoubleBinding( () -> posItems.stream().mapToDouble(PosItem::getFinalAmount).sum(), posItems ));
-        totalQty.bind(Bindings.createIntegerBinding( () -> posItems.stream().mapToInt(PosItem::getQty).sum(), posItems));
-        discount.bind(Bindings.createDoubleBinding( () -> posItems.stream().mapToDouble(PosItem::getDiscountTotal).sum(), posItems ));
-    }
-
-    // =========================================================================
-    // 핵심 비즈니스 로직 (Core Logic - Scan & Add)
-    // =========================================================================
-    
-    /**
-     * 바코드를 이용한 상품 스캔 (비동기)
-     * @param barcode 스캔된 바코드 문자열
-     */
-    public void scan(String barcode) {
-        if (barcode == null || barcode.isBlank()) return;
+        this.cartManager = new CartManager();
+        this.discountManager = new DiscountManager(cartManager);
+        this.holdManager = new HoldManager(cartManager);
+        this.scanHandler = new ScanHandler(posService, cartManager);
         
-        scanStatus.set(STATUS_SCANNING);
-        posService.scan(barcode)
-                .subscribe(item -> 
-                    Platform.runLater(() -> {
-                        Optional<PosItem> existing = posItems.stream()
-                                .filter(i -> i.getBarcode().equals(item.getBarcode()))
-                                .findFirst();
-
-                        PosItem target;
-                        if (existing.isPresent()) {
-                            target = existing.get();
-                            target.increaseQty();
-                        } else {
-                            item.increaseQty();
-                            posItems.add(item);
-                            target = item;
-                        }
-                    
-                        sortItems(target);
-                        selectedItem.set(target);
-                        scannedCode.set(barcode);
-                        scanStatus.set(String.format(STATUS_SUCCESS, barcode));
-                    }), 
-                    error -> scanStatus.set(STATUS_FAIL_ERROR), () ->   {
-                                if (posItems.isEmpty()) {
-                                    Platform.runLater(() -> scanStatus.set(STATUS_FAIL_NOT_FOUND));
-                                }
-                                                                        }
-                );
-    }
-
-    /**
-     * 금액 기반 퀵 아이템(Open Item) 추가
-     * @param amount 설정할 금액
-     */
-    public void addQuickAmountItem(double amount) {
-        Optional<PosItem> existing = posItems.stream()
-                .filter(i -> i.getBarcode().startsWith(MANUAL_BARCODE_PREFIX))
-                .filter(i -> i.getSellingPrice() == amount)
-                .findFirst();
-
-        PosItem target;
-        if (existing.isPresent()) {
-            target = existing.get();
-            target.increaseQty();
-        } else {
-            target = PosItem.createQuickItem(MANUAL_BARCODE_PREFIX, amount);
-            posItems.add(target);
-        }
-
-        sortItems(target);
-        selectedItem.set(target);
-        scanStatus.set(String.format(STATUS_QUICK_ADD, amount));
-    }
-
-    // =========================================================================
-    // 아이템 편집 로직 (Item Operations - Qty, Price, Discount)
-    // =========================================================================
-
-    /** 아이템 수량 증가 */
-    public void increaseQty(PosItem item) {
-        if (item == null) return;
-        item.increaseQty();
-        selectedItem.set(item);
-        log.info("[VM] Increased qty: {}", item.getBarcode());
-    }
-
-    /** 아이템 수량 감소 (0이 될 경우 리스트에서 제거) */
-    public void decreaseQty(PosItem item) {
-        if (item == null) return;
-        item.decreaseQty();
-
-        if (item.getQty() <= 0) {
-            posItems.remove(item);
-            selectedItem.set(null);
-        } else {
-            selectedItem.set(item);
-        }
-        log.info("[VM] Decreased qty: {}", item.getBarcode());
-    }
-
-    /** 아이템 수동 제거 */
-    public void removeItem(PosItem item) {
-        if (item != null) {
-            posItems.remove(item);
-            Platform.runLater(SoundManager::playError); 
-        }
-    }
-
-    /** 단가 변경 (할인 차액 기록 포함) */
-    public void discountItemPrice(PosItem item, double newPrice) {
-        if (item == null) return;
-        
-        double originalPrice = item.getSellingPrice();
-        double priceDifference = originalPrice - newPrice;
-        
-        item.setSellingPrice(newPrice);
-        
-        if (priceDifference > 0) {
-            item.setUnitDiscount(priceDifference);
-        } else {
-            item.setUnitDiscount(0);
-        }
-        log.info("[VM] Price discounted: {} -> {}", originalPrice, newPrice);
+        setupScanCallbacks();
     }
     
-    /** 아이템 가격 직접 수정 (할인 초기화) */
-    public void changeItemPrice(PosItem item, double newPrice) {
-        if (item == null) return;
-        item.setUnitDiscount(0);
-        item.setSellingPrice(newPrice);
-        log.info("[VM] Price changed: {}", newPrice);
-    }
-
-    /** 퍼센트 할인 적용 */
-    public void applyDiscountPercent(double percent) {
-        PosItem item = selectedItem.get();
-        if (item != null) item.applyDiscount(percent, 0);
-    }
-
-    /** 고정 금액 할인 적용 */
-    public void applyDiscountAmount(double amount) {
-        PosItem item = selectedItem.get();
-        if (item != null) item.applyDiscount(0, amount);
+    private void setupScanCallbacks() {
+        scanHandler.setCallbacks(
+            () -> scanStatus.set("Scanning..."),
+            (barcode) -> {
+                scannedCode.set(barcode);
+                scanStatus.set(String.format("Scan successful ✓ Code: %s", barcode));
+            },
+            () -> scanStatus.set("Item not found ❌"),
+            () -> scanStatus.set("Search failed ❌")
+        );
     }
     
-    /** 단가 기준 개별 할인 적용 */
-    public void applyUnitDiscount(double unitDiscountAmount) {
-        PosItem item = selectedItem.get();
-        if (item != null) item.applyUnitDiscount(unitDiscountAmount);
-    }
-
-    // =========================================================================
-    // HOLD CART 기능
-    // =========================================================================
-
-    /**
-     * 현재 장바구니를 HOLD 저장
-     *
-     * 사용 예:
-     * 고객 A 주문 중 HOLD
-     * → 다른 고객 결제 진행
-     * → 다시 복원 가능
-     */
-/** 현재 장바구니를 HOLD 저장 */
-    public void holdCart() {
-        if (posItems.isEmpty()) {
-            scanStatus.set("No items to hold");
-            return;
-        }
-
-        holdItems.clear(); // [수정] 리스트 객체를 새로 만들지 않고 비우기만 함[cite: 2]
-
-        // Deep Copy 저장 (객체 참조 연결을 끊어 상태 보존)
-        for (PosItem item : posItems) {
-            holdItems.add(new PosItem(item)); //[cite: 2]
-        }
-
-        posItems.clear(); // 현재 장바구니 비우기[cite: 2]
-        selectedItem.set(null);
-        scanStatus.set("Cart saved");
-        log.info("[VM] HOLD cart saved. Count: {}", holdItems.size());
-    }
-
-    /** HOLD 장바구니 복원 */
-    public void resumeCart() {
-        if (holdItems.isEmpty()) { // [수정] isEmpty() 체크[cite: 2]
-            scanStatus.set("No hold cart");
-            return;
-        }
-
-        posItems.clear();
-        posItems.addAll(holdItems); // 새로운 객체들이 items 리스트에 추가됨[cite: 2]
-        
-        holdItems.clear();
-        scanStatus.set("Cart resumed");
-        log.info("[VM] HOLD cart resumed. Count: {}", posItems.size());
-    }
-
-    /**
-     * 현재 장바구니 존재 여부
-     */
-    public boolean hasItems() {
-        return !posItems.isEmpty();
-    }
-
-    /**
-     * HOLD 장바구니 존재 여부
-     */
-    public boolean hasHoldItems() {
-        return !holdItems.isEmpty();
-    }
-
-    /**
-     * PosItem Deep Copy
-     *
-     * HOLD 저장 시 동일 객체 참조 문제 방지
-     */
-    private PosItem copyItem(PosItem source) {
-        return new PosItem(source);
-    }
-
-    // =========================================================================
-    // 유틸리티 및 초기화 (Utility & Clear)
-    // =========================================================================
-
-    /** 리스트 초기화 */
-    public void clear() {
-        posItems.clear();
-        selectedItem.set(null);
+    // ========== Delegate to CartManager ==========
+    public ObservableList<PosItem> getPosItems() { return cartManager.getItems(); }
+    public DoubleProperty totalAmountProperty() { return cartManager.totalAmountProperty(); }
+    public DoubleProperty discountProperty() { return cartManager.totalDiscountProperty(); }
+    public IntegerProperty totalQtyProperty() { return cartManager.totalQtyProperty(); }
+    public ObjectProperty<PosItem> selectedItemProperty() { return cartManager.selectedItemProperty(); }
+    
+    public void increaseQty(PosItem item) { cartManager.increaseQty(item); }
+    public void decreaseQty(PosItem item) { cartManager.decreaseQty(item); }
+    public void removeItem(PosItem item) { cartManager.removeItem(item); }
+    public void clear() { 
+        cartManager.clear();
+        scanStatus.set("Scan ready");
         scannedCode.set("");
-        scanStatus.set(STATUS_READY);
     }
-
-    /** 최근 작업 아이템을 최상단으로 정렬 */
-    private void sortItems(PosItem topItem) {
-        posItems.sort((a, b) -> {
-            if (a == topItem) return -1;
-            if (b == topItem) return 1;
-            return a.getBarcode().compareTo(b.getBarcode());
-        });
+    
+    // ========== Delegate to DiscountManager ==========
+    public void discountItemPrice(PosItem item, double newPrice) { discountManager.discountItemPrice(item, newPrice); }
+    public void changeItemPrice(PosItem item, double newPrice) { discountManager.changeItemPrice(item, newPrice); }
+    public void applyDiscountPercent(double percent) { discountManager.applyPercentToSelected(percent); }
+    public void applyDiscountAmount(double amount) { discountManager.applyAmountToSelected(amount); }
+    public void applyUnitDiscount(double unitDiscountAmount) { discountManager.applyUnitDiscountToSelected(unitDiscountAmount); }
+    
+    // ========== Delegate to HoldManager ==========
+    public void holdCart() {
+        if (holdManager.save()) {
+            scanStatus.set("Cart saved");
+        } else {
+            scanStatus.set("No items to hold");
+        }
     }
-
-    // =========================================================================
-    // Getter Properties
-    // =========================================================================
-    public ObservableList<PosItem> getPosItems() { return posItems; }
-    public DoubleProperty totalAmountProperty() { return totalAmount; }
-    public DoubleProperty discountProperty() { return discount; }
-    public IntegerProperty totalQtyProperty() { return totalQty; }
+    
+    public void resumeCart() {
+        if (holdManager.resume()) {
+            scanStatus.set("Cart resumed");
+        } else {
+            scanStatus.set("No hold cart");
+        }
+    }
+    
+    public boolean hasItems() { return !cartManager.isEmpty(); }
+    public boolean hasHoldItems() { return holdManager.hasHoldItems(); }
+    
+    // ========== Delegate to ScanHandler ==========
+    public void scan(String barcode) { scanHandler.scan(barcode); }
+    public void addQuickAmountItem(double amount) { 
+        scanHandler.addQuickAmountItem(amount);
+        scanStatus.set(String.format("Add Quick Item : $%.2f", amount));
+    }
+    
+    // ========== UI Properties ==========
     public StringProperty scannedCodeProperty() { return scannedCode; }
     public StringProperty scanStatusProperty() { return scanStatus; }
-    public ObjectProperty<PosItem> selectedItemProperty() { return selectedItem; }
-
+    
+    // ========== 결제 (추후 분리 예정) ==========
     public boolean processCashPayment(BigDecimal receivedCash) {
-      // TODO Auto-generated method stub
-     System.err.println("Unimplemented method 'processCashPayment'" + receivedCash);
-     return false;
-    }
-
-    public boolean processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCredit) {
-      // TODO Auto-generated method stub
-      System.err.println("Unimplemented method 'processCashoutPayment'" + cashoutAmount + ", " + totalCredit);
+        System.err.println("Unimplemented method 'processCashPayment'" + receivedCash);
         return false;
     }
-
+    
+    public boolean processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCredit) {
+        System.err.println("Unimplemented method 'processCashoutPayment'" + cashoutAmount + ", " + totalCredit);
+        return false;
+    }
+    
     public boolean processMixedPayment(BigDecimal cashPart, BigDecimal creditPart) {
-      // TODO Auto-generated method stub
-      System.err.println("Unimplemented method 'processMixedPayment'" + cashPart + ", " + creditPart);
+        System.err.println("Unimplemented method 'processMixedPayment'" + cashPart + ", " + creditPart);
         return false;
     }
 }

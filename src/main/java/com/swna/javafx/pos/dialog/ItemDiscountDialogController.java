@@ -6,6 +6,8 @@ import java.util.function.UnaryOperator;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.pos.domain.PosItem;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -115,11 +117,11 @@ public class ItemDiscountDialogController {
         txtPercent.selectAll();
     }
 
-    public void initData(String barcode, double price, Consumer<Double> callback) {
-        this.lblItemBarcode.setText(barcode);
-        this.originalPrice = price;
+    public void initData(PosItem item, Consumer<Double> callback) {
+        this.lblItemBarcode.setText(item.getBarcode());
+        this.originalPrice = item.getOriginalPrice();
         this.onResultCallback = callback;
-        this.txtPrice.setText(String.format("%.2f", price));
+        this.txtPrice.setText(String.format("%.2f", item.getOriginalPrice()));
         this.txtPercent.setText("0");
 
         txtPrice.disableProperty().bind(rbPercent.selectedProperty());

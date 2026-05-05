@@ -365,7 +365,7 @@ public class PosViewController {
      */
     private void showPriceChangeDialog(PosItem item) {
         showDialog(ItemPriceChangeDialogController.class, 
-            controller -> controller.initData(item.getBarcode(), item.getSellingPrice(), 
+            controller -> controller.initData(item, 
                 newPrice -> {
                     viewModel.changeItemPrice(item, newPrice);
                     table.refresh();
@@ -380,7 +380,7 @@ public class PosViewController {
      */
     private void showDiscountDialog(PosItem item) {
         showDialog(ItemDiscountDialogController.class,
-            controller -> controller.initData(item.getBarcode(), item.getSellingPrice(),
+            controller -> controller.initData(item,
                 revisedPrice -> {
                     viewModel.discountItemPrice(item, revisedPrice);
                     table.refresh();
