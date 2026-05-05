@@ -1,8 +1,8 @@
 package com.swna.javafx.product.viewmodel;
 
+import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 import com.swna.javafx.barcode.infrastructre.BarcodeGenerator;
 import com.swna.javafx.barcode.infrastructre.PdfLabelGenerator;
-import com.swna.javafx.barcode.infrastructre.ProductLabelDto;
 import com.swna.javafx.barcode.service.BarcodeLabelPrintService;
 import com.swna.javafx.common.viewmodel.BaseViewModel;
 
@@ -25,7 +25,7 @@ public class LabelViewModel extends BaseViewModel {
     private final PdfLabelGenerator pdfGenerator;
 
     @Getter
-    private final ObservableList<ProductLabelDto> productList = FXCollections.observableArrayList();
+    private final ObservableList<BarcodeLabelDto> productList = FXCollections.observableArrayList();
 
     /** 리액티브 스트림 구독을 통한 데이터 로드[cite: 1, 4] */
     public void loadLabels() {

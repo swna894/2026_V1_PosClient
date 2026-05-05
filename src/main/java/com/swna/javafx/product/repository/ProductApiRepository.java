@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.swna.javafx.admin.product.PageResult;
 import com.swna.javafx.admin.product.Product;
-import com.swna.javafx.barcode.infrastructre.ProductLabelDto;
+import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -41,10 +41,10 @@ public class ProductApiRepository {
                 .block();
     }
 
-    public Flux<ProductLabelDto> getAllProductLabels() {
+    public Flux<BarcodeLabelDto> getAllProductLabels() {
         return webClient.get()
                 .uri("/products/labels")
                 .retrieve()
-                .bodyToFlux(ProductLabelDto.class);
+                .bodyToFlux(BarcodeLabelDto.class);
     } 
 }

@@ -1,4 +1,4 @@
-package com.swna.javafx.barcode.infrastructre;
+package com.swna.javafx.barcode.repository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 
 import reactor.core.publisher.Mono;
 
@@ -15,14 +17,14 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ProductApiClient {
+public class BarcodeApiClient {
 
     private final WebClient webClient;
 
     /**
      * 서버에서 라벨 데이터 조회
      */
-    public Mono<List<ProductLabelDto>> getLabels() {
+    public Mono<List<BarcodeLabelDto>> getLabels() {
 
         log.info("REQUEST LABEL DATA");
 
@@ -48,7 +50,7 @@ public class ProductApiClient {
                 )
 
                 // JSON -> DTO
-                .bodyToFlux(ProductLabelDto.class)
+                .bodyToFlux(BarcodeLabelDto.class)
                 .collectList()
                 // timeout
                 .timeout(Duration.ofSeconds(5))

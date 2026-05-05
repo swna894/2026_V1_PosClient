@@ -1,6 +1,6 @@
 package com.swna.javafx.barcode;
 
-import com.swna.javafx.barcode.infrastructre.ProductLabelDto;
+import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 import com.swna.javafx.product.viewmodel.LabelViewModel;
 
 import javafx.beans.property.SimpleObjectProperty;
@@ -34,10 +34,10 @@ import java.math.BigDecimal;
 public class BarcodeLabelController {
 
     // FXML UI 컨트롤 주입
-    @FXML private TableView<ProductLabelDto> productTable;
-    @FXML private TableColumn<ProductLabelDto, String> barcodeColumn;
-    @FXML private TableColumn<ProductLabelDto, String> descriptionColumn;
-    @FXML private TableColumn<ProductLabelDto, BigDecimal> priceColumn;
+    @FXML private TableView<BarcodeLabelDto> productTable;
+    @FXML private TableColumn<BarcodeLabelDto, String> barcodeColumn;
+    @FXML private TableColumn<BarcodeLabelDto, String> descriptionColumn;
+    @FXML private TableColumn<BarcodeLabelDto, BigDecimal> priceColumn;
 
     @FXML private ImageView barcodeImageView;
     @FXML private Label previewName;
@@ -110,7 +110,7 @@ public class BarcodeLabelController {
     /**
      * 선택된 상품 정보를 기반으로 우측 미리보기 업데이트
      */
-    private void updateBarcodePreview(ProductLabelDto product) {
+    private void updateBarcodePreview(BarcodeLabelDto product) {
         previewName.setText(product.description());
         previewBarcodeText.setText(product.barcode());
         

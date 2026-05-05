@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.swna.javafx.admin.product.Product;
-import com.swna.javafx.barcode.infrastructre.ProductLabelDto;
+import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 import com.swna.javafx.product.repository.ProductApiRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ public class ProductService {
     /**
      * 상품 라벨 목록을 가져옵니다. (Repository의 Flux를 List로 변환)
      */
-    public List<ProductLabelDto> getProductLabels() {
+    public List<BarcodeLabelDto> getProductLabels() {
         return repo.getAllProductLabels()
                    .collectList()
                    .block(); // Service에서 block하여 결과를 반환

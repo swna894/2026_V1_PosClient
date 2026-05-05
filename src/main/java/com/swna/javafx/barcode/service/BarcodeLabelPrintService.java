@@ -4,9 +4,9 @@ import java.time.Duration;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
+import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 import com.swna.javafx.barcode.infrastructre.PdfLabelGenerator;
-import com.swna.javafx.barcode.infrastructre.ProductApiClient;
-import com.swna.javafx.barcode.infrastructre.ProductLabelDto;
+import com.swna.javafx.barcode.repository.BarcodeApiClient;
 import com.swna.javafx.common.util.PdfOpenUtil;
 
 import javafx.application.Platform;
@@ -20,11 +20,11 @@ import reactor.core.scheduler.Schedulers;
 @Slf4j
 public class BarcodeLabelPrintService {
 
-    private final ProductApiClient apiClient;
+    private final BarcodeApiClient apiClient;
     private final PdfLabelGenerator pdfGenerator;
 
     /** UI 리스트용 데이터 가져오기[cite: 5] */
-    public Mono<List<ProductLabelDto>> getLabelDataList() {
+    public Mono<List<BarcodeLabelDto>> getLabelDataList() {
         return apiClient.getLabels()
                 .subscribeOn(Schedulers.boundedElastic())
                 .doOnSuccess(list -> log.info("Fetched {} labels", list.size()))
@@ -41,7 +41,7 @@ public class BarcodeLabelPrintService {
                 .then();
     }
 
-    private Mono<Void> processPdfGeneration(List<ProductLabelDto> products) {
+    private Mono<Void> processPdfGeneration(List<BarcodeLabelDto> products) {
         return Mono.fromRunnable(() -> {
             try {
                 pdfGenerator.generate(products);

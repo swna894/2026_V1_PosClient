@@ -10,6 +10,8 @@ import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.properties.AreaBreakType;
 import com.itextpdf.layout.properties.TextAlignment;
+import com.swna.javafx.barcode.dto.BarcodeLabelDto;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -30,7 +32,7 @@ public class PdfLabelGenerator {
 
     private record LabelContext(
         Document document,
-        ProductLabelDto dto,
+        BarcodeLabelDto dto,
         float x,
         float y,
         float labelWidth,
@@ -40,7 +42,7 @@ public class PdfLabelGenerator {
         float barcodeHeight
     ) {}
 
-    public void generate(List<ProductLabelDto> products) throws Exception {
+    public void generate(List<BarcodeLabelDto> products) throws Exception {
         if (products == null || products.isEmpty()) {
             log.warn("상품 목록이 비어 있어 PDF 생성을 중단합니다.");
             return;
