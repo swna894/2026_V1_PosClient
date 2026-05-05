@@ -49,7 +49,7 @@ public class PosViewModel {
     private final PosService posService;
 
     /** 판매 아이템 리스트 (내부 속성 변경 감지 포함) */
-    private final ObservableList<PosItem> items = FXCollections.observableArrayList(item -> 
+    private final ObservableList<PosItem> posItems = FXCollections.observableArrayList(item -> 
         new javafx.beans.Observable[] { 
             item.qtyProperty(), 
             item.finalAmountProperty(),
@@ -89,9 +89,9 @@ public class PosViewModel {
      * 리스트 변경에 따른 합계 및 수량 자동 계산 바인딩 설정
      */
     private void initTotalBinding() {
-        totalAmount.bind(Bindings.createDoubleBinding( () -> items.stream().mapToDouble(PosItem::getFinalAmount).sum(), items ));
-        totalQty.bind(Bindings.createIntegerBinding( () -> items.stream().mapToInt(PosItem::getQty).sum(), items));
-        discount.bind(Bindings.createDoubleBinding( () -> items.stream().mapToDouble(PosItem::getDiscountTotal).sum(), items ));
+        totalAmount.bind(Bindings.createDoubleBinding( () -> posItems.stream().mapToDouble(PosItem::getFinalAmount).sum(), posItems ));
+        totalQty.bind(Bindings.createIntegerBinding( () -> posItems.stream().mapToInt(PosItem::getQty).sum(), posItems));
+        discount.bind(Bindings.createDoubleBinding( () -> posItems.stream().mapToDouble(PosItem::getDiscountTotal).sum(), posItems ));
     }
 
     // =========================================================================
@@ -109,7 +109,7 @@ public class PosViewModel {
         posService.scan(barcode)
                 .subscribe(item -> 
                     Platform.runLater(() -> {
-                        Optional<PosItem> existing = items.stream()
+                        Optional<PosItem> existing = posItems.stream()
                                 .filter(i -> i.getBarcode().equals(item.getBarcode()))
                                 .findFirst();
 
@@ -119,7 +119,7 @@ public class PosViewModel {
                             target.increaseQty();
                         } else {
                             item.increaseQty();
-                            items.add(item);
+                            posItems.add(item);
                             target = item;
                         }
                     
@@ -129,7 +129,7 @@ public class PosViewModel {
                         scanStatus.set(String.format(STATUS_SUCCESS, barcode));
                     }), 
                     error -> scanStatus.set(STATUS_FAIL_ERROR), () ->   {
-                                if (items.isEmpty()) {
+                                if (posItems.isEmpty()) {
                                     Platform.runLater(() -> scanStatus.set(STATUS_FAIL_NOT_FOUND));
                                 }
                                                                         }
@@ -141,7 +141,7 @@ public class PosViewModel {
      * @param amount 설정할 금액
      */
     public void addQuickAmountItem(double amount) {
-        Optional<PosItem> existing = items.stream()
+        Optional<PosItem> existing = posItems.stream()
                 .filter(i -> i.getBarcode().startsWith(MANUAL_BARCODE_PREFIX))
                 .filter(i -> i.getSellingPrice() == amount)
                 .findFirst();
@@ -152,7 +152,7 @@ public class PosViewModel {
             target.increaseQty();
         } else {
             target = PosItem.createQuickItem(MANUAL_BARCODE_PREFIX, amount);
-            items.add(target);
+            posItems.add(target);
         }
 
         sortItems(target);
@@ -178,7 +178,7 @@ public class PosViewModel {
         item.decreaseQty();
 
         if (item.getQty() <= 0) {
-            items.remove(item);
+            posItems.remove(item);
             selectedItem.set(null);
         } else {
             selectedItem.set(item);
@@ -189,7 +189,7 @@ public class PosViewModel {
     /** 아이템 수동 제거 */
     public void removeItem(PosItem item) {
         if (item != null) {
-            items.remove(item);
+            posItems.remove(item);
             Platform.runLater(SoundManager::playError); 
         }
     }
@@ -251,7 +251,7 @@ public class PosViewModel {
      */
 /** 현재 장바구니를 HOLD 저장 */
     public void holdCart() {
-        if (items.isEmpty()) {
+        if (posItems.isEmpty()) {
             scanStatus.set("No items to hold");
             return;
         }
@@ -259,11 +259,11 @@ public class PosViewModel {
         holdItems.clear(); // [수정] 리스트 객체를 새로 만들지 않고 비우기만 함[cite: 2]
 
         // Deep Copy 저장 (객체 참조 연결을 끊어 상태 보존)
-        for (PosItem item : items) {
+        for (PosItem item : posItems) {
             holdItems.add(new PosItem(item)); //[cite: 2]
         }
 
-        items.clear(); // 현재 장바구니 비우기[cite: 2]
+        posItems.clear(); // 현재 장바구니 비우기[cite: 2]
         selectedItem.set(null);
         scanStatus.set("Cart saved");
         log.info("[VM] HOLD cart saved. Count: {}", holdItems.size());
@@ -276,19 +276,19 @@ public class PosViewModel {
             return;
         }
 
-        items.clear();
-        items.addAll(holdItems); // 새로운 객체들이 items 리스트에 추가됨[cite: 2]
+        posItems.clear();
+        posItems.addAll(holdItems); // 새로운 객체들이 items 리스트에 추가됨[cite: 2]
         
         holdItems.clear();
         scanStatus.set("Cart resumed");
-        log.info("[VM] HOLD cart resumed. Count: {}", items.size());
+        log.info("[VM] HOLD cart resumed. Count: {}", posItems.size());
     }
 
     /**
      * 현재 장바구니 존재 여부
      */
     public boolean hasItems() {
-        return !items.isEmpty();
+        return !posItems.isEmpty();
     }
 
     /**
@@ -313,7 +313,7 @@ public class PosViewModel {
 
     /** 리스트 초기화 */
     public void clear() {
-        items.clear();
+        posItems.clear();
         selectedItem.set(null);
         scannedCode.set("");
         scanStatus.set(STATUS_READY);
@@ -321,7 +321,7 @@ public class PosViewModel {
 
     /** 최근 작업 아이템을 최상단으로 정렬 */
     private void sortItems(PosItem topItem) {
-        items.sort((a, b) -> {
+        posItems.sort((a, b) -> {
             if (a == topItem) return -1;
             if (b == topItem) return 1;
             return a.getBarcode().compareTo(b.getBarcode());
@@ -331,7 +331,7 @@ public class PosViewModel {
     // =========================================================================
     // Getter Properties
     // =========================================================================
-    public ObservableList<PosItem> getItems() { return items; }
+    public ObservableList<PosItem> getPosItems() { return posItems; }
     public DoubleProperty totalAmountProperty() { return totalAmount; }
     public DoubleProperty discountProperty() { return discount; }
     public IntegerProperty totalQtyProperty() { return totalQty; }

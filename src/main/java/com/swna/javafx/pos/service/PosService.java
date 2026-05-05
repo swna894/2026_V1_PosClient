@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import com.swna.javafx.pos.domain.PosItem;
-import com.swna.javafx.pos.dto.ProductResponse;
+import com.swna.javafx.pos.dto.ProductResponseDto;
 import com.swna.javafx.pos.repository.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -53,7 +53,7 @@ public class PosService {
     // =========================
     // DTO → PosItem Conversion
     // =========================
-    private PosItem toPosItem(ProductResponse p) {
+    private PosItem toPosItem(ProductResponseDto p) {
         log.trace("Converting ProductResponse to PosItem for code: {}", p.code());
         
         PosItem item = new PosItem();

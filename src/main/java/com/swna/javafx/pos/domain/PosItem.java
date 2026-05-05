@@ -59,9 +59,7 @@ public class PosItem {
     private final DoubleProperty sellingAmount = new SimpleDoubleProperty();
     private final DoubleProperty discountTotal = new SimpleDoubleProperty();
     private final DoubleProperty finalAmount = new SimpleDoubleProperty();
-
-    private static final String TIMESTAMP_PATTERN = "MMddHHmm";
-    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN);
+    
     // ============================================================
     // 4. 생성자 및 바인딩 설정
     // ============================================================

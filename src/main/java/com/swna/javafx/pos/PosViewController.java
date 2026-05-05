@@ -237,7 +237,7 @@ public class PosViewController {
      */
     private void configureTableProperties() {
         table.setEditable(true);
-        table.setItems(viewModel.getItems());
+        table.setItems(viewModel.getPosItems());
     }
 
     /**
@@ -249,11 +249,11 @@ public class PosViewController {
         TableColumnUtil.createNumberColumn(table, colNo, 70);
         
         // Action buttons
-        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, BUTTON_COLUMN_WIDTH,  item -> viewModel.removeItem(item));  
-        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, BUTTON_COLUMN_WIDTH,  item -> viewModel.decreaseQty(item));
-        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, BUTTON_COLUMN_WIDTH, item -> viewModel.increaseQty(item));
-        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, BUTTON_COLUMN_WIDTH, item -> onDiscount(item));
-        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, BUTTON_COLUMN_WIDTH,  item -> onChangePrice(item));
+        TableColumnUtil.makeButtonColumn(colDelete, null, IconPaths.DELETE, BUTTON_COLUMN_WIDTH,  viewModel::removeItem);  
+        TableColumnUtil.makeButtonColumn(colMinus, null, IconPaths.MINUS, BUTTON_COLUMN_WIDTH,  viewModel::decreaseQty);
+        TableColumnUtil.makeButtonColumn(colPlus, null, IconPaths.PLUS, BUTTON_COLUMN_WIDTH, viewModel::increaseQty);
+        TableColumnUtil.makeButtonColumn(colDiscountPrice, null, IconPaths.DISCOUNT, BUTTON_COLUMN_WIDTH, this::onDiscount);
+        TableColumnUtil.makeButtonColumn(colChangePrice, null, IconPaths.PRICE_22, BUTTON_COLUMN_WIDTH,  this::onChangePrice);
 
         // Data columns
         TableColumnUtil.makeStringColumn(colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, false, TableColumnUtil.CENTER, null);
@@ -346,9 +346,7 @@ public class PosViewController {
      * @param event 마우스 클릭 이벤트
      */
     private void onDiscount(PosItem item) {
-        if (item != null) {
-            showDiscountDialog(item);
-        }
+        getSelectedItem().ifPresent(this::showDiscountDialog);
     }
 
     /**
@@ -358,9 +356,7 @@ public class PosViewController {
      * @param event 마우스 클릭 이벤트
      */
     private void onChangePrice(PosItem item) {
-        if (item != null) {
-            showPriceChangeDialog(item);
-        }
+        getSelectedItem().ifPresent(this::showPriceChangeDialog);
     }
     /**
      * 가격 변경 다이얼로그를 표시합니다.
