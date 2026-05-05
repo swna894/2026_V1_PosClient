@@ -23,7 +23,7 @@ public class CashoutDialogController extends BasePaymentDialog {
     private BiConsumer<BigDecimal, BigDecimal> onProcessComplete;
 
     public void initData(BigDecimal amount, BigDecimal discount, BiConsumer<BigDecimal, BigDecimal> callback) {
-        this.baseAmount = amount.subtract(discount);
+        this.baseAmount = amount;
         this.onProcessComplete = callback;
 
         lblAmount.setText(String.format(CURRENCY_FORMAT, amount));
