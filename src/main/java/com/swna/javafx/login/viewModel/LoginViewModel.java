@@ -1,4 +1,4 @@
-package com.swna.javafx.viewmodel.login;
+package com.swna.javafx.login.viewModel;
 
 import org.springframework.stereotype.Component;
 
@@ -12,8 +12,8 @@ import com.swna.javafx.common.store.AuthState;
 import com.swna.javafx.common.store.AuthStore;
 import com.swna.javafx.common.store.Role;
 import com.swna.javafx.common.store.TokenStore;
-import com.swna.javafx.dto.auth.LoginResponse;
-import com.swna.javafx.service.auth.AuthService;
+import com.swna.javafx.login.auth.AuthService;
+import com.swna.javafx.login.dto.LoginResponse;
 import com.swna.javafx.viewmodel.BaseViewModel;
 
 import javafx.beans.property.SimpleStringProperty;

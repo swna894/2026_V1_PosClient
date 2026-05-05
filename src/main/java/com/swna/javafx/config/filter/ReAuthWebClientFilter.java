@@ -6,7 +6,7 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 
-import com.swna.javafx.service.auth.ReAuthService;
+import com.swna.javafx.login.auth.ReAuthService;
 
 import reactor.core.publisher.Mono;
 

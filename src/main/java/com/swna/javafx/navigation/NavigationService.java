@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.common.store.AuthState;
 import com.swna.javafx.common.store.AuthStore;
-import com.swna.javafx.controller.login.LoginViewController;
+import com.swna.javafx.login.LoginViewController;
 import com.swna.javafx.pos.PosViewController;
 
 import atlantafx.base.theme.PrimerLight;

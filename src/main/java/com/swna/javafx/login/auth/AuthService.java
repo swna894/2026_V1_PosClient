@@ -1,4 +1,4 @@
-package com.swna.javafx.service.auth;
+package com.swna.javafx.login.auth;
 
 import java.util.Map;
 
@@ -9,8 +9,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.swna.javafx.common.response.ApiResponse;
 import com.swna.javafx.common.store.AuthStore;
 import com.swna.javafx.common.store.TokenStore;
-import com.swna.javafx.dto.auth.LoginResponse;
-import com.swna.javafx.dto.auth.TokenResponse;
+import com.swna.javafx.login.dto.LoginResponse;
+import com.swna.javafx.login.dto.TokenResponse;
 
 import reactor.core.publisher.Mono;
 
