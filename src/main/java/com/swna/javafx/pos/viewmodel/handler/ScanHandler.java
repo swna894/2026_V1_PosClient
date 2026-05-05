@@ -63,7 +63,7 @@ public class ScanHandler {
             cartManager.increaseQty(existing.get());
         } else {
             PosItem newItem = PosItem.createQuickItem("Q_Item_", amount);
-            newItem.increaseQty();
+            newItem.setQty(1);
             cartManager.addItem(newItem);
         }
         

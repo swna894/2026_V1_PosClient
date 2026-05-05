@@ -1,8 +1,140 @@
-com.swna.javafx.pos.viewmodel/
-├── PosViewModel.java (120 lines - Facade)
-├── manager/
-│   ├── CartManager.java
-│   ├── DiscountManager.java
-│   └── HoldManager.java
-└── handler/
-    └── ScanHandler.java
+# 권장 폴더
+src/main/java/com/swna/javafx/pos/
+│
+├── PosViewController.java                    # 메인 컨트롤러 (이벤트 핸들러만)
+├── PosApplication.java                        # (옵션) POS 모듈 진입점
+│
+├── controller/                                # FXML 컨트롤러들
+│   ├── PosViewController.java                 # (선택) 위와 중복되면 여기로 이동
+│   ├── dialog/
+│   │   ├── CashDialogController.java
+│   │   ├── CreditDialogController.java
+│   │   ├── CashoutDialogController.java
+│   │   ├── ItemDiscountDialogController.java
+│   │   └── ItemPriceChangeDialogController.java
+│   │
+│   └── component/                             # (선택) FXML이 없는 내부 컨트롤러
+│       └── ...
+│
+├── component/                                 # UI 컴포넌트/매니저 (FXML 없음)
+│   ├── PosTableSetup.java
+│   ├── PaymentDialogManager.java
+│   ├── PaymentResult.java
+│   ├── UiNotifier.java
+│   ├── ClockManager.java
+│   ├── BarcodeScannerManager.java
+│   └── CartButtonManager.java
+│
+├── domain/                                    # 도메인 모델 (기존 유지)
+│   └── PosItem.java
+│
+├── viewmodel/                                 # ViewModel (기존 유지)
+│   └── PosViewModel.java
+│
+├── service/                                   # (옵션) 비즈니스 로직
+│   ├── PosService.java
+│   └── PaymentService.java
+│
+└── config/                                    # (옵션) POS 관련 설정
+    ├── PosConfig.java
+    └── PosConstants.java                      # 상수 모음
+
+
+# 도매인 기본 구조
+src/main/java/com/swna/javafx/pos/
+│
+├── ui/                                        # UI 계층 (presentation layer)
+│   ├── view/
+│   │   └── PosView.fxml                       # FXML 파일은 resources 아래에 배치 권장
+│   │
+│   ├── controller/
+│   │   ├── PosViewController.java
+│   │   └── dialog/
+│   │       ├── CashDialogController.java
+│   │       ├── CreditDialogController.java
+│   │       ├── CashoutDialogController.java
+│   │       ├── ItemDiscountDialogController.java
+│   │       └── ItemPriceChangeDialogController.java
+│   │
+│   └── component/                             # 재사용 가능한 UI 컴포넌트
+│       ├── table/
+│       │   ├── PosTableSetup.java
+│       │   ├── StockCellFactory.java
+│       │   └── ButtonCellFactory.java
+│       │
+│       ├── payment/
+│       │   ├── PaymentDialogManager.java
+│       │   ├── PaymentResult.java
+│       │   └── PaymentStrategy.java           # (옵션) 전략 패턴 인터페이스
+│       │
+│       └── util/
+│           ├── UiNotifier.java
+│           ├── ClockManager.java
+│           ├── BarcodeScannerManager.java
+│           └── CartButtonManager.java
+│
+├── application/                               # 애플리케이션 계층 (orchestration)
+│   ├── PosFacade.java                         # ViewModel이 사용할 파사드
+│   └── dto/
+│       └── PosItemDto.java
+│
+├── domain/                                    # 도메인 계층 (핵심 비즈니스)
+│   ├── model/
+│   │   └── PosItem.java
+│   │
+│   ├── service/
+│   │   ├── PosDomainService.java
+│   │   └── PaymentDomainService.java
+│   │
+│   └── repository/                            # (필요시)
+│       └── PosItemRepository.java
+│
+├── infrastructure/                            # 인프라 계층 (기술 상세)
+│   ├── scanner/
+│   │   └── SafeBarcodeScanner.java
+│   │
+│   ├── printer/
+│   │   └── ReceiptPrinter.java
+│   │
+│   └── drawer/
+│       └── CashDrawer.java
+│
+└── common/                                    # 공통 유틸리티
+    ├── constant/
+    │   └── IconPaths.java
+    ├── ui/
+    │   └── table/
+    │       └── TableColumnUtil.java
+    └── config/
+        └── JavaFxConfig.java
+
+# 리소스 폴더 구조
+src/main/resources/
+│
+├── view/pos/
+│   ├── PosView.fxml
+│   ├── pos.css                                 # POS 전용 스타일
+│   └── pos-theme.css
+│
+├── view/pos/dialog/
+│   ├── CashDialog.fxml
+│   ├── CreditDialog.fxml
+│   ├── CashoutDialog.fxml
+│   ├── ItemDiscountDialog.fxml
+│   └── ItemPriceChangeDialog.fxml
+│
+├── images/
+│   ├── icons/
+│   │   ├── delete.png
+│   │   ├── plus.png
+│   │   ├── minus.png
+│   │   ├── discount.png
+│   │   └── price.png
+│   │
+│   └── pos/
+│       ├── logo.png
+│       └── background.jpg
+│
+└── i18n/                                       # 다국어 지원 (옵션)
+    ├── messages.properties
+    └── messages_ko.properties
