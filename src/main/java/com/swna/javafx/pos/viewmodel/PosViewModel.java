@@ -158,7 +158,7 @@ public class PosViewModel {
         if (totalCardAmount == null || totalCardAmount.compareTo(BigDecimal.ZERO) <= 0) {
             totalCardAmount = getTotalAfterDiscount();
         }
-        System.err.println("totalCardAmount: " + totalCardAmount);
+
         PaymentService.PaymentResult result = paymentService.processCashoutPayment(
             cartManager.getItems(),
             totalCardAmount,
@@ -176,18 +176,18 @@ public class PosViewModel {
      * @return 결제 성공 여부
      */
     public boolean processMixedPayment(BigDecimal cashPart, BigDecimal creditPart) {
-        BigDecimal totalAfterDiscount = getTotalAfterDiscount();
+        BigDecimal originaltotalAmount =  BigDecimal.valueOf(cartManager.totalAmountProperty().get());
         
         // 결제 금액 합계가 최종 금액과 일치하는지 검증
         BigDecimal totalPayment = cashPart.add(creditPart);
-        if (totalPayment.compareTo(totalAfterDiscount) != 0) {
+        if (totalPayment.compareTo(originaltotalAmount) != 0) {
             scanStatus.set(STATUS_PAYMENT_FAIL + ": Amount mismatch");
             return false;
         }
         
         PaymentService.PaymentResult result = paymentService.processMixedPayment(
             cartManager.getItems(),
-            totalAfterDiscount,
+            totalPayment,
             cashPart,
             creditPart
         );

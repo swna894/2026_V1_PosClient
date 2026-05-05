@@ -32,8 +32,8 @@ public class CashoutDialogController extends BasePaymentDialog {
         this.onProcessComplete = callback;
 
         // 2. UI 라벨 설정
-        lblAmount.setText(String.format(CURRENCY_FORMAT, totalAmount));
-        lblDiscount.setText(String.format(CURRENCY_FORMAT, discount));
+        lblAmount.setText(CURRENCY_FORMAT.format(totalAmount));
+        lblDiscount.setText(CURRENCY_FORMAT.format(discount));
         
         // 3. 입력 필드 설정
         applyNumericFilter(txtCashout);
@@ -61,7 +61,7 @@ public class CashoutDialogController extends BasePaymentDialog {
             BigDecimal cashoutAmount = parseCashoutInput(input);
             BigDecimal totalCardAmount = calculateTotalCardAmount(cashoutAmount);
             
-            lblCredit.setText(String.format(CURRENCY_FORMAT, totalCardAmount));
+            lblCredit.setText(CURRENCY_FORMAT.format(totalCardAmount));
             lblCredit.setStyle("-fx-text-fill: blue;");
             
             log.debug("[CashoutDialog] cashout: {}, totalCard: {}", cashoutAmount, totalAfterDiscount);

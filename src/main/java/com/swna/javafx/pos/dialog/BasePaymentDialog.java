@@ -1,5 +1,7 @@
 package com.swna.javafx.pos.dialog;
 
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import javafx.fxml.FXML;
@@ -10,9 +12,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 public abstract class BasePaymentDialog {
-    protected static final String CURRENCY_FORMAT = "$%.2f";
+    //protected static final String CURRENCY_FORMAT = "$%.2f";
     protected static final Pattern NUMERIC_PATTERN = Pattern.compile("\\d*(\\.\\d*)?");
-
+    protected static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
     /** 
      * 숫자와 소수점 하나만 허용하는 필터
      */

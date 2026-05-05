@@ -153,8 +153,16 @@ public class PaymentService {
             BigDecimal totalDiscount) {
         
         List<SaleItemRequest> saleItems = buildSaleItemRequests(items);
+        log.debug("[Mix] saleItems 목록:");
+        saleItems.forEach(item -> log.info("  - {}", item));
+
         List<PaymentRequest> payments = buildMixedPayments(cashPart, creditPart);
+        log.debug("[Mix] payments 목록:");
+        payments.forEach(item -> log.info("  - {}", item));
+        
         List<DiscountRequest> discounts = buildDiscountRequests(totalDiscount);
+        log.debug("[Mix] discounts 목록:");
+        discounts.forEach(item -> log.info("  - {}", item));
         
         return new SaleRequest(saleItems, payments, discounts);
     }

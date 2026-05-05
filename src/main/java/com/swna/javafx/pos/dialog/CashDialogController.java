@@ -27,8 +27,8 @@ public class CashDialogController extends BasePaymentDialog {
         this.totalAmount = total;
         this.onPaymentComplete = callback;
 
-        lblAmount.setText(String.format(CURRENCY_FORMAT, total));
-        lblDiscount.setText(String.format(CURRENCY_FORMAT, discount));
+        lblAmount.setText(CURRENCY_FORMAT.format(total));
+        lblDiscount.setText(CURRENCY_FORMAT.format(discount));
 
         // 추상 클래스 기능 활용[cite: 7]
         applyNumericFilter(txtCash);
@@ -46,7 +46,7 @@ public class CashDialogController extends BasePaymentDialog {
         try {
             BigDecimal received = new BigDecimal(input.isEmpty() || input.equals(".") ? "0" : input);
             BigDecimal change = received.subtract(totalAmount);
-            lblBalance.setText(change.compareTo(BigDecimal.ZERO) >= 0 ? String.format(CURRENCY_FORMAT, change) : "Insufficient");
+            lblBalance.setText(change.compareTo(BigDecimal.ZERO) >= 0 ? CURRENCY_FORMAT.format(change) : "Insufficient");
             lblBalance.setStyle(change.compareTo(BigDecimal.ZERO) >= 0 ? "-fx-text-fill: blue;" : "-fx-text-fill: red;");
         } catch (Exception e) { lblBalance.setText("Invalid"); }
     }
