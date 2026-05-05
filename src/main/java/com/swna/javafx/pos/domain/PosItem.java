@@ -1,5 +1,6 @@
 package com.swna.javafx.pos.domain;
 
+import com.swna.javafx.pos.dto.request.DiscountType;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import java.time.LocalDateTime;
@@ -44,6 +45,9 @@ public class PosItem {
     private final DoubleProperty discountAmount = new SimpleDoubleProperty(0); // 고정 할인액 (총액 기준)
     private final DoubleProperty discountRate = new SimpleDoubleProperty(0);   // 할인율 (%)
     private final DoubleProperty unitDiscount = new SimpleDoubleProperty(0);   // 단가 기준 할인액 (개당 할인)
+    
+    // ✅ 추가: 할인 유형 필드 (NONE, AMOUNT, PERCENT)
+    private final ObjectProperty<DiscountType> discountType = new SimpleObjectProperty<>(DiscountType.NONE);
 
     // ============================================================
     // 3. 자동 계산 결과 필드 (SimpleDoubleProperty로 변경)
@@ -70,6 +74,8 @@ public class PosItem {
 
     public PosItem(PosItem source) {
         // 1. 상태 값 복사
+        this.id.set(source.getId());
+        this.code.set(source.getCode());
         this.barcode.set(source.getBarcode());
         this.description.set(source.getDescription());
         this.qty.set(source.getQty());
@@ -80,6 +86,10 @@ public class PosItem {
         this.discountRate.set(source.getDiscountRate());
         this.discountAmount.set(source.getDiscountAmount());
         this.comment.set(source.getComment());
+        this.updated.set(source.getUpdated());
+        
+        // ✅ 할인 유형 복사
+        this.discountType.set(source.getDiscountType());
 
         // 2. [핵심] 복구 후 액션(가격변경/할인) 시 계산 로직이 작동하도록 바인딩 재연결
         initBindings(); 
@@ -89,16 +99,14 @@ public class PosItem {
     /**
      * Quick/Open Item 생성
      */
-    public static PosItem createQuickItem(String manualBarcodePrefix, double amount ) {
+    public static PosItem createQuickItem(String manualBarcodePrefix, double amount) {
         PosItem item = new PosItem();
-        item.setBarcode( String.format( "%s%.2f", manualBarcodePrefix, amount) );
-        item.setDescription( String.format(  "Open Quick Item ($%.2f)",amount) );
-
-        item.setSellingPrice(amount);
+        item.setBarcode(String.format("%s%.2f", manualBarcodePrefix, amount));
+        item.setDescription(String.format("Open Quick Item ($%.2f)", amount));
         item.setOriginalPrice(amount);
-        // 최초 수량 1
+        item.setSellingPrice(amount);
+        item.setDiscountType(DiscountType.NONE);  // ✅ 할인 없음으로 설정
         item.increaseQty();
-
         return item;
     }
 
@@ -134,38 +142,42 @@ public class PosItem {
 
     /**
      * 단가 할인 정보를 comment에 자동으로 표시하는 바인딩
-     *
      * 가격 변경 시 기존 가격과 새 가격을 comment에 자동으로 표시하는 바인딩
      */
     private void initCommentBinding() {
-        // originalPrice, sellingPrice, unitDiscount 중 하나라도 변경되면 업데이트
         comment.bind(Bindings.createStringBinding(
             () -> {
                 double original = getOriginalPrice();
                 double current = getSellingPrice();
                 double uDiscount = getUnitDiscount();
+                DiscountType type = getDiscountType();
 
                 // 1. 단가 할인(D/C)이 적용된 경우 우선 표시
-                if (uDiscount > 0) {
+                if (uDiscount > 0 && type == DiscountType.AMOUNT) {
                     return String.format("D/C: $%.2f/ea", uDiscount);
-                } 
+                }
                 
-                // 2. 정가와 현재 판매가가 다른 경우 (가격 변경 발생)
-                else if (Double.compare(original, current) != 0) {
-                    // 원래 가격(original)을 포함하여 변경 이력을 표시
+                // 2. 퍼센트 할인이 적용된 경우
+                if (type == DiscountType.PERCENT && getDiscountRate() > 0) {
+                    return String.format("%.0f%% OFF", getDiscountRate());
+                }
+                
+                // 3. 정가와 현재 판매가가 다른 경우 (가격 변경 발생)
+                else if (Double.compare(original, current) != 0 && type == DiscountType.NONE) {
                     return String.format("Changed: $%.2f → $%.2f", original, current);
                 }
 
-                // 3. 변경 사항이 없는 경우 빈 문자열
+                // 4. 변경 사항이 없는 경우 빈 문자열
                 return "";
             },
-            originalPrice, sellingPrice, unitDiscount
+            originalPrice, sellingPrice, unitDiscount, discountType, discountRate
         ));
     }
 
     // ============================================================
-    // 5. 비즈니스 로직
+    // 5. 비즈니스 로직 (DiscountType 자동 설정)
     // ============================================================
+    
     public void increaseQty() {
         setQty(getQty() + 1);
         setStock(getStock() - 1);
@@ -177,16 +189,133 @@ public class PosItem {
         setStock(getStock() + 1);
     }
 
+    /**
+     * 할인 적용 (퍼센트 또는 금액)
+     * ✅ DiscountType 자동 설정
+     */
     public void applyDiscount(double percent, double amount) {
+        if (percent > 0) {
+            applyPercentDiscount(percent);
+        } else if (amount > 0) {
+            applyAmountDiscount(amount);
+        } else {
+            clearDiscount();
+        }
+    }
+    
+    /**
+     * 퍼센트 할인 적용
+     */
+    public void applyPercentDiscount(double percent) {
+        if (percent <= 0) {
+            clearDiscount();
+            return;
+        }
+        
         setDiscountRate(percent);
+        setDiscountAmount(0);
+        
+        // 판매가 = 정가 - (정가 * 할인율)
+        double discountedPrice = getOriginalPrice() * (1 - (percent / 100.0));
+        setSellingPrice(Math.max(0, discountedPrice));
+        
+        // 단가 할인액 계산 (comment 표시용)
+        setUnitDiscount(getOriginalPrice() - getSellingPrice());
+        
+        // ✅ 할인 유형 설정
+        setDiscountType(DiscountType.PERCENT);
+    }
+    
+    /**
+     * 금액 할인 적용
+     */
+    public void applyAmountDiscount(double amount) {
+        if (amount <= 0) {
+            clearDiscount();
+            return;
+        }
+        
         setDiscountAmount(amount);
+        setDiscountRate(0);
+        
+        // 판매가 = 정가 - 할인액
+        double discountedPrice = getOriginalPrice() - amount;
+        setSellingPrice(Math.max(0, discountedPrice));
+        
+        // 단가 할인액 설정
+        setUnitDiscount(amount);
+        
+        // ✅ 할인 유형 설정
+        setDiscountType(DiscountType.AMOUNT);
     }
     
     /**
      * 단가 기준 할인 적용 (개당 할인)
+     * ✅ DiscountType을 AMOUNT로 설정
      */
     public void applyUnitDiscount(double unitDiscountAmount) {
+        if (unitDiscountAmount <= 0) {
+            clearDiscount();
+            return;
+        }
+        
         setUnitDiscount(unitDiscountAmount);
+        setDiscountRate(0);
+        setDiscountAmount(0);
+        
+        // 판매가 = 정가 - 단가할인
+        double discountedPrice = getOriginalPrice() - unitDiscountAmount;
+        setSellingPrice(Math.max(0, discountedPrice));
+        
+        // ✅ 할인 유형 설정
+        setDiscountType(DiscountType.AMOUNT);
+    }
+    
+    /**
+     * 할인 초기화
+     * ✅ DiscountType을 NONE으로 설정
+     */
+    public void clearDiscount() {
+        setDiscountRate(0);
+        setDiscountAmount(0);
+        setUnitDiscount(0);
+        setSellingPrice(getOriginalPrice());
+        setDiscountType(DiscountType.NONE);
+    }
+    
+    /**
+     * 가격 직접 변경 (할인 초기화)
+     */
+    public void changePrice(double newPrice) {
+        if (newPrice <= 0) return;
+        
+        // 할인 정보 초기화
+        clearDiscount();
+        
+        // 새 가격 설정
+        setSellingPrice(newPrice);
+        setOriginalPrice(newPrice);
+    }
+    
+    /**
+     * 할인 여부 확인
+     */
+    public boolean hasDiscount() {
+        return getDiscountType() != DiscountType.NONE && getUnitDiscount() > 0;
+    }
+    
+    /**
+     * 퍼센트 할인인지 확인
+     */
+    public boolean isPercentDiscount() {
+        return getDiscountType() == DiscountType.PERCENT;
+    }
+    
+    /**
+     * 금액 할인인지 확인
+     */
+    public boolean isAmountDiscount() {
+        return getDiscountType() == DiscountType.AMOUNT;
     }
 
     // ============================================================
@@ -244,6 +373,11 @@ public class PosItem {
     public LocalDateTime getUpdated() { return updated.get(); }
     public void setUpdated(LocalDateTime v) { updated.set(v); }
     public ObjectProperty<LocalDateTime> updatedProperty() { return updated; }
+    
+    // ✅ DiscountType Getter/Setter
+    public DiscountType getDiscountType() { return discountType.get(); }
+    public void setDiscountType(DiscountType v) { discountType.set(v != null ? v : DiscountType.NONE); }
+    public ObjectProperty<DiscountType> discountTypeProperty() { return discountType; }
 
     // ============================================================
     // 7. 계산 결과 Property (DoubleProperty 반환)

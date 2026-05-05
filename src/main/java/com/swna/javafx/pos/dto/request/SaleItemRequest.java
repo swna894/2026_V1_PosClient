@@ -9,9 +9,6 @@ import jakarta.validation.constraints.Size;
 
 public record SaleItemRequest(
 
-    @NotNull(message = "Product ID is required.")
-    Long id,
-
     @NotBlank(message = "Barcode cannot be empty.")
     String barcode,
 
@@ -22,7 +19,7 @@ public record SaleItemRequest(
     BigDecimal discountValue,
 
     @NotNull(message = "Discount type is required. (e.g., AMOUNT or PERCENT)")
-    DiscountType discountType, //[cite: 2]
+    DiscountType discountType, 
 
     @Size(max = 255, message = "Comment must not exceed 255 characters.")
     String comment
