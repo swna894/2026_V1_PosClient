@@ -12,5 +12,7 @@ public record SaleRequest(
 
     @NotEmpty(message = "At least one payment record is required.")
     @Valid
-    List<PaymentRequest> payments
+    List<PaymentRequest> payments,
+
+    @Valid List<DiscountRequest> discounts
 ) {}
