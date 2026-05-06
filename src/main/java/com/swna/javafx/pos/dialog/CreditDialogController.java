@@ -93,8 +93,8 @@ public class CreditDialogController extends BasePaymentDialog {
     protected void handleConfirm() {
         if (!isPaymentValid()) {
             txtCash.setStyle("-fx-border-color: red;");
-            lblCredit.setText("Please enter valid cash amount");
-            lblCredit.setStyle("-fx-text-fill: red;");
+            lblCredit.setText("Too manay cash");
+            lblCredit.setStyle("-fx-text-fill: red; -fx-font-size: 18px;");
             txtCash.requestFocus();
             return;
         }

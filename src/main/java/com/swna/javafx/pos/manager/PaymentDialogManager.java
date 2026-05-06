@@ -40,7 +40,7 @@ public class PaymentDialogManager {
 
         showDialog(CashDialogController.class, controller ->
             controller.initData(total, discount, receivedCash -> {
-                boolean success = viewModel.processCashPayment(receivedCash);
+                boolean success = viewModel.processCashPayment(total, receivedCash);
                 callback.accept(success ?
                     PaymentResult.success("Change: " + receivedCash.subtract(total)) :
                     PaymentResult.failure("Payment failed"));

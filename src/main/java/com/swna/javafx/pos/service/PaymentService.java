@@ -101,11 +101,17 @@ public class PaymentService {
             BigDecimal totalDiscount) {
         
         List<SaleItemRequest> saleItems = buildSaleItemRequests(items);
+
+        log.debug("[Cash] saleItems 목록:");
+        saleItems.forEach(item -> log.info("  - {}", item));
         List<PaymentRequest> payments = List.of(
             new PaymentRequest("CASH", totalAfterDiscount, receivedCash, BigDecimal.ZERO, null)
         );
+        log.debug("[Cash] payments 목록:");
+        payments.forEach(item -> log.info("  - {}", item));
         List<DiscountRequest> discounts = buildDiscountRequests(totalDiscount);
-        
+        log.debug("[Cash] discounts 목록:");
+        discounts.forEach(item -> log.info("  - {}", item));
         return new SaleRequest(saleItems, payments, discounts);
     }
     
