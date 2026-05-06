@@ -1,12 +1,15 @@
 package com.swna.javafx.pos.service;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.swna.javafx.common.api.ApiEndpointMapper;
+import com.swna.javafx.common.api.CommonApiClient;
+import com.swna.javafx.common.response.ApiResponse;
 import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.ProductResponseDto;
-import com.swna.javafx.pos.repository.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,37 +20,42 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class PosService {
 
-    private final ProductRepository productClient;
+    
+    // 공통 API 컴포넌트 주입[cite: 29, 30]
+    private final CommonApiClient apiClient;
+    private final ApiEndpointMapper apiMapper;
 
-    // =========================
-    // Scan (Async)
-    // =========================
+    /**
+     * 바코드를 이용한 상품 스캔
+     */
     public Mono<PosItem> scan(String barcode) {
         if (barcode == null || barcode.isBlank()) {
             log.warn("Scan failed: Barcode is null or empty");
             return Mono.empty();
         }
 
-        log.debug("Starting product lookup for barcode: {}", barcode);
+        // 1. 메타데이터 조회 (barcode_search 도메인 사용)[cite: 29]
+        ApiEndpointMapper.DomainMetadata metadata = apiMapper.getMetadata("barcode_search");
+        
+        // 2. 경로 변수 설정[cite: 30]
+        Map<String, Object> pathVars = Map.of("barcode", barcode);
 
-        // 1. productClient 호출 결과가 ApiResponse<ProductResponse>를 반환하도록 처리
-        return productClient.findByBarcode(barcode)
+        // 3. CommonApiClient를 통한 요청 실행[cite: 30]
+        return apiClient.<ApiResponse<ProductResponseDto>>requestMono(metadata, pathVars, null)
                 .flatMap(response -> {
-                    // 2. 응답이 성공(success=true)이고 데이터가 존재하는지 확인
+                    // 응답 성공 여부 및 데이터 존재 확인
                     if (response.success() && response.data() != null) {
                         log.info("Product found: {} ({})", response.data().description(), barcode);
                         return Mono.just(toPosItem(response.data()));
                     } else {
-                        // 3. 서버에서 에러 응답을 보냈거나 데이터가 없는 경우 처리
-                        log.warn("Product not found or error response for barcode: {}. Code: {}, Message: {}", 
-                                 barcode, response.code(), response.message());
+                        log.warn("Product not found: {} - {}", barcode, response.message());
                         return Mono.empty();
                     }
                 })
-                .doOnError(e -> 
-                    log.error("Network or Server error for barcode: {}. Error: {}", barcode, e.getMessage())
-                )
-                .onErrorResume(e -> Mono.empty());
+                .onErrorResume(e -> {
+                    log.error("API Call failed for barcode {}: {}", barcode, e.getMessage());
+                    return Mono.empty();
+                });
     }
 
     // =========================

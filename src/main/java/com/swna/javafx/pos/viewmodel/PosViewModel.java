@@ -134,12 +134,11 @@ public class PosViewModel {
      * @param receivedCash 고객이 받은 현금액
      * @return 결제 성공 여부
      */
-    public boolean processCashPayment(BigDecimal receivedCash) {
-        BigDecimal totalAfterDiscount = getTotalAfterDiscount();
+    public boolean processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash) {
         
         PaymentService.PaymentResult result = paymentService.processCashPayment(
             cartManager.getItems(),
-            totalAfterDiscount,
+            totalAmount,
             receivedCash
         );
         
