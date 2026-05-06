@@ -1,7 +1,7 @@
 package com.swna.javafx.barcode;
 
 import com.swna.javafx.barcode.dto.BarcodeLabelDto;
-import com.swna.javafx.product.viewmodel.LabelViewModel;
+import com.swna.javafx.barcode.viewModel.LabelViewModel;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;

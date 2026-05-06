@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 import com.swna.javafx.barcode.infrastructre.PdfLabelGenerator;
-import com.swna.javafx.barcode.repository.BarcodeApiClient;
 import com.swna.javafx.common.api.ApiEndpointMapper;
 import com.swna.javafx.common.api.CommonApiClient;
 import com.swna.javafx.common.response.ApiResponse;
