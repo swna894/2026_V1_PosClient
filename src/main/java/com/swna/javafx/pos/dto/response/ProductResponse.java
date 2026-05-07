@@ -1,6 +1,6 @@
-package com.swna.javafx.pos.dto;
+package com.swna.javafx.pos.dto.response;
 
-public record ProductResponseDto(
+public record ProductResponse(
         String code,
         String barcode,
         String description,

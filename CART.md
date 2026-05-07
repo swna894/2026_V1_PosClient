@@ -1,54 +1,31 @@
- # POS 시스템 장바구니 보관(Hold) 및 복구(Resume) 프로세스 가이드
+# WebFlux 기반 API 클라이언트 구조
+    ProductIntegratedService (비즈니스 계층)
+         ↓
+    CommonApiClient (HTTP 통신 계층)
+         ↓
+    ApiEndpointMapper (메타데이터 관리 계층)
+         ↓
+    WebClient (리액티브 HTTP 클라이언트)
 
-이 문서는 제공된 `PosViewController.java`, `PosViewModel.java`, `PosItem.java` 소스 코드를 바탕으로 구현된 장바구니 관리 기능의 상세 프로세스와 개발 시 주의 사항을 정리한 것입니다.
+# 리액티브 이점 적용
 
----
+    특성	            적용 방식
+    논블로킹 I/O	WebClient가 Netty 기반으로 non-blocking HTTP 요청
+    백프레셔	    Flux/Subscriber가 데이터 소비 속도 조절
+    조합성	        Mono.zip(), Mono.flatMap() 등으로 여러 API 호출 병렬/순차 처리
+    에러 처리	    doOnError(), onErrorResume() 등 풍부한 에러 핸들링
 
-## 1. 개요
-고객이 결제 도중 자리를 비우거나 다른 용무가 생겼을 때, 현재 스캔된 상품 목록을 임시 저장(`Hold`)하고 나중에 다시 불러와 결제를 진행(`Resume`)하는 기능입니다.
+# 흐름 예시: 바코드 조회
 
-## 2. 주요 프로세스
-
-### 2.1 장바구니 저장 (Hold Cart)
-사용자가 장바구니 버튼(예: Cart1)을 클릭했을 때의 동작입니다.
-
-1.  **상태 체크**: `PosViewModel`은 현재 `posItems`(장바구니 리스트)가 비어있는지 확인합니다.
-2.  **객체 복제 (Deep Copy)**:
-    * 기존 `holdItems`를 비웁니다.
-    * `posItems`의 각 항목을 `new PosItem(item)` 생성자를 통해 **완전히 새로운 인스턴스로 복제**하여 `holdItems` 리스트에 추가합니다. 이는 원본과 참조를 끊어 데이터 오염을 방지하기 위함입니다.
-3.  **UI 및 상태 초기화**:
-    * `posItems`를 clear하여 화면상의 테이블을 비웁니다.
-    * 선택된 아이템을 null로 설정하고 상태 메시지에 "Cart saved"를 표시합니다.
-4.  **시각적 피드백**: 컨트롤러는 해당 버튼에 `cart-held` 스타일을 추가하여 저장된 내역이 있음을 표시합니다.
-
-### 2.2 장바구니 복구 (Resume Cart)
-저장된 내역이 있는 상태에서 버튼을 다시 클릭했을 때의 동작입니다.
-
-1.  **데이터 복원**:
-    * `posItems`를 비우고, `holdItems`에 보관된 복제된 객체들을 다시 `posItems`에 추가합니다.
-2.  **계산 로직 재활성화**:
-    * `PosItem`의 복사 생성자 내에서 호출되는 `initBindings()`를 통해, 복원된 후에도 수량 변경 시 합계 및 할인이 실시간으로 계산되도록 바인딩을 재설정합니다.
-3.  **임시 저장소 비우기**: 복원이 완료되면 `holdItems`를 비워 중복 복원을 방지합니다.
-4.  **UI 갱신 및 포커스**:
-    * 테이블을 새로고침하고 첫 번째 행을 자동 선택합니다.
-    * 버튼에서 `cart-held` 스타일을 제거합니다.
-
----
-
-## 3. 구현 시 핵심 주의 사항
-
-### ⚠️ 깊은 복사(Deep Copy)의 필수성
-단순히 리스트의 참조만 복사(`holdItems.addAll(posItems)`)할 경우, 메모리 주소가 동일하여 보관 후의 데이터 변경이 보관된 데이터에도 영향을 줍니다. 반드시 `new PosItem(source)` 형태의 **복사 생성자**를 사용해야 합니다.
-
-### ⚠️ JavaFX Property 바인딩 유지
-`PosItem`은 내부적으로 `bind()`를 사용해 금액을 자동 계산합니다. 객체를 새로 생성(복제)할 때 이 바인딩 관계가 끊어지지 않도록 생성 시점에 `initBindings()`,  `initCommentBinding()` 등을 호출하여 **계산 관계를 재정립**해야 합니다.
-
-### ⚠️ 사용자 경험(UX) 고려
-* **포커스 제어**: 장바구니가 복구된 직후에는 바로 스캔을 이어갈 수 있도록 `table.requestFocus()` 처리가 필요합니다.
-* **상태 표시**: 저장된 장바구니가 있는지 사용자가 직관적으로 알 수 있도록 버튼 색상 변경 등의 CSS 피드백을 주어야 합니다.
-
-### ⚠️ 다중 장바구니 확장성
-현재 코드는 단일 `holdItems` 리스트만 관리합니다. Cart1, Cart2 등 여러 슬롯을 지원하려면 ViewModel에서 `Map<Integer, ObservableList<PosItem>>` 구조를 사용하여 각 슬롯별로 데이터를 관리하도록 수정해야 합니다.
-
----
-*참조 소스: PosViewController.java, PosViewModel.java, PosItem.java*
+    1. ProductIntegratedService.findByBarcode("88012345")
+    ↓
+    2. mapper.getMetadata("barcode_search")
+        → DomainMetadata(path="/products/barcode/{barcode}", typeRef=ApiResponse<ProductResponseDto>)
+    ↓
+    3. apiClient.requestMono(metadata, {barcode:"88012345"}, null)
+    ↓
+    4. WebClient GET /products/barcode/88012345
+    ↓
+    5. 응답 바디 → Mono<ApiResponse<ProductResponseDto>> 변환
+    ↓
+    6. 서비스 계층으로 전달

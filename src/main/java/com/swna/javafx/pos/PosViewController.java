@@ -3,13 +3,14 @@ package com.swna.javafx.pos;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.common.util.StatusLabel;
+import com.swna.javafx.common.util.StatusLabelManager;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
 import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.manager.BarcodeScannerManager;
 import com.swna.javafx.pos.manager.CartButtonManager;
 import com.swna.javafx.pos.manager.ClockManager;
 import com.swna.javafx.pos.manager.PaymentDialogManager;
-import com.swna.javafx.pos.manager.PaymentResult;
 import com.swna.javafx.pos.manager.PosTableSetup;
 import com.swna.javafx.pos.manager.UiNotifier;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
@@ -42,6 +43,7 @@ public class PosViewController {
     private final ClockManager clockManager;
     private final BarcodeScannerManager scannerManager;
     private final CartButtonManager cartButtonManager;
+    private final StatusLabelManager statusLabelManager;
 
     // FXML Components
     @FXML private TableView<PosItem> table;
@@ -62,11 +64,11 @@ public class PosViewController {
 
     // Info Labels
     @FXML private Label labelDiscount;
-    @FXML private Label labelInfo;
     @FXML private Label labelClockTime;
     @FXML private Label labelClockDate;
     @FXML private Label labelTotalAmount;
     @FXML private Label labelTotalQty;
+    @FXML private StatusLabel labelStatus;
 
     // Action Buttons
     @FXML private Button buttonCart1;
@@ -89,6 +91,7 @@ public class PosViewController {
 
     @FXML
     public void initialize() {
+
         // 1. 테이블 설정 (위임)
         tableSetup.setup(
             table, viewModel,
@@ -102,8 +105,12 @@ public class PosViewController {
         labelTotalAmount.textProperty().bind(viewModel.totalAmountProperty().asString("Total: %.2f"));
         labelTotalQty.textProperty().bind(viewModel.totalQtyProperty().asString("Total Qty: %d"));
         labelDiscount.textProperty().bind(viewModel.discountProperty().asString("Discount: %.2f"));
-        labelInfo.textProperty().bind(viewModel.scanStatusProperty());
+        labelStatus.textProperty().bind(viewModel.scanStatusProperty());
+
+        labelStatus.bindTo(viewModel.scanStatusProperty());
         
+
+
         // 3. UI 알림 타이머 설정
         uiNotifier.setupAutoClear(viewModel.scanStatusProperty());
         
@@ -177,17 +184,66 @@ public class PosViewController {
         );
     }
 
-    private void afterPayment(PaymentResult result, String type) {
+    /**
+     * 결제 후 처리
+     * 
+     * @param result 결제 결과
+     * @param paymentType 결제 유형 (Cash, Mixed, Cashout)
+     */
+    private void afterPayment(PaymentDialogManager.PaymentResult result, String paymentType) {
         if (result.isSuccess()) {
-            uiNotifier.showTemporary(viewModel.scanStatusProperty(), 
-                String.format("[%s] Payment Success. %s", type, result.getMessage())
-            );
-            table.refresh();
+            // 결제 성공
+            log.info("[UI] {} payment successful: {}", paymentType, result.getMessage());
+            
+            // 성공 메시지 표시 (선택사항)
+            showSuccessMessage(result.getMessage());
+            
+            // 추가 작업 (예: 영수증 출력, 장바구니 초기화 등은 ViewModel에서 이미 처리됨)
+            // ViewModel의 clear()가 호출되었으므로 UI 업데이트는 자동으로 됨
+            
         } else {
-            uiNotifier.showError(viewModel.scanStatusProperty(), 
-                String.format("[%s] Payment Failed: %s", type, result.getErrorMessage())
-            );
+            // 결제 실패
+            log.warn("[UI] {} payment failed: {}", paymentType, result.getMessage());
+            
+            // 실패 메시지 표시
+            showErrorMessage("Payment failed: " + result.getMessage());
         }
+    }
+
+
+    /**
+     * 성공 메시지 표시
+     */
+    private void showSuccessMessage(String message) {
+        // 방법 1: StatusBar에 표시
+        statusLabelManager.setFadeOutEnabled(true);
+        statusLabelManager.showSuccess(message);
+        
+        // 방법 2: 토스트 메시지
+        // Toast.show(message);
+        
+        // 방법 3: 알림 다이얼로그
+        // Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        // alert.setTitle("Success");
+        // alert.setHeaderText(null);
+        // alert.setContentText(message);
+        // alert.showAndWait();
+    }
+
+    /**
+     * 에러 메시지 표시
+     */
+    private void showErrorMessage(String message) {
+        // 방법 1: StatusBar에 표시
+        statusLabelManager.setFadeOutEnabled(true);
+        statusLabelManager.showError(message);
+        
+        // 방법 2: 에러 다이얼로그
+        // Alert alert = new Alert(Alert.AlertType.ERROR);
+        // alert.setTitle("Payment Error");
+        // alert.setHeaderText(null);
+        // alert.setContentText(message);
+        // alert.showAndWait();
     }
 
     @FXML private void onClose(MouseEvent event) { viewModel.clear(); System.exit(0); }

@@ -1,99 +1,192 @@
 package com.swna.javafx.pos.service;
 
+import com.swna.javafx.common.api.ApiEndpointMapper;
+import com.swna.javafx.common.api.CommonApiClient;
+import com.swna.javafx.common.response.ApiResponse;
 import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.request.*;
+import com.swna.javafx.pos.dto.response.SaleResponse;
+
 import javafx.collections.ObservableList;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class PaymentService {
 
-    // ========== Public Methods ==========
+    private final CommonApiClient commonApiClient;
+    private final ApiEndpointMapper apiEndpointMapper;
     
-    public PaymentResult processCashPayment(
+    public PaymentService(CommonApiClient commonApiClient, ApiEndpointMapper apiEndpointMapper) {
+        this.commonApiClient = commonApiClient;
+        this.apiEndpointMapper = apiEndpointMapper;
+    }
+
+    // ========== Public Async Methods ==========
+    
+    /**
+     * 현금 결제 (비동기)
+     */
+    public Mono<PaymentResult> processCashPayment(
             ObservableList<PosItem> items,
             BigDecimal totalAfterDiscount,
             BigDecimal receivedCash) {
-        
-        try {
-            BigDecimal change = receivedCash.subtract(totalAfterDiscount);
-            
-            if (change.compareTo(BigDecimal.ZERO) < 0) {
-                return PaymentResult.fail("Insufficient cash received");
-            }
-            
-            BigDecimal totalDiscount = calculateTotalDiscount(items);
-            SaleRequest saleRequest = buildCashPaymentSaleRequest(items, receivedCash, totalAfterDiscount, totalDiscount);
-            
-            log.info("[Payment] Cash payment success - Received: {}, Change: {}", receivedCash, change);
-            return PaymentResult.success(saleRequest, change);
-            
-        } catch (Exception e) {
-            log.error("[Payment] Cash payment failed: {}", e.getMessage());
-            return PaymentResult.fail(e.getMessage());
+
+        // 1. 입력 검증
+        if (receivedCash == null) {
+            return Mono.just(PaymentResult.fail("Received cash amount cannot be null"));
         }
+        
+        if (totalAfterDiscount == null || totalAfterDiscount.compareTo(BigDecimal.ZERO) <= 0) {
+            return Mono.just(PaymentResult.fail("Total amount is invalid"));
+        }
+        
+        BigDecimal change = receivedCash.subtract(totalAfterDiscount);
+        
+        if (change.compareTo(BigDecimal.ZERO) < 0) {
+            return Mono.just(PaymentResult.fail("Insufficient cash received"));
+        }
+        
+        // 2. SaleRequest 생성
+        BigDecimal totalDiscount = calculateTotalDiscount(items);
+        SaleRequest saleRequest = buildCashPaymentSaleRequest(
+            items, receivedCash, totalAfterDiscount, totalDiscount
+        );
+        
+        // 3. API 호출 - 메타데이터 타입을 ApiResponse<SaleResponse>로 지정
+        ApiEndpointMapper.DomainMetadata<ApiResponse<SaleResponse>> metadata = 
+            apiEndpointMapper.getMetadata("sale_create");
+        
+        return commonApiClient.postForData(metadata, saleRequest, Map.of(), Map.of())
+            .map(saleResponse -> {
+                if (saleResponse == null) {
+                    log.error("[Payment] SaleResponse is null");
+                    return PaymentResult.fail("Empty response from server", saleRequest);
+                }
+                
+                log.info("[Payment] Cash payment success - Receipt: {}, Change: {}, Sale ID: {}", 
+                    saleResponse.receiptNo(), change, saleResponse.id());
+                return PaymentResult.success(saleResponse, change);
+            })
+            .onErrorResume(error -> {
+                log.error("[Payment] API call failed: {}", error.getMessage(), error);
+                return Mono.just(PaymentResult.fail(
+                    error.getMessage(), saleRequest
+                ));
+            });
     }
-    
-    public PaymentResult processCashoutPayment(
+    /**
+     * 현금 인출(Cashout) 결제 (비동기)
+     */
+    public Mono<PaymentResult> processCashoutPayment(
             ObservableList<PosItem> items,
             BigDecimal totalAfterDiscount,
             BigDecimal cashoutAmount) {
         
-        try {
-            if (cashoutAmount.compareTo(BigDecimal.ZERO) < 0) {
-                return PaymentResult.fail("Cashout amount cannot be negative");
-            }
-            
-            BigDecimal totalDiscount = calculateTotalDiscount(items);
-            SaleRequest saleRequest = buildCashoutSaleRequest(items, totalAfterDiscount, cashoutAmount, totalDiscount);
-           
-            log.info("[Payment] Cashout payment success - Card: {}, Cashout: {}", totalAfterDiscount, cashoutAmount);
-            return PaymentResult.success(saleRequest);
-            
-        } catch (Exception e) {
-            log.error("[Payment] Cashout payment failed: {}", e.getMessage());
-            return PaymentResult.fail(e.getMessage());
+        // 1. 입력 검증
+        if (cashoutAmount == null) {
+            return Mono.just(PaymentResult.fail("Cashout amount cannot be null"));
         }
+        
+        if (cashoutAmount.compareTo(BigDecimal.ZERO) < 0) {
+            return Mono.just(PaymentResult.fail("Cashout amount cannot be negative"));
+        }
+        
+        if (totalAfterDiscount == null || totalAfterDiscount.compareTo(BigDecimal.ZERO) <= 0) {
+            return Mono.just(PaymentResult.fail("Total amount is invalid"));
+        }
+        
+        // 2. SaleRequest 생성
+        BigDecimal totalDiscount = calculateTotalDiscount(items);
+        SaleRequest saleRequest = buildCashoutSaleRequest(items, totalAfterDiscount, cashoutAmount, totalDiscount);
+        
+        // 3. API 호출 - 메타데이터 타입을 ApiResponse<SaleResponse>로 지정
+        ApiEndpointMapper.DomainMetadata<ApiResponse<SaleResponse>> metadata = 
+            apiEndpointMapper.getMetadata("sale_create");
+        
+        return commonApiClient.postForData(metadata, saleRequest, Map.of(), Map.of())
+            .map(saleResponse -> {
+                if (saleResponse == null) {
+                    log.error("[Payment] SaleResponse is null");
+                    return PaymentResult.fail("Empty response from server", saleRequest);
+                }
+                
+                log.info("[Payment] Cashout payment success - Receipt: {}, Card: {}, Cashout: {}", 
+                    saleResponse.receiptNo(), totalAfterDiscount, cashoutAmount);
+                return PaymentResult.success(saleResponse);
+            })
+            .onErrorResume(error -> {
+                log.error("[Payment] API call failed: {}", error.getMessage(), error);
+                return Mono.just(PaymentResult.fail(
+                    error.getMessage(), saleRequest
+                ));
+            });
     }
     
-    public PaymentResult processMixedPayment(
-            ObservableList<PosItem> items,
-            BigDecimal totalAfterDiscount,
-            BigDecimal cashPart,
-            BigDecimal creditPart) {
-        
-        try {
-            BigDecimal totalPayment = cashPart.add(creditPart);
-            
-            if (totalPayment.compareTo(totalAfterDiscount) != 0) {
-                return PaymentResult.fail(
-                    String.format("Amount mismatch: payment=%s, expected=%s", totalPayment, totalAfterDiscount)
-                );
+    /**
+     * 혼합 결제 (비동기)
+     */
+
+public Mono<PaymentResult> processMixedPayment(
+        ObservableList<PosItem> items,
+        BigDecimal totalAfterDiscount,
+        BigDecimal cashPart,
+        BigDecimal creditPart) {
+    
+    // 1. 입력 검증
+    if (cashPart == null || creditPart == null) {
+        return Mono.just(PaymentResult.fail("Payment amounts cannot be null"));
+    }
+    
+    if (totalAfterDiscount == null || totalAfterDiscount.compareTo(BigDecimal.ZERO) <= 0) {
+        return Mono.just(PaymentResult.fail("Total amount is invalid"));
+    }
+    
+    BigDecimal totalPayment = cashPart.add(creditPart);
+    
+    if (totalPayment.compareTo(totalAfterDiscount) != 0) {
+        return Mono.just(PaymentResult.fail(
+            String.format("Amount mismatch: payment=%s, expected=%s", totalPayment, totalAfterDiscount)
+        ));
+    }
+    
+    // 2. SaleRequest 생성
+    BigDecimal totalDiscount = calculateTotalDiscount(items);
+    SaleRequest saleRequest = buildMixedPaymentSaleRequest(items, cashPart, creditPart, totalDiscount);
+    
+    // 3. API 호출 - 메타데이터 타입을 ApiResponse<SaleResponse>로 지정
+    ApiEndpointMapper.DomainMetadata<ApiResponse<SaleResponse>> metadata = 
+        apiEndpointMapper.getMetadata("sale_create");
+    
+    return commonApiClient.postForData(metadata, saleRequest, Map.of(), Map.of())
+        .map(saleResponse -> {
+            if (saleResponse == null) {
+                log.error("[Payment] SaleResponse is null");
+                return PaymentResult.fail("Empty response from server", saleRequest);
             }
             
-            BigDecimal totalDiscount = calculateTotalDiscount(items);
-            SaleRequest saleRequest = buildMixedPaymentSaleRequest(items, cashPart, creditPart, totalDiscount);
-            
-            log.info("[Payment] Mixed payment success - Cash: {}, Credit: {}", cashPart, creditPart);
-            return PaymentResult.success(saleRequest);
-            
-        } catch (Exception e) {
-            log.error("[Payment] Mixed payment failed: {}", e.getMessage());
-            return PaymentResult.fail(e.getMessage());
-        }
-    }
+            log.info("[Payment] Mixed payment success - Receipt: {}, Cash: {}, Credit: {}", 
+                saleResponse.receiptNo(), cashPart, creditPart);
+            return PaymentResult.success(saleResponse);
+        })
+        .onErrorResume(error -> {
+            log.error("[Payment] API call failed: {}", error.getMessage(), error);
+            return Mono.just(PaymentResult.fail(
+                error.getMessage(), saleRequest
+            ));
+        });
+}
     
     // ========== Private Builder Methods ==========
     
-    /**
-     * 현금 결제용 SaleRequest 빌드
-     */
     private SaleRequest buildCashPaymentSaleRequest(
             ObservableList<PosItem> items,
             BigDecimal receivedCash,
@@ -101,24 +194,17 @@ public class PaymentService {
             BigDecimal totalDiscount) {
         
         List<SaleItemRequest> saleItems = buildSaleItemRequests(items);
-
-        log.debug("[Cash] saleItems 목록:");
-        saleItems.forEach(item -> log.info("  - {}", item));
+        log.debug("[Cash] Building sale request with {} items", saleItems.size());
+        
         List<PaymentRequest> payments = List.of(
             new PaymentRequest("CASH", totalAfterDiscount, receivedCash, BigDecimal.ZERO, null)
         );
-        log.debug("[Cash] payments 목록:");
-        payments.forEach(item -> log.info("  - {}", item));
+        
         List<DiscountRequest> discounts = buildDiscountRequests(totalDiscount);
-        log.debug("[Cash] discounts 목록:");
-        discounts.forEach(item -> log.info("  - {}", item));
+        
         return new SaleRequest(saleItems, payments, discounts);
     }
     
-    /**
-     * 현금 인출(Cashout) 결제용 SaleRequest 빌드
-     * ✅ DiscountRequest 추가됨
-     */
     private SaleRequest buildCashoutSaleRequest(
             ObservableList<PosItem> items,
             BigDecimal creditAmount,
@@ -126,32 +212,18 @@ public class PaymentService {
             BigDecimal totalDiscount) {
         
         List<SaleItemRequest> saleItems = buildSaleItemRequests(items);
-            // ✅ 로그로 변경 - SaleItemRequest 목록 출력
-        log.debug("[Cashout] SaleItemRequest 목록:");
-        saleItems.forEach(item -> log.info("  - {}", item));
+        log.debug("[Cashout] Building sale request with {} items", saleItems.size());
 
         List<PaymentRequest> payments = List.of(
             new PaymentRequest("CARD", creditAmount, creditAmount, cashoutAmount, 
                 "CASHOUT_" + System.currentTimeMillis())
         );
 
-         // ✅ 로그로 변경 - PaymentRequest 목록 출력
-        log.debug("[Cashout] DiscountRequest 목록:");
-        payments.forEach(item -> log.info("  - {}", item));
-
         List<DiscountRequest> discounts = buildDiscountRequests(totalDiscount);
-              
-        // ✅ 로그로 변경 - DiscountRequest 목록 출력
-        log.debug("[Cashout] DiscountRequest 목록:");
-        discounts.forEach(item -> log.info("  - {}", item));
         
         return new SaleRequest(saleItems, payments, discounts);
     }
     
-    /**
-     * 혼합 결제용 SaleRequest 빌드 (현금 + 카드)
-     * ✅ DiscountRequest 추가됨
-     */
     private SaleRequest buildMixedPaymentSaleRequest(
             ObservableList<PosItem> items,
             BigDecimal cashPart,
@@ -159,43 +231,28 @@ public class PaymentService {
             BigDecimal totalDiscount) {
         
         List<SaleItemRequest> saleItems = buildSaleItemRequests(items);
-        log.debug("[Mix] saleItems 목록:");
-        saleItems.forEach(item -> log.info("  - {}", item));
+        log.debug("[Mix] Building sale request with {} items", saleItems.size());
 
         List<PaymentRequest> payments = buildMixedPayments(cashPart, creditPart);
-        log.debug("[Mix] payments 목록:");
-        payments.forEach(item -> log.info("  - {}", item));
-        
         List<DiscountRequest> discounts = buildDiscountRequests(totalDiscount);
-        log.debug("[Mix] discounts 목록:");
-        discounts.forEach(item -> log.info("  - {}", item));
         
         return new SaleRequest(saleItems, payments, discounts);
     }
     
     // ========== Common Helper Methods ==========
     
-    /**
-     * 장바구니 전체 할인 총액 계산
-     * 개별 아이템의 할인 금액(unitDiscount * qty) 합계
-     */
     private BigDecimal calculateTotalDiscount(ObservableList<PosItem> items) {
         return items.stream()
             .map(item -> BigDecimal.valueOf(item.getDiscountTotal()))
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
     
-    /**
-     * SaleItemRequest 목록 빌드
-     * 각 아이템의 개별 할인 정보 포함
-     */
     private List<SaleItemRequest> buildSaleItemRequests(ObservableList<PosItem> items) {
         return items.stream()
             .map(item -> {
                 BigDecimal discountValue = BigDecimal.valueOf(item.getUnitDiscount());
-                DiscountType discountType = item.getDiscountType();  // ✅ 이제 정상 동작
+                DiscountType discountType = item.getDiscountType();
                 
-                // 할인 금액이 0이면 NONE으로 통일
                 if (discountValue.compareTo(BigDecimal.ZERO) == 0) {
                     discountType = DiscountType.NONE;
                 }
@@ -211,31 +268,6 @@ public class PaymentService {
             .toList();
     }
     
-    /**
-     * 아이템의 할인 유형 결정
-     * - 할인 금액이 0 이하: NONE
-     * - 퍼센트 할인이 적용된 경우: PERCENT
-     * - 그 외: AMOUNT
-     */
-    private DiscountType determineDiscountType(PosItem item) {
-        double unitDiscount = item.getUnitDiscount();
-        
-        // 할인이 없는 경우
-        if (unitDiscount <= 0) {
-            return DiscountType.NONE;
-        }
-        
-        // 퍼센트 할인이 적용된 경우 (PosItem에 저장된 정보 사용)
-        if (item.getDiscountType() != null && item.getDiscountType() == DiscountType.PERCENT) {
-            return DiscountType.PERCENT;
-        }
-        
-        // 금액 할인
-        return DiscountType.AMOUNT;
-    }
-    /**
-     * 혼합 결제용 PaymentRequest 목록 빌드
-     */
     private List<PaymentRequest> buildMixedPayments(BigDecimal cashPart, BigDecimal creditPart) {
         List<PaymentRequest> payments = new ArrayList<>();
         
@@ -251,39 +283,13 @@ public class PaymentService {
         return payments;
     }
     
-    /**
-     * 전체 장바구니 레벨 할인 정보 빌드
-     * @param totalDiscount 전체 할인 총액 (0보다 클 때만 추가)
-     */
     private List<DiscountRequest> buildDiscountRequests(BigDecimal totalDiscount) {
         if (totalDiscount == null || totalDiscount.compareTo(BigDecimal.ZERO) <= 0) {
-            return List.of();  // 할인이 없으면 빈 리스트 반환
+            return List.of();
         }
         
         return List.of(
             DiscountRequest.fixed(totalDiscount, "Cart total discount")
         );
-    }
-    
-    // ========== Inner Classes ==========
-    
-    @lombok.Value
-    public static class PaymentResult {
-        boolean success;
-        String message;
-        SaleRequest saleRequest;
-        BigDecimal change;
-        
-        public static PaymentResult success(SaleRequest saleRequest) {
-            return new PaymentResult(true, "Success", saleRequest, BigDecimal.ZERO);
-        }
-        
-        public static PaymentResult success(SaleRequest saleRequest, BigDecimal change) {
-            return new PaymentResult(true, "Success", saleRequest, change);
-        }
-        
-        public static PaymentResult fail(String message) {
-            return new PaymentResult(false, message, null, BigDecimal.ZERO);
-        }
     }
 }

@@ -1,6 +1,8 @@
 package com.swna.javafx.pos.viewmodel.manager;
 
 import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.viewmodel.handler.ScanHandler;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -97,7 +99,7 @@ public class CartManager {
     
     public Optional<PosItem> findQuickItemByAmount(double amount) {
         return items.stream()
-                .filter(i -> i.getBarcode().startsWith("Q_Item_"))
+                .filter(i -> i.getBarcode().startsWith(ScanHandler.QUICK_ITEM_PREFIX))
                 .filter(i -> i.getSellingPrice() == amount)
                 .findFirst();
     }

@@ -20,7 +20,7 @@ public class SoundManager {
                             .toExternalForm()
             );
 
-    public static void success() {
+    public static void playSuccess() {
         SUCCESS.play();
     }
 

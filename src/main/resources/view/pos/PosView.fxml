@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.swna.javafx.common.util.StatusLabel?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -50,12 +51,13 @@
 
             <Region HBox.hgrow="ALWAYS" />
 
-            <Label fx:id="labelInfo" alignment="BOTTOM_RIGHT" prefHeight="135.0" prefWidth="-1.0"
+            <StatusLabel fx:id="labelStatus" alignment="BOTTOM_RIGHT" prefHeight="135.0"
+               prefWidth="-1.0"
                styleClass="top-label-status" text="Scan Ready">
                <HBox.margin>
                   <Insets bottom="15.0" />
                </HBox.margin>
-            </Label>
+            </StatusLabel>
             <VBox alignment="BOTTOM_RIGHT" spacing="0.0" styleClass="time-container">
                <children>
                   <Label fx:id="labelClockTime" styleClass="top-label-clock-time" text="오전 11:05" />

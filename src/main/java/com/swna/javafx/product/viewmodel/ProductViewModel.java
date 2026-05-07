@@ -103,7 +103,7 @@ public class ProductViewModel extends BaseViewModel {
                 String kw = keyword.get().toLowerCase();
 
                 return all.stream()
-                        .filter(p -> p.getName().toLowerCase().contains(kw))
+                        .filter(p -> p.getBarcode().toLowerCase().contains(kw))
                         .toList();
             },
             products::setAll

@@ -5,12 +5,13 @@ import lombok.Data;
 @Data
 public class Product {
    private Long id;
-   private String name;
+   private String description;
+   private String barcode;
    private int price;
 
    public Product(long l, String string, int i) {
      this.id = l;
-     this.name = string;
+     this.barcode = string;
      this.price = i;
    }
 }

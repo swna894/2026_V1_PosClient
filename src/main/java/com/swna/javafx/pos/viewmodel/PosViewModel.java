@@ -1,29 +1,36 @@
 package com.swna.javafx.pos.viewmodel;
 
+import java.math.BigDecimal;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import com.swna.javafx.common.util.StatusLabelManager;
 import com.swna.javafx.pos.domain.PosItem;
-import com.swna.javafx.pos.dto.request.PaymentRequest;
-import com.swna.javafx.pos.dto.request.SaleItemRequest;
-import com.swna.javafx.pos.dto.request.SaleRequest;
+import com.swna.javafx.pos.service.PaymentResult;
 import com.swna.javafx.pos.service.PaymentService;
 import com.swna.javafx.pos.service.PosService;
 import com.swna.javafx.pos.viewmodel.handler.ScanHandler;
 import com.swna.javafx.pos.viewmodel.manager.CartManager;
 import com.swna.javafx.pos.viewmodel.manager.DiscountManager;
 import com.swna.javafx.pos.viewmodel.manager.HoldManager;
-import javafx.beans.property.*;
+
+import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @Slf4j
 @Component
 @Scope("prototype")
 public class PosViewModel {
     
+     private StatusLabelManager statusLabelManager; 
+     
     // ========== 상수 (Constants) ==========
     private static final String STATUS_READY = "Scan ready";
     private static final String STATUS_SCANNING = "Scanning...";
@@ -129,69 +136,71 @@ public class PosViewModel {
     // 결제 메서드 (PaymentService 위임)
     // =========================================================================
     /**
-     * 현금 결제 처리
+     * 현금 결제 처리 (비동기)
      * 
-     * @param receivedCash 고객이 받은 현금액
-     * @return 결제 성공 여부
+     * @param totalAmount 총 금액
+     * @param receivedCash 받은 현금
+     * @param onComplete 콜백 (선택사항)
      */
-    public boolean processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash) {
+    public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash, 
+                                    java.util.function.Consumer<Boolean> onComplete) {
         
-        PaymentService.PaymentResult result = paymentService.processCashPayment(
-            cartManager.getItems(),
-            totalAmount,
-            receivedCash
-        );
-        
-        return handlePaymentResult(result, "Cash payment success. Change: " + result.getChange());
+        paymentService.processCashPayment(cartManager.getItems(), totalAmount, receivedCash)
+            .subscribe(result -> {
+                Platform.runLater(() -> {
+                    boolean success = handlePaymentResult(result, "Cash payment success. Change: " + result.getChange());
+                    if (onComplete != null) {
+                        onComplete.accept(success);
+                    }
+                });
+            });
     }
 
     /**
-     * 현금 인출 결제 처리 (카드 결제 + 현금 인출)
-     * 
-     * @param cashoutAmount 고객이 요청한 인출 현금액
-     * @param totalCardAmount 카드로 결제할 총 금액 (할인 적용 후)
-     * @return 결제 성공 여부
+     * 현금 인출 결제 처리 (비동기)
      */
-    public boolean processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount) {
-        // totalCardAmount가 null이거나 음수인 경우 전체 금액으로 간주
+    public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount,
+                                    java.util.function.Consumer<Boolean> onComplete) {
         if (totalCardAmount == null || totalCardAmount.compareTo(BigDecimal.ZERO) <= 0) {
             totalCardAmount = getTotalAfterDiscount();
         }
 
-        PaymentService.PaymentResult result = paymentService.processCashoutPayment(
-            cartManager.getItems(),
-            totalCardAmount,
-            cashoutAmount
-        );
-        
-        return handlePaymentResult(result, "Cashout payment success - Card: " + totalCardAmount + ", Cashout: " + cashoutAmount);
+        paymentService.processCashoutPayment(cartManager.getItems(), totalCardAmount, cashoutAmount)
+            .subscribe(result -> {
+                Platform.runLater(() -> {
+                    boolean success = handlePaymentResult(result, "Cashout payment success");
+                    if (onComplete != null) {
+                        onComplete.accept(success);
+                    }
+                });
+            });
     }
 
     /**
-     * 현금 + 카드 혼합 결제 처리
-     * 
-     * @param cashPart 현금 결제 금액
-     * @param creditPart 카드 결제 금액
-     * @return 결제 성공 여부
+     * 혼합 결제 처리 (비동기)
      */
-    public boolean processMixedPayment(BigDecimal cashPart, BigDecimal creditPart) {
-        BigDecimal originaltotalAmount =  BigDecimal.valueOf(cartManager.totalAmountProperty().get());
+    public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart,
+                                    java.util.function.Consumer<Boolean> onComplete) {
+        BigDecimal originalTotalAmount = BigDecimal.valueOf(cartManager.totalAmountProperty().get());
         
-        // 결제 금액 합계가 최종 금액과 일치하는지 검증
         BigDecimal totalPayment = cashPart.add(creditPart);
-        if (totalPayment.compareTo(originaltotalAmount) != 0) {
+        if (totalPayment.compareTo(originalTotalAmount) != 0) {
             scanStatus.set(STATUS_PAYMENT_FAIL + ": Amount mismatch");
-            return false;
+            if (onComplete != null) {
+                onComplete.accept(false);
+            }
+            return;
         }
         
-        PaymentService.PaymentResult result = paymentService.processMixedPayment(
-            cartManager.getItems(),
-            totalPayment,
-            cashPart,
-            creditPart
-        );
-        
-        return handlePaymentResult(result, "Mixed payment success - Cash: " + cashPart + ", Credit: " + creditPart);
+        paymentService.processMixedPayment(cartManager.getItems(), originalTotalAmount, cashPart, creditPart)
+            .subscribe(result -> {
+                Platform.runLater(() -> {
+                    boolean success = handlePaymentResult(result, "Mixed payment success");
+                    if (onComplete != null) {
+                        onComplete.accept(success);
+                    }
+                });
+            });
     }
 
     // ========== Private Helper Methods ==========
@@ -204,15 +213,24 @@ public class PosViewModel {
         BigDecimal disc = BigDecimal.valueOf(cartManager.totalDiscountProperty().get());
         return total.subtract(disc);
     }
+    
+    // 오버로드 메서드 (콜백 없음)
+    public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash) {
+        processCashPayment(totalAmount, receivedCash, null);
+    }
+
+    public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount) {
+        processCashoutPayment(cashoutAmount, totalCardAmount, null);
+    }
+
+    public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart) {
+        processMixedPayment(cashPart, creditPart, null);
+    }
 
     /**
-     * 결제 결과를 일관되게 처리
-     * 
-     * @param result 결제 서비스 결과
-     * @param successLogMessage 성공 시 로그 메시지
-     * @return 결제 성공 여부
+     * 결제 결과 처리 (기존 메서드 유지)
      */
-    private boolean handlePaymentResult(PaymentService.PaymentResult result, String successLogMessage) {
+    private boolean handlePaymentResult(PaymentResult result, String successLogMessage) {
         if (result.isSuccess()) {
             log.info("[VM] {}", successLogMessage);
             scanStatus.set(STATUS_PAYMENT_SUCCESS);
@@ -220,7 +238,7 @@ public class PosViewModel {
             return true;
         } else {
             log.warn("[VM] Payment failed: {}", result.getMessage());
-            scanStatus.set(STATUS_PAYMENT_FAIL + ": " + result.getMessage());
+            scanStatus.set(STATUS_PAYMENT_FAIL + ", " + result.getMessage());
             return false;
         }
     }

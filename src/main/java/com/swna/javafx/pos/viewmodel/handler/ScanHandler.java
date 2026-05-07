@@ -14,6 +14,8 @@ public class ScanHandler {
     
     private final PosService posService;
     private final CartManager cartManager;
+
+    public static final String QUICK_ITEM_PREFIX = "QUICK";
     
     // 상태 콜백 (ViewModel과 통신)
     private Runnable onScanning;
@@ -62,7 +64,7 @@ public class ScanHandler {
         if (existing.isPresent()) {
             cartManager.increaseQty(existing.get());
         } else {
-            PosItem newItem = PosItem.createQuickItem("Q_Item_", amount);
+            PosItem newItem = PosItem.createQuickItem(QUICK_ITEM_PREFIX, amount);
             newItem.setQty(1);
             cartManager.addItem(newItem);
         }
