@@ -22,8 +22,9 @@ public class StatusLabel extends Label {
     private StringProperty boundProperty;
     private boolean isShowingTemporaryMessage = false;
     private boolean isInternalTextChange = false;  // 내부 텍스트 변경 여부
+    private boolean isBound = false;  // 바인딩 여부 추적
     
-    private static final double DEFAULT_DURATION_SECONDS = 5.0;
+    private static final double DEFAULT_DURATION_SECONDS = 10.0;  // 5초에서 10초로 변경
     
     // CSS 스타일
     private static final String STYLE_SUCCESS = "-fx-text-fill: #2ecc71; -fx-font-weight: bold; ";
@@ -31,6 +32,7 @@ public class StatusLabel extends Label {
     private static final String STYLE_INFO = "-fx-text-fill: #3498db; -fx-font-weight: normal;";
     private static final String STYLE_WARNING = "-fx-text-fill: #f39c12; -fx-font-weight: bold; ";
     private static final String STYLE_DEFAULT = "-fx-text-fill: #2c3e50; -fx-background-color: transparent; -fx-padding: 3 6 3 6;";
+    private static final String STYLE_HIDDEN = "-fx-text-fill: transparent;";
     
     public StatusLabel() {
         super();
@@ -66,11 +68,14 @@ public class StatusLabel extends Label {
     public void bindTo(StringProperty property) {
         // 기존 바인딩 제거
         if (boundProperty != null) {
-            textProperty().unbind();
+            if (textProperty().isBound()) {
+                textProperty().unbind();
+            }
             boundProperty = null;
         }
         
         this.boundProperty = property;
+        this.isBound = true;
         
         // text 속성을 ViewModel 속성에 바인딩
         textProperty().bind(property);
@@ -89,6 +94,7 @@ public class StatusLabel extends Label {
             boundProperty.removeListener(bindingListener);
         }
         this.boundProperty = property;
+        this.isBound = false;
         boundProperty.addListener(bindingListener);
     }
     
@@ -103,6 +109,7 @@ public class StatusLabel extends Label {
             boundProperty.removeListener(bindingListener);
             boundProperty = null;
         }
+        isBound = false;
     }
     
     private final javafx.beans.value.ChangeListener<String> bindingListener = 
@@ -124,7 +131,7 @@ public class StatusLabel extends Label {
             lowerMsg.contains("✓") || lowerMsg.contains("✅")) {
             applyStyleAndSound(message, STYLE_SUCCESS, true);
         } else if (lowerMsg.contains("error") || lowerMsg.contains("fail") || 
-                   lowerMsg.contains("not found") || lowerMsg.contains("실패") || 
+                   lowerMsg.contains("not found") || lowerMsg.contains("failed") || 
                    lowerMsg.contains("오류") || lowerMsg.contains("없음") ||
                    lowerMsg.contains("✗") || lowerMsg.contains("❌")) {
             applyStyleAndSound(message, STYLE_ERROR, false);
@@ -155,15 +162,34 @@ public class StatusLabel extends Label {
                 }
             }
             
-            // 일정 시간 후 스타일 초기화 (선택사항)
-            PauseTransition pause = new PauseTransition(Duration.seconds(DEFAULT_DURATION_SECONDS));
-            pause.setOnFinished(event -> {
-                if (!isShowingTemporaryMessage && getText().equals(message)) {
-                    setStyle(STYLE_DEFAULT);
-                }
-            });
-            pause.play();
+            // 10초 후 페이드 아웃 (바인딩 상태일 때는 텍스트를 직접 변경하지 않음)
+            if (fadeOutEnabled && !isBound) {
+                applyFadeOutAnimation(DEFAULT_DURATION_SECONDS);
+            } else if (fadeOutEnabled && isBound) {
+                // 바인딩 상태에서는 스타일만 초기화
+                applyStyleOnlyReset(DEFAULT_DURATION_SECONDS);
+            } else if (!isBound) {
+                applySimpleClearAnimation(DEFAULT_DURATION_SECONDS);
+            }
         });
+    }
+    
+    /**
+     * 스타일만 초기화 (바인딩 상태용)
+     */
+    private void applyStyleOnlyReset(double durationSeconds) {
+        PauseTransition pause = new PauseTransition(Duration.seconds(durationSeconds));
+        FadeTransition fadeOut = new FadeTransition(Duration.seconds(fadeOutDuration), this);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        
+        SequentialTransition sequential = new SequentialTransition(pause, fadeOut);
+        sequential.setOnFinished(event -> {
+            setOpacity(1.0);  // 투명도 복원
+            setStyle(STYLE_HIDDEN);  // 기본 스타일로 복원
+            isShowingTemporaryMessage = false;
+        });
+        sequential.play();
     }
     
     /**
@@ -223,12 +249,33 @@ public class StatusLabel extends Label {
                 }
             }
             
-            if (fadeOutEnabled) {
+            if (isBound) {
+                // 바인딩 상태에서는 페이드아웃 후 텍스트 복원 없이 스타일만 초기화
+                applyTemporaryMessageForBound(durationSeconds);
+            } else if (fadeOutEnabled) {
                 applyFadeOutAnimation(durationSeconds);
             } else {
                 applySimpleClearAnimation(durationSeconds);
             }
         });
+    }
+    
+    /**
+     * 바인딩 상태에서 임시 메시지 표시
+     */
+    private void applyTemporaryMessageForBound(double durationSeconds) {
+        PauseTransition pause = new PauseTransition(Duration.seconds(durationSeconds));
+        FadeTransition fadeOut = new FadeTransition(Duration.seconds(fadeOutDuration), this);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        
+        SequentialTransition sequential = new SequentialTransition(pause, fadeOut);
+        sequential.setOnFinished(event -> {
+            setOpacity(1.0);
+            setStyle(STYLE_DEFAULT);
+            isShowingTemporaryMessage = false;
+        });
+        sequential.play();
     }
     
     private void applyFadeOutAnimation(double durationSeconds) {
@@ -244,13 +291,6 @@ public class StatusLabel extends Label {
             setOpacity(1.0);
             setStyle(STYLE_DEFAULT);
             isShowingTemporaryMessage = false;
-            
-            // 바인딩된 값이 있으면 복원
-            if (boundProperty != null && boundProperty.get() != null && !boundProperty.get().isEmpty()) {
-                isInternalTextChange = true;
-                setText(boundProperty.get());
-                autoShowMessage(boundProperty.get());
-            }
             isInternalTextChange = false;
         });
         sequential.play();
@@ -263,12 +303,6 @@ public class StatusLabel extends Label {
             setText("");
             setStyle(STYLE_DEFAULT);
             isShowingTemporaryMessage = false;
-            
-            if (boundProperty != null && boundProperty.get() != null && !boundProperty.get().isEmpty()) {
-                isInternalTextChange = true;
-                setText(boundProperty.get());
-                autoShowMessage(boundProperty.get());
-            }
             isInternalTextChange = false;
         });
         pause.play();
@@ -286,12 +320,19 @@ public class StatusLabel extends Label {
     
     public void clear() {
         Platform.runLater(() -> {
-            isInternalTextChange = true;
-            isShowingTemporaryMessage = false;
-            setText("");
-            setStyle(STYLE_DEFAULT);
-            setOpacity(1.0);
-            isInternalTextChange = false;
+            if (isBound) {
+                // 바인딩 상태에서는 텍스트를 지울 수 없음
+                setStyle(STYLE_DEFAULT);
+                setOpacity(1.0);
+                isShowingTemporaryMessage = false;
+            } else {
+                isInternalTextChange = true;
+                isShowingTemporaryMessage = false;
+                setText("");
+                setStyle(STYLE_DEFAULT);
+                setOpacity(1.0);
+                isInternalTextChange = false;
+            }
         });
     }
     

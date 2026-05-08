@@ -15,6 +15,12 @@ public record SaleItemRequest(
     @Min(value = 1, message = "Quantity must be at least 1.")
     int quantity,
 
+    @NotNull(message = "Original value is required. (Use 0 if none)")
+    BigDecimal originalPrice,
+
+    @NotNull(message = "Selling value is required. (Use 0 if none)")
+    BigDecimal sellingPrice,
+
     @NotNull(message = "Discount value is required. (Use 0 if none)")
     BigDecimal discountValue,
 

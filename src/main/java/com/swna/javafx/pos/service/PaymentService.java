@@ -250,6 +250,8 @@ public Mono<PaymentResult> processMixedPayment(
     private List<SaleItemRequest> buildSaleItemRequests(ObservableList<PosItem> items) {
         return items.stream()
             .map(item -> {
+                BigDecimal originalValue = BigDecimal.valueOf(item.getOriginalPrice());
+                BigDecimal sellingValue = BigDecimal.valueOf(item.getSellingPrice());
                 BigDecimal discountValue = BigDecimal.valueOf(item.getUnitDiscount());
                 DiscountType discountType = item.getDiscountType();
                 
@@ -260,6 +262,8 @@ public Mono<PaymentResult> processMixedPayment(
                 return new SaleItemRequest(
                     item.getBarcode(),
                     item.getQty(),
+                    originalValue,
+                    sellingValue,
                     discountValue,
                     discountType,
                     item.getComment() != null ? item.getComment() : ""

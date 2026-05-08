@@ -15,6 +15,7 @@ import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.ToString;
 
 /**
  * POS 아이템 도메인 클래스
@@ -33,6 +34,7 @@ import javafx.beans.property.StringProperty;
     // discountTotal = $20 × 1 = $20 (자동 감소)
     // finalAmount = $100 - $20 = $80 (자동 계산)
  */
+@ToString
 public class PosItem {
 
     // ============================================================

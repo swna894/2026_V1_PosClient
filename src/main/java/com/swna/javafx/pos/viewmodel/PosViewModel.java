@@ -28,8 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Scope("prototype")
 public class PosViewModel {
-    
-     private StatusLabelManager statusLabelManager; 
+
      
     // ========== 상수 (Constants) ==========
     private static final String STATUS_READY = "Scan ready";
@@ -42,7 +41,7 @@ public class PosViewModel {
     private static final String STATUS_HOLD_NO_ITEMS = "No items to hold";
     private static final String STATUS_HOLD_RESUMED = "Cart resumed";
     private static final String STATUS_HOLD_NO_CART = "No hold cart";
-    private static final String STATUS_PAYMENT_SUCCESS = "Payment completed ✓";
+    private static final String STATUS_PAYMENT_SUCCESS = "Payment success ✓";
     private static final String STATUS_PAYMENT_FAIL = "Payment failed ❌";
     
     // ========== Managers ==========
@@ -90,7 +89,6 @@ public class PosViewModel {
     public void removeItem(PosItem item) { cartManager.removeItem(item); }
     public void clear() { 
         cartManager.clear();
-        scanStatus.set(STATUS_READY);
         scannedCode.set("");
     }
     
@@ -233,7 +231,7 @@ public class PosViewModel {
     private boolean handlePaymentResult(PaymentResult result, String successLogMessage) {
         if (result.isSuccess()) {
             log.info("[VM] {}", successLogMessage);
-            scanStatus.set(STATUS_PAYMENT_SUCCESS);
+            scanStatus.set(STATUS_PAYMENT_SUCCESS + ": " + result.getSaleResponse().receiptNo());
             clear();
             return true;
         } else {
