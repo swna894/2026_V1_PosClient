@@ -1,6 +1,5 @@
-package com.swna.javafx.pos.viewmodel;
-
 // ValidationResult.java
+package com.swna.javafx.pos.viewmodel;
 
 public final class ValidationResult {
     private final boolean valid;

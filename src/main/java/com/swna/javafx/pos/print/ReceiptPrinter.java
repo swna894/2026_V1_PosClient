@@ -2,6 +2,7 @@ package com.swna.javafx.pos.print;
 
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.service.PaymentResult;
 import javafx.print.Printer;
 import org.springframework.stereotype.Component;
@@ -28,11 +29,11 @@ public class ReceiptPrinter {
         this.formatter = formatter;
     }
 
-    public void printInvoice(PaymentResult result, List<PosItem> items, Shop shop, ReceiptStyle style, String inform) {
+    public void printInvoice(SaleRequest saleRequest, PaymentResult result, List<PosItem> posItems, Shop shop, ReceiptStyle style, String inform) {
         initializePrinterName();
 
         // 1. 텍스트 콘텐츠 생성
-        String content = formatter.buildContent(result, items, shop, style, inform);
+        String content = formatter.buildContent(saleRequest, result, posItems, shop, style, inform);
         
         // 2. 폰트 설정 및 본문 출력
         byte[] fontSetting = (style == ReceiptStyle.SIZE_80MM) ? FONT_80MM : FONT_58MM;

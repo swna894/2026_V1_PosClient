@@ -1,9 +1,20 @@
-// PosViewModel.java (리팩토링 버전)
+// PosViewModel.java
 package com.swna.javafx.pos.viewmodel;
 
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_HOLD_NO_CART;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_HOLD_NO_ITEMS;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_HOLD_RESUMED;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_HOLD_SAVED;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_ITEM_NOT_FOUND;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_PAYMENT_FAIL;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_PAYMENT_SUCCESS;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_QUICK_ADD;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_READY;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_SCANNING;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_SCAN_SUCCESS;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_SEARCH_FAILED;
+
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,8 +39,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import lombok.extern.slf4j.Slf4j;
-
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.*;
 
 @Slf4j
 @Component
@@ -125,58 +134,109 @@ public class PosViewModel {
     public StringProperty scannedCodeProperty() { return scannedCode; }
     public StringProperty scanStatusProperty() { return scanStatus; }
     
-    // ========== 결제 메서드 (위임) ==========
+    // ========== 결제 메서드 (위임) - 콜백 없음 버전 ==========
     
     public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash) {
         processCashPayment(totalAmount, receivedCash, null);
-    }
-    
-    public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash, 
-                                   Consumer<Boolean> onComplete) {
-        paymentProcessor.processCashPayment(totalAmount, receivedCash, onComplete, createResultHandler());
     }
     
     public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount) {
         processCashoutPayment(cashoutAmount, totalCardAmount, null);
     }
     
-    public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount,
-                                      Consumer<Boolean> onComplete) {
-        paymentProcessor.processCashoutPayment(cashoutAmount, totalCardAmount, onComplete, createResultHandler());
-    }
-    
     public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart) {
         processMixedPayment(cashPart, creditPart, null);
     }
     
+    // ========== 결제 메서드 (위임) - 콜백 있음 버전 ==========
+    
+    public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash, 
+                                   Consumer<Boolean> onComplete) {
+        paymentProcessor.processCashPayment(totalAmount, receivedCash, 
+            processed -> handleProcessedPayment(processed, onComplete),
+            createResultHandler()
+        );
+    }
+    
+    public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount,
+                                      Consumer<Boolean> onComplete) {
+        paymentProcessor.processCashoutPayment(cashoutAmount, totalCardAmount,
+            processed -> handleProcessedPayment(processed, onComplete),
+            createResultHandler()
+        );
+    }
+    
     public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart,
                                     Consumer<Boolean> onComplete) {
-        paymentProcessor.processMixedPayment(cashPart, creditPart, onComplete, createResultHandler());
+        paymentProcessor.processMixedPayment(cashPart, creditPart,
+            processed -> handleProcessedPayment(processed, onComplete),
+            createResultHandler()
+        );
     }
     
     // ========== Private Helper Methods ==========
+    
+    /**
+     * ProcessedPayment 결과 처리
+     */
+    private void handleProcessedPayment(PaymentProcessor.ProcessedPayment processed, 
+                                        Consumer<Boolean> onComplete) {
+
+        System.out.println("handleProcessedPayment: " + processed.saleRequest());
+        if (processed.isSuccess()) {
+            // SaleRequest를 이벤트로 발행
+            eventPublisher.publishEvent(new PaymentSuccessEvent(
+                this, 
+                processed.saleRequest(), 
+                processed.paymentResult(),
+                getPosItems()
+            ));
+            
+            updateUIBeforeComplete(processed);
+            
+            if (onComplete != null) {
+                onComplete.accept(true);
+            }
+        } else {
+            // 실패 시 이미 resultHandler에서 UI 업데이트 완료
+            if (onComplete != null) {
+                onComplete.accept(false);
+            }
+        }
+    }
+    
+    private void updateUIBeforeComplete(PaymentProcessor.ProcessedPayment processed) {
+        Platform.runLater(() -> {
+            scanStatus.set(STATUS_PAYMENT_SUCCESS + ": " + processed.getReceiptNo());
+            clear();
+        });
+    }
+
+    /**
+     * PaymentResultHandler 생성 (UI 업데이트용)
+     */
     private PaymentProcessor.PaymentResultHandler createResultHandler() {
         return new PaymentProcessor.PaymentResultHandler() {
             @Override
-            public boolean handleResult(com.swna.javafx.pos.service.PaymentResult result, String successMessage) {
-                if (result.isSuccess()) {
-                    List<PosItem> soldItems = new ArrayList<>(cartManager.getItems());
-                    eventPublisher.publishEvent(new PaymentSuccessEvent(soldItems, result));
-
-                    log.info("[VM] {}", successMessage);
-                    scanStatus.set(STATUS_PAYMENT_SUCCESS + ": " + result.getSaleResponse().receiptNo());
-                    clear();
-                    return true;
-                } else {
-                    log.warn("[VM] Payment failed: {}", result.getMessage());
-                    scanStatus.set(STATUS_PAYMENT_FAIL + ": " + result.getMessage());
-                    return false;
-                }
-            }
-
-            @Override
             public void onFailure(String message) {
-                scanStatus.set(STATUS_PAYMENT_FAIL + ": " + message);
+                // 유효성 검증 실패 시 UI 업데이트
+                Platform.runLater(() -> {
+                    scanStatus.set(STATUS_PAYMENT_FAIL + ": " + message);
+                });
+            }
+            
+            @Override
+            public void handleSuccess(String successMessage) {
+                // 성공 메시지 로깅 (UI 업데이트는 handleProcessedPayment에서 처리)
+                log.info("[VM] {}", successMessage);
+            }
+            
+            @Override
+            public void handleFailure(String errorMessage) {
+                // 결제 실패 시 UI 업데이트
+                Platform.runLater(() -> {
+                    scanStatus.set(STATUS_PAYMENT_FAIL + ": " + errorMessage);
+                });
             }
         };
     }

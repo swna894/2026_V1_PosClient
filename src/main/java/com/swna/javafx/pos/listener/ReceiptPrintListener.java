@@ -2,10 +2,15 @@ package com.swna.javafx.pos.listener;
 
 
 import com.swna.javafx.admin.shop.Shop;
+import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.event.PaymentSuccessEvent;
 import com.swna.javafx.pos.event.PrintFailureEvent;
 import com.swna.javafx.pos.print.ReceiptPrinter;
 import com.swna.javafx.pos.print.ReceiptStyle;
+import com.swna.javafx.pos.service.PaymentResult;
+
+import java.util.List;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -26,15 +31,21 @@ public class ReceiptPrintListener {
     @Async("printExecutor") // Asynchronous processing to prevent UI freezing
     @EventListener // Triggered when PaymentSuccessEvent is published
     public void printReceipt(PaymentSuccessEvent event) {
-        String receiptNo = event.result().getSaleResponse().receiptNo();
+        SaleRequest saleRequest = event.getSaleRequest();
+        PaymentResult paymentResult = event.getPaymentResult();
+        List<PosItem> posItems = event.getPosItems();
+
+    
+        String receiptNo = paymentResult.getReceiptNo();
         log.info("Starting receipt printing - Receipt No: {}", receiptNo);
         
         try {
             // Execute the actual printing logic using the ReceiptPrinter component
             // Parameters: PaymentResult, Item List, Shop Info, Paper Size, Footer Message
             receiptPrinter.printInvoice(
-                event.result(), 
-                event.soldItems(), 
+                saleRequest, 
+                paymentResult, 
+                posItems,
                 shop, 
                 ReceiptStyle.SIZE_80MM, 
                 "Thank you for your visit!"

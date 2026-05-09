@@ -3,6 +3,7 @@ package com.swna.javafx.pos.print;
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
+import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.service.PaymentResult;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +19,10 @@ public class ReceiptFormatter {
     private static final DateTimeFormatter SRC_DTF = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private static final DateTimeFormatter DST_DTF = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-    public String buildContent(PaymentResult result, List<PosItem> posItems, Shop shop, ReceiptStyle style, String inform) {
+    public String buildContent(SaleRequest saleRequest, PaymentResult paymentResult, List<PosItem> posItems,  Shop shop, ReceiptStyle style, String inform) {
         StringBuilder sb = new StringBuilder();
 
-        String receiptNo = result.getSaleResponse().receiptNo();
+        String receiptNo = paymentResult.getSaleResponse().receiptNo();
         String date = formatReceiptDate(receiptNo);
 
         // [Header]
@@ -41,11 +42,11 @@ public class ReceiptFormatter {
         sb.append(style.getLine(false)).append(NL);
 
         // [Footer] - 합계 및 결제 정보
-        sb.append(style.justify("TOTAL AMOUNT", CURRENCY_DF.format(result.getSaleResponse().totalAmount()))).append(NL);
+        sb.append(style.justify("TOTAL AMOUNT", CURRENCY_DF.format(paymentResult.getSaleResponse().totalAmount()))).append(NL);
         
-        //System.out.println("result.getSaleRequest() =" + result,getSaleRequest());
+        System.out.println("result.getSaleRequest() =" + saleRequest);
         
-        for (PaymentRequest p : result.getSaleRequest().payments()) {
+        for (PaymentRequest p : saleRequest.payments()) {
             String label = p.type().equals("CASH") ? "CASH PAID" : "CARD PAID";
             sb.append(style.justify(label, CURRENCY_DF.format(p.receivedAmount()))).append(NL);
         }
