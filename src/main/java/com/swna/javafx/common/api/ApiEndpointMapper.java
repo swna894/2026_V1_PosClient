@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.product.PageResult;
 import com.swna.javafx.admin.product.Product;
+import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 import com.swna.javafx.common.response.ApiResponse;
 import com.swna.javafx.pos.dto.response.ProductResponse;
@@ -27,6 +28,8 @@ public class ApiEndpointMapper {
     public static final String PRODUCTS = API_BASE + "/products";
     public static final String PRODUCT_LABELS = API_BASE + "/products/labels";
     public static final String PRODUCT_BARCODE = API_BASE + "/products/barcode/{barcode}";
+
+    public static final String SHOP_GET = "/shops";
     
     // POST 엔드포인트
     public static final String SALE_CREATE = API_BASE + "/sales";
@@ -47,7 +50,9 @@ public class ApiEndpointMapper {
         "label_list", new DomainMetadata<ApiResponse<List<BarcodeLabelDto>>>( PRODUCT_LABELS,  HttpMethod.GET,  new ParameterizedTypeReference<ApiResponse<List<BarcodeLabelDto>>>() {} ),
         
         // POST - ApiResponse<SaleResponse> (판매 저장)
-        "sale_create", new DomainMetadata<ApiResponse<SaleResponse>>( SALE_CREATE,  HttpMethod.POST,  new ParameterizedTypeReference<ApiResponse<SaleResponse>>() {} )
+        "sale_create", new DomainMetadata<ApiResponse<SaleResponse>>( SALE_CREATE,  HttpMethod.POST,  new ParameterizedTypeReference<ApiResponse<SaleResponse>>() {} ),
+    
+        "first_shop_get", new DomainMetadata<ApiResponse<Shop>>( SHOP_GET, HttpMethod.GET, new ParameterizedTypeReference<ApiResponse<Shop>>() {})
     );
 
    /**

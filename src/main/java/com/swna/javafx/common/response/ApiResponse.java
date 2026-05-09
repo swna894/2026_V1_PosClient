@@ -1,6 +1,5 @@
 package com.swna.javafx.common.response;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 
 /**

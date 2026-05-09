@@ -674,16 +674,20 @@ public class CommonApiClient {
     }
     
     private void logApiError(String path, Throwable error) {
-        if (error instanceof ApiResponseException) {
-            ApiResponseException are = (ApiResponseException) error;
-            log.error("[API Error] Path: {}, Code: {}, Message: {}, Suggestion: {}", 
-                path, are.getCode(), are.getMessage(), are.getSuggestion());
-        } else if (error instanceof WebClientResponseException) {
-            WebClientResponseException wce = (WebClientResponseException) error;
-            log.error("[API HTTP Error] Path: {}, Status: {}, Body: {}", 
-                path, wce.getStatusCode(), wce.getResponseBodyAsString());
-        } else {
-            log.error("[API Error] Path: {}, Error: {}", path, error.getMessage(), error);
+        switch (error) {
+            // ApiResponseException 케이스
+            case ApiResponseException are -> 
+                log.error("[API Error] Path: {}, Code: {}, Message: {}, Suggestion: {}", 
+                    path, are.getCode(), are.getMessage(), are.getSuggestion());
+
+            // WebClientResponseException 케이스
+            case WebClientResponseException wce -> 
+                log.error("[API HTTP Error] Path: {}, Status: {}, Body: {}", 
+                    path, wce.getStatusCode(), wce.getResponseBodyAsString());
+
+            // 그 외 모든 예외 (default)
+            default -> 
+                log.error("[API Error] Path: {}, Error: {}", path, error.getMessage(), error);
         }
     }
     
@@ -696,8 +700,8 @@ public class CommonApiClient {
                 .maxBackoff(Duration.ofSeconds(10))
                 .filter(throwable -> {
                     // Check if exception is retryable
-                    if (throwable instanceof WebClientResponseException) {
-                        int statusCode = ((WebClientResponseException) throwable).getStatusCode().value();
+                    if (throwable instanceof WebClientResponseException wcre) {
+                        int statusCode = wcre.getStatusCode().value();
                         // Don't retry 4xx errors (client errors)
                         // Retry 5xx errors (server errors)
                         return statusCode >= 500;

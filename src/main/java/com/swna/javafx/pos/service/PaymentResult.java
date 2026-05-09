@@ -13,6 +13,9 @@ import java.math.BigDecimal;
  */
 @Value
 public class PaymentResult {
+
+    private static final String STATUS_SUCCESS = "Success";
+
     boolean success;
     String message;
     SaleResponse saleResponse;    // 서버 응답 데이터 (성공시)
@@ -25,21 +28,21 @@ public class PaymentResult {
      * 성공 결과 생성 (SaleResponse만 있음)
      */
     public static PaymentResult success(SaleResponse saleResponse) {
-        return new PaymentResult(true, "Success", saleResponse, null, BigDecimal.ZERO);
+        return new PaymentResult(true, STATUS_SUCCESS, saleResponse, null, BigDecimal.ZERO);
     }
     
     /**
      * 성공 결과 생성 (SaleResponse + 거스름돈)
      */
     public static PaymentResult success(SaleResponse saleResponse, BigDecimal change) {
-        return new PaymentResult(true, "Success", saleResponse, null, change);
+        return new PaymentResult(true, STATUS_SUCCESS, saleResponse, null, change);
     }
     
     /**
      * 성공 결과 생성 (디버깅용 SaleRequest 포함)
      */
     public static PaymentResult successWithRequest(SaleResponse saleResponse, SaleRequest saleRequest) {
-        return new PaymentResult(true, "Success", saleResponse, saleRequest, BigDecimal.ZERO);
+        return new PaymentResult(true, STATUS_SUCCESS, saleResponse, saleRequest, BigDecimal.ZERO);
     }
     
     /**
