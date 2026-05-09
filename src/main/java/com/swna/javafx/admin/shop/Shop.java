@@ -3,8 +3,10 @@ package com.swna.javafx.admin.shop;
 import org.springframework.stereotype.Component;
 
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
 @Component
 public class Shop {
 

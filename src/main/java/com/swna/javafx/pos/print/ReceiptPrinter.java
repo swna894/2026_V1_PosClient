@@ -5,20 +5,26 @@ import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.service.PaymentResult;
 import javafx.print.Printer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Component
 public class ReceiptPrinter {
     
     // ESC/POS 명령어 상수화
-    private static final byte[] CMD_CUT = { 0x1d, 0x56, 0x01 };
-    private static final byte[] CMD_ALIGN_CENTER = { 0x1b, 0x61, 0x01 };
-    private static final byte[] CMD_ALIGN_LEFT = { 0x1b, 0x61, 0x00 };
-    private static final byte[] FONT_58MM = { 0x1b, 0x21, 0x06 };
-    private static final byte[] FONT_80MM = { 0x1b, 0x21, 0x03 };
-    private static final byte[] LF = { 0x0a }; // Line Feed (한 줄 바꿈)
+    private static final byte[] CMD_INIT = { 0x1B, 0x40 };           // 초기화
+    private static final byte[] CMD_CUT = { 0x1D, 0x56, 0x01 };      // 용지 자르기
+    private static final byte[] CMD_ALIGN_CENTER = { 0x1B, 0x61, 0x01 }; // 중앙 정렬
+    private static final byte[] CMD_ALIGN_LEFT = { 0x1B, 0x61, 0x00 };    // 왼쪽 정렬
+    private static final byte[] FONT_58MM = { 0x1B, 0x21, 0x06 };     // 58mm 폰트
+    private static final byte[] FONT_80MM = { 0x1B, 0x21, 0x03 };     // 80mm 폰트
+    private static final byte[] LF = { 0x0A };                        // Line Feed
+    private static final byte[] CR_LF = { 0x0D, 0x0A };               // Carriage Return + Line Feed
 
     private final PrinterService printerService;
     private final ReceiptFormatter formatter;
@@ -29,71 +35,142 @@ public class ReceiptPrinter {
         this.formatter = formatter;
     }
 
-    public void printInvoice(SaleRequest saleRequest, PaymentResult result, List<PosItem> posItems, Shop shop, ReceiptStyle style, String inform) {
+    public void printInvoice(SaleRequest saleRequest, PaymentResult result, 
+                            List<PosItem> posItems, Shop shop, 
+                            ReceiptStyle style, String inform) {
+        
+        log.info("=== ReceiptPrinter.printInvoice() START ===");
+        
         initializePrinterName();
 
         // 1. 텍스트 콘텐츠 생성
         String content = formatter.buildContent(saleRequest, result, posItems, shop, style, inform);
         
-        // 2. 폰트 설정 및 본문 출력
-        byte[] fontSetting = (style == ReceiptStyle.SIZE_80MM) ? FONT_80MM : FONT_58MM;
-        printerService.printBytes(printerName, fontSetting);
-        printerService.printBytes(printerName, content.getBytes(StandardCharsets.UTF_8));
+        // 2. 모든 인쇄 데이터를 하나의 바이트 배열로 구성
+        byte[] allPrintData = buildFullPrintData(content, style, result);
         
-        // 본문 종료 후 여백 확보
-        printerService.printBytes(printerName, LF);
-
-        // 3. 바코드 출력 (영수증 번호 기준)
-        String receiptNo = result.getSaleResponse().receiptNo();
+        // 3. 한 번에 전송 (여러 번 호출하지 않음)
+        printerService.printBytes(printerName, allPrintData);
+        
+        log.info("=== ReceiptPrinter.printInvoice() END ===");
+    }
+    
+    /**
+     * 전체 인쇄 데이터를 하나의 바이트 배열로 구성
+     */
+    private byte[] buildFullPrintData(String content, ReceiptStyle style, PaymentResult result) {
+        List<byte[]> parts = new ArrayList<>();
+        
+        // 1. 프린터 초기화
+        parts.add(CMD_INIT);
+        
+        // 2. 폰트 설정
+        parts.add((style == ReceiptStyle.SIZE_80MM) ? FONT_80MM : FONT_58MM);
+        
+        // 3. 중앙 정렬로 본문 시작
+        parts.add(CMD_ALIGN_CENTER);
+        
+        // 4. 본문 내용 (UTF-8)
+        parts.add(content.getBytes(StandardCharsets.UTF_8));
+        
+        // 5. 여백
+        parts.add(CR_LF);
+        parts.add(CR_LF);
+        
+        // 6. 바코드 출력
+        String receiptNo = (result != null && result.getSaleResponse() != null) 
+            ? result.getSaleResponse().receiptNo() : null;
+            
         if (receiptNo != null && !receiptNo.isBlank()) {
-            printerService.printBytes(printerName, CMD_ALIGN_CENTER);
-            printerService.printBytes(printerName, LF); // 바코드 위쪽 여백
-            
-            printerService.printBytes(printerName, getBarcodeBytes(receiptNo));
-            
-            // 바코드 아래쪽 여백 및 정렬 원복
-            printerService.printBytes(printerName, LF);
-            printerService.printBytes(printerName, LF);
-            printerService.printBytes(printerName, CMD_ALIGN_LEFT);
+            parts.add(CMD_ALIGN_CENTER);
+            parts.add(CR_LF);
+            parts.add(getBarcodeBytes(receiptNo));
+            parts.add(CR_LF);
+            parts.add(CR_LF);
         }
-
-        // 4. 용지 피딩 및 컷팅
-        // 헤드와 커터 사이의 거리를 고려하여 용지를 밀어 올려줍니다 (Feed before cut)
-        printerService.printBytes(printerName, LF);
-        printerService.printBytes(printerName, LF);
-        printerService.printBytes(printerName, LF);
-        printerService.printBytes(printerName, CMD_CUT);
+        
+        // 7. 왼쪽 정렬로 복원
+        parts.add(CMD_ALIGN_LEFT);
+        
+        // 8. 용지 자르기 전 여백
+        parts.add(CR_LF);
+        parts.add(CR_LF);
+        parts.add(CR_LF);
+        
+        // 9. 용지 자르기
+        parts.add(CMD_CUT);
+        
+        // 전체 합치기
+        byte[] resultData = combine(parts);
+        
+        log.info("Total print data size: {} bytes ({} parts)", resultData.length, parts.size());
+        
+        return resultData;
+    }
+    
+    /**
+     * 여러 바이트 배열을 하나로 합치기 (List 버전)
+     */
+    private byte[] combine(List<byte[]> parts) {
+        int totalLength = 0;
+        for (byte[] part : parts) {
+            if (part != null) {
+                totalLength += part.length;
+            }
+        }
+        
+        byte[] result = new byte[totalLength];
+        int position = 0;
+        for (byte[] part : parts) {
+            if (part != null) {
+                System.arraycopy(part, 0, result, position, part.length);
+                position += part.length;
+            }
+        }
+        return result;
+    }
+    
+    /**
+     * 여러 바이트 배열을 하나로 합치기 (가변 인자 버전)
+     */
+    private byte[] combine(byte[]... arrays) {
+        int length = 0;
+        for (byte[] array : arrays) {
+            if (array != null) {
+                length += array.length;
+            }
+        }
+        byte[] result = new byte[length];
+        int pos = 0;
+        for (byte[] array : arrays) {
+            if (array != null) {
+                System.arraycopy(array, 0, result, pos, array.length);
+                pos += array.length;
+            }
+        }
+        return result;
     }
 
     private void initializePrinterName() {
         if (this.printerName == null) {
             Printer defaultPrinter = Printer.getDefaultPrinter();
-            this.printerName = (defaultPrinter != null) ? defaultPrinter.getName() : "";
+            this.printerName = (defaultPrinter != null) ? defaultPrinter.getName() : "POS-80";
+            log.info("Printer initialized: {}", this.printerName);
         }
     }
 
     public byte[] getBarcodeBytes(String data) {
-        if (data == null) return new byte[0];
+        if (data == null || data.isEmpty()) return new byte[0];
         byte[] bData = data.getBytes(StandardCharsets.US_ASCII);
-
-        return combine(
-            new byte[]{ 0x1D, 0x48, 0x02 }, // HRI 위치 아래
-            new byte[]{ 0x1D, 0x77, 0x02 }, // 폭
-            new byte[]{ 0x1D, 0x68, 0x50 }, // 높이
-            new byte[]{ 0x1D, 0x6B, 0x49, (byte) bData.length }, // CODE128 헤더
-            bData
-        );
-    }
-
-    private byte[] combine(byte[]... arrays) {
-        int length = 0;
-        for (byte[] array : arrays) length += array.length;
-        byte[] result = new byte[length];
-        int pos = 0;
-        for (byte[] array : arrays) {
-            System.arraycopy(array, 0, result, pos, array.length);
-            pos += array.length;
-        }
-        return result;
+        
+        // GS k 73 (CODE128) + data
+        byte[] barcode = new byte[4 + bData.length];
+        barcode[0] = 0x1D;  // GS
+        barcode[1] = 0x6B;  // k
+        barcode[2] = 0x49;  // CODE128
+        barcode[3] = (byte) bData.length;
+        System.arraycopy(bData, 0, barcode, 4, bData.length);
+        
+        return barcode;
     }
 }

@@ -15,6 +15,7 @@ import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_SCAN_SU
 import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_SEARCH_FAILED;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -182,14 +183,15 @@ public class PosViewModel {
     private void handleProcessedPayment(PaymentProcessor.ProcessedPayment processed, 
                                         Consumer<Boolean> onComplete) {
 
-        System.out.println("handleProcessedPayment: " + processed.saleRequest());
+        List<PosItem> itemsSnapshot = List.copyOf(getPosItems());
+
         if (processed.isSuccess()) {
             // SaleRequest를 이벤트로 발행
             eventPublisher.publishEvent(new PaymentSuccessEvent(
                 this, 
                 processed.saleRequest(), 
                 processed.paymentResult(),
-                getPosItems()
+                itemsSnapshot
             ));
             
             updateUIBeforeComplete(processed);

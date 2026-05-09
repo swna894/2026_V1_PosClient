@@ -138,3 +138,23 @@ src/main/resources/
 └── i18n/                                       # 다국어 지원 (옵션)
     ├── messages.properties
     └── messages_ko.properties
+
+
+#전체 데이터 흐름
+스캐너 입력
+    ↓
+SafeBarcodeScanner (하드웨어)
+    ↓
+PosViewController.handleBarcode()
+    ↓
+PosViewModel.scan(barcode)
+    ↓
+ScanHandler.scan(barcode)
+    ↓
+PosService.findByBarcode() → PosItem (데이터베이스에서 조회)
+    ↓
+CartManager.addItem() 또는 updateItem()
+    ↓
+CartManager.items (ObservableList<PosItem>) ← 【여기가 저장소!】
+    ↓
+TableView 자동 갱신 (ObservableList 감지)

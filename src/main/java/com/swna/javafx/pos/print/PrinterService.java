@@ -6,8 +6,11 @@ import javax.print.attribute.PrintRequestAttributeSet;
 import javax.print.attribute.standard.JobName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 @Service
@@ -15,17 +18,59 @@ public class PrinterService {
 
     private static final Logger logger = LoggerFactory.getLogger(PrinterService.class);
     
-    // 재사용 가능한 속성 설정
     private static final DocFlavor FLAVOR = DocFlavor.BYTE_ARRAY.AUTOSENSE;
+    
+    // Console 디버그 모드 (개발 환경에서는 true로 설정)
+    @Value("${print.debug.console:true}")
+    private boolean debugConsole;
+    
+    @Value("${print.debug.real:false}")
+    private boolean realPrint;
+
+    @Async("printExecutor")
+    public void printBytes(String printerName, byte[] bytes) {
+        if (bytes == null || bytes.length == 0) {
+            logger.warn("인쇄 데이터가 없습니다.");
+            return;
+        }
+
+        // Console 디버그 출력
+        if (debugConsole) {
+            printToConsole(printerName, bytes);
+        }
+
+        // 실제 프린터 출력
+        if (realPrint) {
+            printToRealPrinter(printerName, bytes);
+        } else {
+            logger.info("[DEV MODE] 실제 프린터로 출력하지 않음 (realPrint=false)");
+        }
+    }
 
     /**
-     * 비동기 방식으로 바이트 데이터 출력
-     * @Async를 통해 호출 즉시 UI 스레드에 제어권을 반환합니다.
+     * Console에 프린트 내용 출력 (디버깅용)
      */
-    @Async("printExecutor") // 별도의 ThreadPoolTaskExecutor 사용 권장
-    public void printBytes(String printerName, byte[] bytes) {
-        if (bytes == null || bytes.length == 0) return;
+    private void printToConsole(String printerName, byte[] bytes) {
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("🖨️ [PRINT DEBUG] - Printer: " + printerName);
+        System.out.println("📊 Data size: " + bytes.length + " bytes");
+        System.out.println("=".repeat(70));
+        
+        try {
+            String content = new String(bytes, StandardCharsets.UTF_8);
+            System.out.println(content);
+        } catch (Exception e) {
+            System.out.println("⚠️ 디코딩 실패: " + e.getMessage());
+        }
+        
+        System.out.println("=".repeat(70));
+        System.out.println("✅ Console output only\n");
+    }
 
+    /**
+     * 실제 프린터로 출력
+     */
+    private void printToRealPrinter(String printerName, byte[] bytes) {
         PrintService service = findPrintService(printerName);
         if (service == null) {
             logger.error("인쇄 실패: 프린터 '{}'를 찾을 수 없습니다.", printerName);
@@ -33,7 +78,6 @@ public class PrinterService {
         }
 
         try {
-            // 작업 이름 지정 (윈도우 프린터 스풀러에서 확인 가능)
             PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();
             pras.add(new JobName("POS-Receipt-" + System.currentTimeMillis(), Locale.getDefault()));
 
@@ -43,7 +87,6 @@ public class PrinterService {
             logger.info("프린터 '{}'로 데이터 전송 시작 ({} bytes)", service.getName(), bytes.length);
             job.print(doc, pras);
             
-            // 전송 후 장치 안정화 시간
             Thread.sleep(100); 
 
         } catch (PrintException e) {
@@ -53,9 +96,6 @@ public class PrinterService {
         }
     }
 
-    /**
-     * 사용 가능한 모든 프린터 목록 조회 (디버깅 및 설정용)
-     */
     public void listAvailablePrinters() {
         PrintService[] services = PrintServiceLookup.lookupPrintServices(FLAVOR, null);
         for (PrintService s : services) {
@@ -63,9 +103,6 @@ public class PrinterService {
         }
     }
 
-    /**
-     * 특정 이름의 프린터 찾기 (실패 시 기본 프린터 반환)
-     */
     private PrintService findPrintService(String printerName) {
         if (printerName == null || printerName.isEmpty()) {
             return PrintServiceLookup.lookupDefaultPrintService();

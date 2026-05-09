@@ -5,6 +5,8 @@ import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.service.PaymentResult;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.text.DecimalFormat;
@@ -12,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@Slf4j
 @Component
 public class ReceiptFormatter {
     private static final String NL = "\n";
@@ -19,54 +22,91 @@ public class ReceiptFormatter {
     private static final DateTimeFormatter SRC_DTF = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private static final DateTimeFormatter DST_DTF = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-    public String buildContent(SaleRequest saleRequest, PaymentResult paymentResult, List<PosItem> posItems,  Shop shop, ReceiptStyle style, String inform) {
+    /**
+     * 금액을 $ 표시와 함께 포맷팅
+     */
+    private String formatCurrency(double amount) {
+        return "$" + CURRENCY_DF.format(amount);
+    }
+
+    public String buildContent(SaleRequest saleRequest, PaymentResult paymentResult, 
+                               List<PosItem> posItems, Shop shop, 
+                               ReceiptStyle style, String inform) {
+        
+        log.info("ReceiptFormatter.buildContent() - posItems size: {}", 
+            posItems != null ? posItems.size() : 0);
+        
         StringBuilder sb = new StringBuilder();
 
-        String receiptNo = paymentResult.getSaleResponse().receiptNo();
+        // null 안전 처리
+        String receiptNo = (paymentResult != null && paymentResult.getSaleResponse() != null) 
+            ? paymentResult.getSaleResponse().receiptNo() : "N/A";
         String date = formatReceiptDate(receiptNo);
+        
+        String shopName = (shop != null && shop.getName() != null) ? shop.getName() : "My Store";
+        String shopAddress = (shop != null && shop.getAddress() != null) ? shop.getAddress() : "";
 
         // [Header]
-        sb.append(style.center(shop.getName())).append(NL);
-        sb.append(style.center(shop.getAddress())).append(NL);
+        sb.append(style.center(shopName)).append(NL);
+        if (!shopAddress.isEmpty()) {
+            sb.append(style.center(shopAddress)).append(NL);
+        }
         sb.append(style.getLine(false)).append(NL);
         sb.append(style.justify("Date:", date)).append(NL);
         sb.append(style.justify("Receipt No:", receiptNo)).append(NL);
         sb.append(style.getLine(false)).append(NL);
-
-        // [Body]
-        for (PosItem item : posItems) {
-            sb.append(item.getDescription()).append(NL);
-            String qtyPrice = String.format("  %d x %s", item.getQty(), CURRENCY_DF.format(item.getSellingPrice()));
-            sb.append(style.justify(qtyPrice, CURRENCY_DF.format(item.getFinalAmount()))).append(NL);
+        
+        // [Body] - 상품 목록
+        if (posItems != null && !posItems.isEmpty()) {
+            for (PosItem item : posItems) {
+                String description = (item.getDescription() != null) ? item.getDescription() : item.getCode();
+                sb.append(description).append(NL);
+                
+                // ✅ 금액에 $ 추가
+                String qtyPrice = String.format("  %d x %s", item.getQty(), formatCurrency(item.getSellingPrice()));
+                sb.append(style.justify(qtyPrice, formatCurrency(item.getFinalAmount()))).append(NL);
+            }
+        } else {
+            sb.append(style.center("No Items")).append(NL);
         }
         sb.append(style.getLine(false)).append(NL);
 
         // [Footer] - 합계 및 결제 정보
-        sb.append(style.justify("TOTAL AMOUNT", CURRENCY_DF.format(paymentResult.getSaleResponse().totalAmount()))).append(NL);
+        double totalAmount = (paymentResult != null && paymentResult.getSaleResponse() != null)
+            ? paymentResult.getSaleResponse().totalAmount().doubleValue() : 0.0;
         
-        System.out.println("result.getSaleRequest() =" + saleRequest);
+        // ✅ TOTAL AMOUNT에 $ 추가
+        sb.append(style.justify("TOTAL AMOUNT", formatCurrency(totalAmount))).append(NL);
         
-        for (PaymentRequest p : saleRequest.payments()) {
-            String label = p.type().equals("CASH") ? "CASH PAID" : "CARD PAID";
-            sb.append(style.justify(label, CURRENCY_DF.format(p.receivedAmount()))).append(NL);
+        // 결제 정보
+        if (saleRequest != null && saleRequest.payments() != null) {
+            for (PaymentRequest p : saleRequest.payments()) {
+                String label = "CASH".equals(p.type()) ? "CASH PAID" : "CARD PAID";
+                double amount = p.amount().doubleValue();
+                // ✅ 결제 금액에 $ 추가
+                sb.append(style.justify(label, formatCurrency(amount))).append(NL);
+            }
         }
 
         // [Notice]
         if (inform != null && !inform.isBlank()) {
-            sb.append(style.getLine(true)).append(NL);
             sb.append(style.getNoticeLine("Notice")).append(NL);
             sb.append(wrapText(inform, style.getWidth())).append(NL);
         }
 
-        return sb.toString();
+        String result = sb.toString();
+        log.info("Content built, length: {} chars", result.length());
+        
+        return result;
     }
 
     private String formatReceiptDate(String receiptNo) {
         try {
-            if (receiptNo == null || !receiptNo.contains("_")) return "N/A";
+            if (receiptNo == null || !receiptNo.contains("_")) return LocalDateTime.now().format(DST_DTF);
             return LocalDateTime.parse(receiptNo.split("_")[0], SRC_DTF).format(DST_DTF);
         } catch (Exception e) {
-            return "Invalid Date";
+            log.warn("Date parsing failed for receiptNo: {}", receiptNo);
+            return LocalDateTime.now().format(DST_DTF);
         }
     }
 
