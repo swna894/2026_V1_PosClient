@@ -79,14 +79,31 @@ public class ReceiptFormatter {
         sb.append(style.justify("TOTAL AMOUNT", formatCurrency(totalAmount))).append(NL);
         
         // 결제 정보
-        if (saleRequest != null && saleRequest.payments() != null) {
-            for (PaymentRequest p : saleRequest.payments()) {
-                String label = "CASH".equals(p.type()) ? "CASH PAID" : "CARD PAID";
-                double amount = p.amount().doubleValue();
-                // ✅ 결제 금액에 $ 추가
-                sb.append(style.justify(label, formatCurrency(amount))).append(NL);
+    if (saleRequest != null && saleRequest.payments() != null) {
+        for (PaymentRequest p : saleRequest.payments()) {
+            double amount = p.amount().doubleValue();
+            double cashout = p.cashoutAmount() != null ? p.cashoutAmount().doubleValue() : 0.0;
+            
+            if ("CASH".equals(p.type())) {
+                // 현금 결제 - Cashout 없음
+                sb.append(style.justify("CASH PAID", formatCurrency(amount))).append(NL);
+                
+            } else if ("CARD".equals(p.type())) {
+                // 카드 결제
+                if (cashout > 0) {
+                    // Cashout 있는 경우
+                    double totalCharged = amount + cashout;
+                    sb.append(style.justify("CARD PAID", formatCurrency(amount))).append(NL);
+                    sb.append(style.justify("  + CASHOUT", formatCurrency(cashout))).append(NL);
+                    sb.append(style.getLine(false)).append(NL);
+                    sb.append(style.justify("TOTAL CHARGED", formatCurrency(totalCharged))).append(NL);
+                } else {
+                    // Cashout 없는 일반 카드 결제
+                    sb.append(style.justify("CARD PAID", formatCurrency(amount))).append(NL);
+                }
             }
         }
+    }
 
         // [Notice]
         if (inform != null && !inform.isBlank()) {

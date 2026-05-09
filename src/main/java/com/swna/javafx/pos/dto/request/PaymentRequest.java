@@ -19,7 +19,7 @@ public record PaymentRequest(
     BigDecimal receivedAmount, // Total cash handed over by the customer
 
     @PositiveOrZero(message = "Cash-out amount must be zero or positive.")
-    BigDecimal cashOutAmount, // Extra cash requested during card transaction
+    BigDecimal cashoutAmount, // Extra cash requested during card transaction
 
     String approvalNo // Card authorization number
 
