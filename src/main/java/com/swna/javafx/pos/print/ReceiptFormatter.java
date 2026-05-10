@@ -11,7 +11,6 @@ import com.swna.javafx.pos.service.PaymentResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,10 +30,6 @@ public class ReceiptFormatter {
     
     private String formatCurrency(double amount) {
         return "$" + CURRENCY_DF.format(amount);
-    }
-    
-    private String formatCurrency(BigDecimal amount) {
-        return amount != null ? "$" + CURRENCY_DF.format(amount.doubleValue()) : "$0.00";
     }
     
     private String truncate(String text, int maxLength) {
@@ -72,7 +67,7 @@ public class ReceiptFormatter {
         sb.append(style.getLine(false)).append(NL);
     }
 
-    // ========== Body Builder ==========
+    // ========== Body Builder (개선된 할인 표시) ==========
     
     private void buildBody(StringBuilder sb, List<PosItem> posItems, ReceiptStyle style) {
         if (posItems == null || posItems.isEmpty()) {
@@ -85,10 +80,26 @@ public class ReceiptFormatter {
             int number = counter.getAndIncrement();
             String description = (item.getDescription() != null) ? item.getDescription() : item.getCode();
             String truncatedDesc = truncateForStyle(description, style);
+            
+            // 제품명 표시
             sb.append(String.format("%d. %s", number, truncatedDesc)).append(NL);
             
-            String qtyPrice = String.format("    %d x %s", item.getQty(), formatCurrency(item.getSellingPrice()));
-            sb.append(style.justify(qtyPrice, formatCurrency(item.getFinalAmount()))).append(NL);
+            // 할인된 제품인지 확인 (원래 가격과 판매 가격이 다른 경우)
+            boolean isDiscounted = item.getOriginalPrice() != item.getSellingPrice();
+            
+            if (isDiscounted) {
+                // 할인된 제품: 원래 가격을 옆에 표시
+                String qtyPriceLine = String.format("    %d x %s (was %s)", 
+                    item.getQty(), 
+                    formatCurrency(item.getSellingPrice()),
+                    formatCurrency(item.getOriginalPrice()));
+                sb.append(style.justify(qtyPriceLine, formatCurrency(item.getFinalAmount()))).append(NL);
+            } else {
+                // 일반 제품
+                String qtyPriceLine = String.format("    %d x %s", 
+                    item.getQty(), formatCurrency(item.getSellingPrice()));
+                sb.append(style.justify(qtyPriceLine, formatCurrency(item.getFinalAmount()))).append(NL);
+            }
         }
         sb.append(style.getLine(false)).append(NL);
     }
@@ -106,7 +117,7 @@ public class ReceiptFormatter {
             // TOTAL AMOUNT = 최종 결제 금액 (subtotal - discount)
             sb.append(style.justify("TOTAL AMOUNT", formatCurrency(finalAmount))).append(NL);
         } else {
-            // 할인이 없는 경우: SUBTOTAL 없이 TOTAL AMOUNT만 표시
+            // 할인이 없는 경우: TOTAL AMOUNT만 표시
             sb.append(style.justify("TOTAL AMOUNT", formatCurrency(finalAmount))).append(NL);
         }
     }
@@ -138,8 +149,14 @@ public class ReceiptFormatter {
     // ========== Notice Builder ==========
     
     private void buildNotice(StringBuilder sb, ReceiptStyle style, String inform) {
-        if (inform == null || inform.isBlank()) return;
+        if (inform == null || inform.isBlank()) {
+            // 기본 감사 메시지
+            sb.append(style.getNoticeLine("Notice")).append(NL);
+            sb.append(style.center("Thank you for your visit!")).append(NL);
+            return;
+        }
         
+        // 사용자 정의 메시지가 있는 경우
         String truncatedInform = truncate(inform, style.getWidth() * 2);
         sb.append(style.getNoticeLine("Notice")).append(NL);
         sb.append(wrapText(truncatedInform, style.getWidth())).append(NL);
@@ -169,10 +186,6 @@ public class ReceiptFormatter {
         buildFooter(sb, style, subtotal, discountAmount, finalAmount);
         buildPaymentInfo(sb, saleRequest, style);
         buildNotice(sb, style, inform);
-        
-        // 감사 메시지
-        //sb.append(style.getLine(false)).append(NL);
-        //sb.append(style.center("Thank you!")).append(NL);
         
         String result = sb.toString();
         log.info("Content built, length: {} chars", result.length());
