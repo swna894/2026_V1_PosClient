@@ -252,13 +252,11 @@ public class PosViewModel {
         processMixedPayment(cashPart, creditPart, cardNumber, null);
     }
     
-    public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart,
-                                    Consumer<Boolean> onComplete) {
+    public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart, Consumer<Boolean> onComplete) {
         processMixedPayment(cashPart, creditPart, null, onComplete);
     }
     
-    public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart,
-                                    String cardNumber, Consumer<Boolean> onComplete) {
+    public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart,  String cardNumber, Consumer<Boolean> onComplete) {
         paymentProcessor.processMixedPayment(cashPart, creditPart, cardNumber,
             processed -> handleProcessedPayment(processed, onComplete),
             createResultHandler()

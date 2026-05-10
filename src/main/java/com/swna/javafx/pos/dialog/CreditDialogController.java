@@ -1,12 +1,12 @@
 package com.swna.javafx.pos.dialog;
 
 import java.math.BigDecimal;
-import java.util.function.BiConsumer;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.pos.dto.request.CardAuthResult;
+import com.swna.javafx.pos.functional.TriConsumer;
 import com.swna.javafx.pos.service.CardClient;
 
 import javafx.application.Platform;
@@ -43,14 +43,16 @@ public class CreditDialogController extends BasePaymentDialog {
     // ========== Initialization ==========
 
     /**
-     * 레거시 콜백 지원 (카드번호 없음)
+     * 레거시 콜백 지원 (카드번호 없음) - TriConsumer 사용
+     * TriConsumer<BigDecimal, BigDecimal, String> 으로 통일
      */
     public void initData(BigDecimal total, BigDecimal discount, 
-                         BiConsumer<BigDecimal, BigDecimal> legacyCallback) {
+                         TriConsumer<BigDecimal, BigDecimal, String> legacyCallback) {
         this.totalToPay = total;
         this.callback = (cash, card, cardNumber) -> {
-            log.debug("[CreditDialog] Legacy callback - ignoring cardNumber: {}", cardNumber);
-            legacyCallback.accept(cash, card);
+            log.debug("[CreditDialog] Legacy callback - passing cardNumber: {}", cardNumber);
+            // 3개 모두 전달 (기존 코드에서 cardNumber 무시 가능)
+            legacyCallback.accept(cash, card, cardNumber);
         };
 
         setupUI(total, discount);
@@ -63,7 +65,6 @@ public class CreditDialogController extends BasePaymentDialog {
     public void initData(BigDecimal total, BigDecimal discount, CreditCallback callback) {
         this.totalToPay = total;
         this.callback = callback;
-
         setupUI(total, discount);
         setupInputHandlers();
     }
@@ -170,7 +171,7 @@ public class CreditDialogController extends BasePaymentDialog {
                 }
                 
                 cardNumber = cardResult.getCardNumber();
-                
+         
                 log.info("[CreditDialog] Card payment success - authCode: {}, txId: {}, cardNumber: {}", 
                     cardResult.getAuthCode(), cardResult.getTransactionId(), cardNumber);
             } else {
@@ -203,7 +204,6 @@ public class CreditDialogController extends BasePaymentDialog {
             showError("Payment failed: " + result.getMessage());
         }
     }
-    
     
     private void showError(String message) {
         lblCredit.setText(message);

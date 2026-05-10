@@ -1,12 +1,12 @@
 package com.swna.javafx.pos.dialog;
 
 import java.math.BigDecimal;
-import java.util.function.BiConsumer;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.pos.dto.request.CardAuthResult;
+import com.swna.javafx.pos.functional.TriConsumer;
 import com.swna.javafx.pos.service.CardClient;
 
 import javafx.application.Platform;
@@ -30,47 +30,23 @@ public class CashoutDialogController extends BasePaymentDialog {
     @FXML private TextField txtCashout;
 
     private BigDecimal totalAfterDiscount;
-    private CashoutCallback callback;
+    private TriConsumer<BigDecimal, BigDecimal, String> callback;  // ✅ 하나의 타입으로 통일
     private final CardClient cardClient;
 
-    // ========== Callback Interfaces ==========
-    
-    @FunctionalInterface
-    public interface CashoutCallback {
-        void onPaymentComplete(BigDecimal cashoutAmount, BigDecimal totalAmount, String cardNumber);
-    }
-    
-    // ========== Initialization ==========
+    // ========== Initialization - 단일 메서드만 유지 ==========
 
     /**
-     * 레거시 콜백 지원 (카드번호 없음 - 호환성 유지)
+     * 통합 initData 메서드 - TriConsumer만 사용
      */
-    public void initData(BigDecimal totalAmount, BigDecimal discount, 
-                         BiConsumer<BigDecimal, BigDecimal> legacyCallback) {
-        this.totalAfterDiscount = totalAmount;
-        this.callback = (cashout, total, cardNumber) -> {
-            log.debug("[CashoutDialog] Legacy callback - ignoring cardNumber: {}", cardNumber);
-            legacyCallback.accept(cashout, total);
-        };
-
-        setupUI(totalAmount, discount);
-        setupInputHandlers();
-        
-        log.debug("[CashoutDialog] Initialized with legacy callback - totalAfterDiscount: {}", totalAfterDiscount);
-    }
-    
-    /**
-     * 새로운 콜백 지원 (카드번호 포함)
-     */
-    public void initData(BigDecimal totalAmount, BigDecimal discount, 
-                         CashoutCallback callback) {
-        this.totalAfterDiscount = totalAmount;
+    public void initData(BigDecimal total, BigDecimal discount, 
+                         TriConsumer<BigDecimal, BigDecimal, String> callback) {
+        this.totalAfterDiscount = total;
         this.callback = callback;
 
-        setupUI(totalAmount, discount);
+        setupUI(total, discount);
         setupInputHandlers();
         
-        log.debug("[CashoutDialog] Initialized with callback - totalAfterDiscount: {}", totalAfterDiscount);
+        log.debug("[CashoutDialog] Initialized - totalAfterDiscount: {}", totalAfterDiscount);
     }
     
     private void setupUI(BigDecimal totalAmount, BigDecimal discount) {
@@ -188,13 +164,13 @@ public class CashoutDialogController extends BasePaymentDialog {
     
     private void handlePaymentSuccess(BigDecimal cashoutAmount, BigDecimal totalAmount, CardAuthResult result) {
         String cardNumber = result.getCardNumber();
-        
+         
         log.info("[CashoutDialog] Card payment successful - authCode: {}, txId: {}, cardNumber: {}, cashout: {}", 
             result.getAuthCode(), result.getTransactionId(), cardNumber, result.getCashOutAmount());
         
-        // ✅ 카드번호를 포함한 콜백 실행
+        // ✅ TriConsumer로 3개 파라미터 모두 전달
         if (callback != null) {
-            callback.onPaymentComplete(cashoutAmount, totalAmount, cardNumber);
+            callback.accept(cashoutAmount, totalAmount, cardNumber);
         }
         
         closeDialog();

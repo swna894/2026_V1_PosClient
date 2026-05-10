@@ -2,7 +2,6 @@ package com.swna.javafx.pos.manager;
 
 import java.math.BigDecimal;
 import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
 
 import org.springframework.stereotype.Component;
 
@@ -12,6 +11,7 @@ import com.swna.javafx.pos.dialog.CreditDialogController;
 import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
 import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.functional.TriConsumer;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
 
 import javafx.scene.Parent;
@@ -45,7 +45,6 @@ public class PaymentDialogManager {
 
         showDialog(CashDialogController.class, controller ->
             controller.initData(total, discount, receivedCash -> 
-                // 비동기 결제 처리
                 viewModel.processCashPayment(total, receivedCash, success -> {
                     if (Boolean.TRUE.equals(success)) {
                         PaymentResult result = PaymentResult.success("Change: " + receivedCash.subtract(total));
@@ -59,7 +58,7 @@ public class PaymentDialogManager {
     }
 
     /**
-     * 카드/현금 혼합 결제 다이얼로그 표시
+     * 카드/현금 혼합 결제 다이얼로그 표시 (TriConsumer 사용)
      */
     public void showCreditDialog(PosViewModel viewModel, Consumer<PaymentResult> callback) {
         BigDecimal total = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
@@ -70,20 +69,26 @@ public class PaymentDialogManager {
             return;
         }
 
+        // TriConsumer로 3개의 파라미터(cash, card, cardNumber)를 모두 전달
+        TriConsumer<BigDecimal, BigDecimal, String> paymentHandler = (cashPart, creditPart, cardNumber) -> {
+            log.info("[PaymentDialogManager] Processing mixed payment - cash: ${}, credit: ${}, cardNumber: {}", 
+                cashPart, creditPart, cardNumber);
+            
+            viewModel.processMixedPayment(cashPart, creditPart, cardNumber, success -> {
+                if (Boolean.TRUE.equals(success)) {
+                    PaymentResult result = PaymentResult.success(
+                        String.format("Cash: $%.2f, Credit: $%.2f, Card: %s", 
+                            cashPart, creditPart, maskCardNumber(cardNumber))
+                    );
+                    callback.accept(result);
+                } else {
+                    callback.accept(PaymentResult.failure("Mixed payment failed"));
+                }
+            });
+        };
+
         showDialog(CreditDialogController.class, controller ->
-            controller.initData(total, discount, (cashPart, creditPart) -> 
-                // 비동기 결제 처리
-                viewModel.processMixedPayment(cashPart, creditPart, success -> {
-                    if (Boolean.TRUE.equals(success)) {
-                        PaymentResult result = PaymentResult.success(
-                            String.format("Cash: $%.2f, Credit: $%.2f", cashPart, creditPart)
-                        );
-                        callback.accept(result);
-                    } else {
-                        callback.accept(PaymentResult.failure("Mixed payment failed"));
-                    }
-                })
-            )
+            controller.initData(total, discount, paymentHandler)
         );
     }
 
@@ -100,12 +105,12 @@ public class PaymentDialogManager {
         }
 
         showDialog(CashoutDialogController.class, controller ->
-            controller.initData(total, discount, (cashoutAmount, totalCredit) -> 
-                // 비동기 결제 처리
-                viewModel.processCashoutPayment(cashoutAmount, totalCredit, success -> {
+            controller.initData(total, discount, (cashoutAmount, totalCredit, cardNumber) -> 
+                viewModel.processCashoutPayment(cashoutAmount, totalCredit, cardNumber, success -> {
                     if (Boolean.TRUE.equals(success)) {
                         PaymentResult result = PaymentResult.success(
-                            String.format("EFTPOS: $%.2f, Cashout: $%.2f", totalCredit, cashoutAmount)
+                            String.format("EFTPOS: $%.2f, Cashout: $%.2f, Card: %s", 
+                                totalCredit, cashoutAmount, maskCardNumber(cardNumber))
                         );
                         callback.accept(result);
                     } else {
@@ -119,7 +124,7 @@ public class PaymentDialogManager {
     /**
      * 할인 적용 다이얼로그 표시
      */
-    public void showDiscountDialog(PosItem item, DoubleConsumer onDiscount, Runnable onFinish) {
+    public void showDiscountDialog(PosItem item, java.util.function.DoubleConsumer onDiscount, Runnable onFinish) {
         showDialog(ItemDiscountDialogController.class, controller ->
             controller.initData(item, revisedPrice -> {
                 if (onDiscount != null) {
@@ -135,7 +140,7 @@ public class PaymentDialogManager {
     /**
      * 가격 변경 다이얼로그 표시
      */
-    public void showPriceChangeDialog(PosItem item, DoubleConsumer onPriceChange, Runnable onFinish) {
+    public void showPriceChangeDialog(PosItem item, java.util.function.DoubleConsumer onPriceChange, Runnable onFinish) {
         showDialog(ItemPriceChangeDialogController.class, controller ->
             controller.initData(item, newPrice -> {
                 if (onPriceChange != null) {
@@ -146,6 +151,16 @@ public class PaymentDialogManager {
                 }
             })
         );
+    }
+
+    /**
+     * 카드번호 마스킹 처리 (로깅용)
+     */
+    private String maskCardNumber(String cardNumber) {
+        if (cardNumber == null || cardNumber.length() < 4) {
+            return "****";
+        }
+        return "****-" + cardNumber.substring(cardNumber.length() - 4);
     }
 
     /**

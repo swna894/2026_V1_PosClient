@@ -131,6 +131,7 @@ public class PaymentProcessor {
                                     Consumer<ProcessedPayment> onComplete,
                                     PaymentResultHandler resultHandler) {
         logMixedPaymentDebug(cashPart, creditPart);
+        log.info("[PaymentProcessor] Processing mixed payment with cardNumber: {}", cardNumber);
         
         validateMixedPayment(cashPart, creditPart)
             .ifInvalid(error -> {
@@ -149,7 +150,6 @@ public class PaymentProcessor {
             resultHandler
         );
     }
-
     /**
      * 현재 장바구니로 SaleRequest 생성 (payments 제외)
      */
