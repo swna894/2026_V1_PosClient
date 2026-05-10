@@ -34,7 +34,6 @@ public class CommonApiClient {
     
     // Timeout settings
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
-    private static final Duration LONG_TIMEOUT = Duration.ofSeconds(60);
     
     // =========================
     // GET Request - Single Object (Mono)

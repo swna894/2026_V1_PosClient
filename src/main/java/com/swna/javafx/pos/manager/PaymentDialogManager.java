@@ -2,6 +2,7 @@ package com.swna.javafx.pos.manager;
 
 import java.math.BigDecimal;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
 import org.springframework.stereotype.Component;
 
@@ -43,17 +44,17 @@ public class PaymentDialogManager {
         }
 
         showDialog(CashDialogController.class, controller ->
-            controller.initData(total, discount, receivedCash -> {
+            controller.initData(total, discount, receivedCash -> 
                 // 비동기 결제 처리
                 viewModel.processCashPayment(total, receivedCash, success -> {
-                    if (success) {
+                    if (Boolean.TRUE.equals(success)) {
                         PaymentResult result = PaymentResult.success("Change: " + receivedCash.subtract(total));
                         callback.accept(result);
                     } else {
                         callback.accept(PaymentResult.failure("Payment failed"));
                     }
-                });
-            })
+                })
+            )
         );
     }
 
@@ -70,10 +71,10 @@ public class PaymentDialogManager {
         }
 
         showDialog(CreditDialogController.class, controller ->
-            controller.initData(total, discount, (cashPart, creditPart) -> {
+            controller.initData(total, discount, (cashPart, creditPart) -> 
                 // 비동기 결제 처리
                 viewModel.processMixedPayment(cashPart, creditPart, success -> {
-                    if (success) {
+                    if (Boolean.TRUE.equals(success)) {
                         PaymentResult result = PaymentResult.success(
                             String.format("Cash: $%.2f, Credit: $%.2f", cashPart, creditPart)
                         );
@@ -81,8 +82,8 @@ public class PaymentDialogManager {
                     } else {
                         callback.accept(PaymentResult.failure("Mixed payment failed"));
                     }
-                });
-            })
+                })
+            )
         );
     }
 
@@ -99,10 +100,10 @@ public class PaymentDialogManager {
         }
 
         showDialog(CashoutDialogController.class, controller ->
-            controller.initData(total, discount, (cashoutAmount, totalCredit) -> {
+            controller.initData(total, discount, (cashoutAmount, totalCredit) -> 
                 // 비동기 결제 처리
                 viewModel.processCashoutPayment(cashoutAmount, totalCredit, success -> {
-                    if (success) {
+                    if (Boolean.TRUE.equals(success)) {
                         PaymentResult result = PaymentResult.success(
                             String.format("EFTPOS: $%.2f, Cashout: $%.2f", totalCredit, cashoutAmount)
                         );
@@ -110,15 +111,15 @@ public class PaymentDialogManager {
                     } else {
                         callback.accept(PaymentResult.failure("Cashout failed"));
                     }
-                });
-            })
+                })
+            )
         );
     }
 
     /**
      * 할인 적용 다이얼로그 표시
      */
-    public void showDiscountDialog(PosItem item, Consumer<Double> onDiscount, Runnable onFinish) {
+    public void showDiscountDialog(PosItem item, DoubleConsumer onDiscount, Runnable onFinish) {
         showDialog(ItemDiscountDialogController.class, controller ->
             controller.initData(item, revisedPrice -> {
                 if (onDiscount != null) {
@@ -134,7 +135,7 @@ public class PaymentDialogManager {
     /**
      * 가격 변경 다이얼로그 표시
      */
-    public void showPriceChangeDialog(PosItem item, Consumer<Double> onPriceChange, Runnable onFinish) {
+    public void showPriceChangeDialog(PosItem item, DoubleConsumer onPriceChange, Runnable onFinish) {
         showDialog(ItemPriceChangeDialogController.class, controller ->
             controller.initData(item, newPrice -> {
                 if (onPriceChange != null) {

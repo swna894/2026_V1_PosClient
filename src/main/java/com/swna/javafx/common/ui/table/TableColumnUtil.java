@@ -40,25 +40,209 @@ import javafx.util.converter.IntegerStringConverter;
 
 public class TableColumnUtil {
 
-    // 정렬 상수를 정의하여 외부에서 가독성 있게 호출하도록 합니다.
+    // ========== Alignment Constants ==========
     public static final String CENTER = "CENTER";
     public static final String RIGHT = "RIGHT";
     public static final String LEFT = "LEFT";
 
-    // CSS 스타일링 상수
+    // ========== CSS Style Constants ==========
     private static final String STYLE_CENTER = "-fx-alignment: CENTER;";
     private static final String STYLE_RIGHT = "-fx-alignment: CENTER-RIGHT;";
     private static final String STYLE_LEFT = "-fx-alignment: CENTER-LEFT;";
     private static final String STYLE_TRANSPARENT = "-fx-background-color: transparent;";
+    private static final String BUTTON_STYLE_DEFAULT = "-fx-background-color:transparent; -fx-alignment: center;";
+    private static final String BUTTON_STYLE_HOVER = "-fx-background-color:#6F4CBB;";
 
-    // 🔥 인스턴스 생성 방지
-    private TableColumnUtil() {
-        throw new UnsupportedOperationException("Utility class");
+    // ========== Inner Classes ==========
+    
+    /**
+     * Integer 편집 셀 내부 클래스
+     */
+    private static class IntegerEditingCell<T> extends TextFieldTableCell<T, Integer> {
+        private final String alignment;
+        private final UnaryOperator<TextFormatter.Change> numberFilter;
+        
+        public IntegerEditingCell(String alignment) {
+            super(new IntegerStringConverter());
+            this.alignment = alignment;
+            this.numberFilter = change -> {
+                String newText = change.getControlNewText();
+                if (newText.isEmpty()) return change;
+                return newText.matches("-?\\d*") ? change : null;
+            };
+            applyStyle();
+        }
+        
+        private void applyStyle() {
+            setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+        }
+        
+        @Override
+        public void startEdit() {
+            super.startEdit();
+            applyStyle();
+            configureTextField();
+        }
+        
+        @Override
+        public void updateItem(Integer item, boolean empty) {
+            super.updateItem(item, empty);
+            applyStyle();
+        }
+        
+        private void configureTextField() {
+            TextField textField = (TextField) getGraphic();
+            if (textField == null) return;
+            
+            textField.setTextFormatter(new TextFormatter<>(
+                new IntegerStringConverter(), null, numberFilter
+            ));
+            textField.setStyle(getAlignmentStyle(alignment));
+        }
+    }
+    
+    /**
+     * 통화 표시 셀 내부 클래스
+     */
+    private static class CurrencyCell<T> extends TableCell<T, Double> {
+        private final NumberFormat currencyFormat;
+        
+        public CurrencyCell() {
+            this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+            currencyFormat.setMinimumFractionDigits(2);
+            currencyFormat.setMaximumFractionDigits(2);
+        }
+        
+        @Override
+        protected void updateItem(Double price, boolean empty) {
+            super.updateItem(price, empty);
+            if (empty || price == null) {
+                setText(null);
+            } else {
+                setText(currencyFormat.format(price));
+            }
+        }
+    }
+    
+    /**
+     * 날짜/시간 표시 셀 내부 클래스
+     */
+    private static class DateTimeCell<T> extends TableCell<T, LocalDateTime> {
+        @Override
+        protected void updateItem(LocalDateTime item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setText(null);
+            } else {
+                setText(item.toString());
+            }
+        }
+    }
+    
+    /**
+     * 버튼 컨테이너 셀 내부 클래스
+     */
+    private static class ButtonCell<T> extends TableCell<T, Void> {
+        private final Button button;
+        
+        public ButtonCell(String iconPath, Consumer<T> action) {
+            this.button = createButton(iconPath);
+            configureButton(action);
+        }
+        
+        private Button createButton(String iconPath) {
+            Button btn = new Button();
+            if (iconPath != null) {
+                btn.setGraphic(loadIconView(iconPath));
+            }
+            btn.setAlignment(Pos.CENTER);
+            btn.setMinWidth(45);
+            btn.setPrefWidth(45);
+            btn.setMinHeight(34);
+            btn.setPrefHeight(34);
+            btn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            btn.setPadding(Insets.EMPTY);
+            btn.setStyle(BUTTON_STYLE_DEFAULT);
+            return btn;
+        }
+        
+        private void configureButton(Consumer<T> action) {
+            button.setOnMouseEntered(e -> {
+                getTableView().getSelectionModel().select(getIndex());
+                button.setStyle(BUTTON_STYLE_HOVER);
+            });
+            button.setOnMouseExited(e -> button.setStyle(BUTTON_STYLE_DEFAULT));
+            button.setOnAction(e -> {
+                T item = getTableRow().getItem();
+                if (item != null) action.accept(item);
+            });
+        }
+        
+        @Override
+        public void updateItem(Void item, boolean empty) {
+            super.updateItem(item, empty);
+            setGraphic(empty ? null : button);
+            setAlignment(Pos.CENTER);
+        }
+    }
+    
+    /**
+     * 라벨 컨테이너 셀 내부 클래스
+     */
+    private static class LabelCell<T> extends TableCell<T, Void> {
+        private final Label label;
+        
+        public LabelCell(String iconPath, EventHandler<MouseEvent> actionEvent) {
+            this.label = createLabel(iconPath);
+            configureLabel(actionEvent);
+        }
+        
+        private Label createLabel(String iconPath) {
+            Label lbl = new Label();
+            if (iconPath != null) {
+                ImageView imageView = loadIconView(iconPath);
+                if (imageView != null) {
+                    imageView.setFitWidth(16);
+                    imageView.setFitHeight(16);
+                    lbl.setGraphic(imageView);
+                }
+            }
+            lbl.setAlignment(Pos.CENTER);
+            lbl.setMaxWidth(Double.MAX_VALUE);
+            lbl.setStyle(STYLE_TRANSPARENT);
+            lbl.setCursor(Cursor.HAND);
+            return lbl;
+        }
+        
+        private void configureLabel(EventHandler<MouseEvent> actionEvent) {
+            label.setOnMouseEntered(e -> {
+                getTableView().getSelectionModel().select(getIndex());
+                label.setStyle("-fx-background-color: #6F4CBB; -fx-padding: 10px;");
+            });
+            label.setOnMouseExited(e -> label.setStyle("-fx-background-color: transparent; -fx-padding: 10px;"));
+            label.setOnMousePressed(actionEvent);
+        }
+        
+        @Override
+        public void updateItem(Void item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty) {
+                setGraphic(null);
+            } else {
+                setGraphic(label);
+                setAlignment(Pos.CENTER);
+            }
+        }
     }
 
-    /**
-     * 정렬 값에 따른 CSS 스타일을 반환하는 헬퍼 메서드
-     */
+    // ========== Private Constructors ==========
+    
+    private TableColumnUtil() {
+        throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    }
+
+    // ========== Private Helper Methods ==========
+    
     private static String getAlignmentStyle(String alignment) {
         if (alignment == null) return STYLE_CENTER;
         return switch (alignment.toUpperCase()) {
@@ -67,10 +251,29 @@ public class TableColumnUtil {
             default -> STYLE_CENTER;
         };
     }
+    
+    private static ImageView loadIconView(String iconPath) {
+        if (iconPath == null) return null;
+        URL url = TableColumnUtil.class.getResource(iconPath);
+        if (url == null) return null;
+        
+        ImageView imageView = new ImageView(new Image(url.toExternalForm()));
+        imageView.setPreserveRatio(true);
+        imageView.setFitWidth(22);
+        imageView.setFitHeight(22);
+        return imageView;
+    }
+    
+    private static <T> void setupStaticColumnProps(TableColumn<T, Void> column, String title, String iconPath, Integer width) {
+        if (title != null) column.setText(title);
+        if (width != null) column.setPrefWidth(width);
+        column.setGraphic(loadIconView(iconPath));
+        column.setSortable(false);
+        column.setStyle(STYLE_TRANSPARENT + STYLE_CENTER);
+    }
 
-    // ========================
-    // Number (Row Index)
-    // ========================
+    // ========== Public API - Number Column ==========
+    
     public static <T> TableColumn<T, String> createNumberColumn(TableView<T> tableView, TableColumn<T, String> column, int width) {
         if (width != 0) column.setPrefWidth(width);
         column.setText("NO");
@@ -80,15 +283,14 @@ public class TableColumnUtil {
         return column;
     }
 
-    // ========================
-    // String
-    // ========================
+    // ========== Public API - String Column ==========
+    
     public static <T> void makeStringColumn(
             TableColumn<T, String> column,
             Function<T, StringProperty> propertyGetter,
             BiConsumer<T, String> setter,
             boolean editable,
-            String alignment,           
+            String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()));
@@ -99,8 +301,7 @@ public class TableColumnUtil {
             column.setCellFactory(TextFieldTableCell.forTableColumn());
             column.setOnEditCommit(event -> {
                 T row = event.getRowValue();
-                String newValue = event.getNewValue();
-                setter.accept(row, newValue);
+                setter.accept(row, event.getNewValue());
                 if (dirtyConsumer != null) dirtyConsumer.accept(row);
             });
         } else {
@@ -108,10 +309,8 @@ public class TableColumnUtil {
         }
     }
 
-    /**
-     * 통화(Currency) 컬럼 생성
-     * Locale에 맞는 기호, 소수점 2자리 표시 및 편집 기능 포함
-     */
+    // ========== Public API - Currency Column ==========
+    
     public static <T> void makeCurrencyColumn(
             TableColumn<T, Double> column,
             Function<T, DoubleProperty> propertyGetter,
@@ -119,118 +318,16 @@ public class TableColumnUtil {
             String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
-        // 1. 값 바인딩 (DoubleProperty -> Object)
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
-        
-        // 2. 스타일 및 정렬 적용
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+        column.setCellFactory(tc -> new CurrencyCell<>());
 
-        // 3. 통화 포맷터 설정 (소수점 2자리 고정)
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
-        currencyFormat.setMinimumFractionDigits(2);
-        currencyFormat.setMaximumFractionDigits(2);
-
-        // 4. 셀 팩토리 설정 (표시 형식 지정)
-        column.setCellFactory(tc -> new TableCell<T, Double>() {
-            @Override
-            protected void updateItem(Double price, boolean empty) {
-                super.updateItem(price, empty);
-                if (empty || price == null) {
-                    setText(null);
-                } else {
-                    // 화면 표시: $ 1,234.56 또는 ₩ 1,234.56
-                    setText(currencyFormat.format(price));
-                }
-            }
-        });
-
-        // 5. 편집 모드 설정
         if (editable) {
-            // 편집 시에는 기호 없이 숫자만 입력받기 위해 기본 DoubleStringConverter 사용
             column.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverter()));
-
-            // 편집 완료 시 로직
             column.setOnEditCommit(event -> {
                 T row = event.getRowValue();
-                Double newValue = event.getNewValue();
-                
-                // 데이터 모델 업데이트 (Property의 set 메서드 호출)
                 DoubleProperty prop = propertyGetter.apply(row);
-                prop.set(newValue);
-
-                // Dirty 상태 등록
-                if (dirtyConsumer != null) {
-                    dirtyConsumer.accept(row);
-                }
-            });
-        } else {
-            column.setEditable(false);
-        }
-    }
-
-
-    // ========================
-    // Integer
-    // ========================
-    public static <T> void makeIntegerColumn(
-            TableColumn<T, Integer> column,
-            Function<T, IntegerProperty> propertyGetter,
-            ObjIntConsumer<T> setter,
-            boolean editable,
-            String alignment,           // 정렬 추가
-            DirtyConsumer<T> dirtyConsumer
-    ) {
-        column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
-        column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-
-        if (editable) {
-           column.setCellFactory(col -> new TextFieldTableCell<T, Integer>(new IntegerStringConverter()) {
-                {
-                    // 기본 스타일 유지 (핵심)
-                    setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-                }
-
-                private final UnaryOperator<TextFormatter.Change> filter = change -> {
-                    String text = change.getControlNewText();
-
-                    if (text.isEmpty()) return change;
-
-                    if (text.matches("-?\\d*")) {
-                        return change;
-                    }
-
-                    return null;
-                };
-
-                @Override
-                public void startEdit() {
-                    super.startEdit();
-
-                    TextField textField = (TextField) getGraphic();
-                    if (textField != null) {
-                        textField.setTextFormatter(
-                                new TextFormatter<>(new IntegerStringConverter(), null, filter)
-                        );
-
-                        // 🔥 중요: edit mode에서도 스타일 유지
-                        textField.setStyle(getAlignmentStyle(alignment));
-                    }
-
-                    // 🔥 cell 자체도 유지
-                    this.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-                }
-
-                @Override
-                public void updateItem(Integer item, boolean empty) {
-                    super.updateItem(item, empty);
-
-                    // 🔥 렌더링 시마다 다시 적용 (중요)
-                    setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-                }
-            });
-            column.setOnEditCommit(event -> {
-                T row = event.getRowValue();
-                setter.accept(row, event.getNewValue());
+                prop.set(event.getNewValue());
                 if (dirtyConsumer != null) dirtyConsumer.accept(row);
             });
         } else {
@@ -238,21 +335,49 @@ public class TableColumnUtil {
         }
     }
 
+    // ========== Public API - Integer Column ==========
+    
+    public static <T> void makeIntegerColumn(
+            TableColumn<T, Integer> column,
+            Function<T, IntegerProperty> propertyGetter,
+            ObjIntConsumer<T> setter,
+            boolean editable,
+            String alignment,
+            DirtyConsumer<T> dirtyConsumer
+    ) {
+        column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
+        column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+
+        if (editable) {
+            column.setCellFactory(col -> new IntegerEditingCell<>(alignment));
+            column.setOnEditCommit(event -> {
+                T row = event.getRowValue();
+                if (event.getNewValue() != null) {
+                    setter.accept(row, event.getNewValue());
+                }
+                if (dirtyConsumer != null) dirtyConsumer.accept(row);
+            });
+        } else {
+            column.setEditable(false);
+        }
+    }
+
+    // ========== Public API - Long Column ==========
+    
     public static <T> void makeReadOnlyLongColumn(TableColumn<T, Long> column, Function<T, LongProperty> propertyGetter, String alignment) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
         column.setEditable(false);
     }
 
-    // ========================
-    // Double
-    // ========================
+    // ========== Public API - Double Column ==========
+    
     public static <T> void makeDoubleColumn(
             TableColumn<T, Double> column,
             Function<T, DoubleProperty> propertyGetter,
             ObjDoubleConsumer<T> setter,
             boolean editable,
-            String alignment,           // 정렬 추가
+            String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
@@ -270,31 +395,19 @@ public class TableColumnUtil {
         }
     }
 
-    // ========================
-    // LocalDateTime
-    // ========================
+    // ========== Public API - DateTime Column ==========
+    
     public static <T> void makeDateTimeColumn(
             TableColumn<T, LocalDateTime> column,
             Function<T, LocalDateTime> getter,
             BiConsumer<T, LocalDateTime> setter,
             boolean editable,
-            String alignment,           // 정렬 추가
+            String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cell -> new SimpleObjectProperty<>(getter.apply(cell.getValue())));
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-
-        column.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(LocalDateTime item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.toString()); 
-                }
-            }
-        });
+        column.setCellFactory(col -> new DateTimeCell<>());
 
         if (editable) {
             column.setOnEditCommit(event -> {
@@ -305,22 +418,23 @@ public class TableColumnUtil {
         }
     }
 
+    // ========== Public API - DatePicker Column ==========
+    
     public static <T> void makeDatePickerColumn(
             TableColumn<T, LocalDateTime> column,
             Function<T, ObjectProperty<LocalDateTime>> getter,
             BiConsumer<T, LocalDateTime> setter,
-            String alignment,           // 정렬 추가
+            String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cell -> getter.apply(cell.getValue()));
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-        column.setCellFactory(col -> new DatePickerTableCell<T>(setter, dirtyConsumer));
+        column.setCellFactory(col -> new DatePickerTableCell<>(setter, dirtyConsumer));
         column.setEditable(true);
     }
 
-    // ========================
-    // Boolean
-    // ========================
+    // ========== Public API - Boolean Column ==========
+    
     public static <T> void makeBooleanColumn(
             TableColumn<T, Boolean> column,
             Function<T, BooleanProperty> propertyGetter,
@@ -338,13 +452,12 @@ public class TableColumnUtil {
             }
             return prop;
         });
-        column.setStyle(STYLE_TRANSPARENT + STYLE_CENTER); // 불리언은 보통 중앙 정렬 고정
+        column.setStyle(STYLE_TRANSPARENT + STYLE_CENTER);
         column.setEditable(editable);
     }
 
-    // ========================
-    // Button & Label Column
-    // ========================
+    // ========== Public API - Button Column ==========
+    
     public static <T> void makeButtonColumn(
             TableColumn<T, Void> column,
             String title,
@@ -352,64 +465,13 @@ public class TableColumnUtil {
             Integer width,
             Consumer<T> action
     ) {
-
         setupStaticColumnProps(column, title, iconPath, width);
-
-        column.setCellFactory(param -> new TableCell<>() {
-
-            private final Button button = new Button();
-
-            {
-                if (iconPath != null) {
-                    button.setGraphic(loadIconView(iconPath));
-                }
-
-                button.setAlignment(Pos.CENTER);
-
-                button.setMinWidth(45);
-                button.setPrefWidth(45);
-
-                button.setMinHeight(34);
-                button.setPrefHeight(34);
-
-                button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-
-                button.setPadding(Insets.EMPTY);
-
-                button.setStyle("-fx-background-color:transparent; -fx-alignment: center;");
-
-                button.setOnMouseEntered(e -> {
-                    getTableView().getSelectionModel().select(getIndex());
-                    button.setStyle("-fx-background-color:#6F4CBB;");
-                });
-
-                button.setOnMouseExited(e ->
-                        button.setStyle(STYLE_TRANSPARENT));
-
-                // 핵심 수정 부분
-                button.setOnAction(e -> {
-
-                    T item = getTableRow().getItem();
-
-                    if (item != null) {
-                        action.accept(item);
-                    }
-                });
-            }
-
-            @Override
-            public void updateItem(Void item, boolean empty) {
-
-                super.updateItem(item, empty);
-
-                setGraphic(empty ? null : button);
-
-                setAlignment(Pos.CENTER);
-            }
-        });
+        column.setCellFactory(param -> new ButtonCell<>(iconPath, action));
     }
 
-    public static <T> void makeLableColumn(
+    // ========== Public API - Label Column ==========
+    
+    public static <T> void makeLabelColumn(
             TableColumn<T, Void> column,
             String title,
             String iconPath,
@@ -417,60 +479,6 @@ public class TableColumnUtil {
             EventHandler<MouseEvent> actionEvent
     ) {
         setupStaticColumnProps(column, title, iconPath, width);
-
-        column.setCellFactory(param -> new TableCell<>() {
-            private final Label iconLabel = new Label();
-            {
-                if (iconPath != null) {
-                    ImageView imageView = loadIconView(iconPath);
-                    if (imageView != null) {
-                        imageView.setFitWidth(16);
-                        imageView.setFitHeight(16);
-                        iconLabel.setGraphic(imageView);
-                    }
-                }
-                iconLabel.setAlignment(Pos.CENTER);
-                iconLabel.setMaxWidth(Double.MAX_VALUE);
-                iconLabel.setStyle(STYLE_TRANSPARENT);
-                iconLabel.setCursor(Cursor.HAND);
-                iconLabel.setOnMouseEntered(e -> {
-                    getTableView().getSelectionModel().select(getIndex());
-                    iconLabel.setStyle("-fx-background-color: #6F4CBB; -fx-padding: 10x;");
-                });
-                iconLabel.setOnMouseExited(e -> iconLabel.setStyle("-fx-background-color: transparent; -fx-padding: 10px;"));
-                iconLabel.setOnMousePressed(actionEvent);
-            }
-
-            @Override
-            public void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(iconLabel);
-                    setAlignment(Pos.CENTER);
-                }
-            }
-        });
-    }
-
-    private static <T> void setupStaticColumnProps(TableColumn<T, Void> column, String title, String iconPath, Integer width) {
-        if (title != null) column.setText(title);
-        if (width != null) column.setPrefWidth(width);
-        column.setGraphic(loadIconView(iconPath));
-        column.setSortable(false);
-        column.setStyle(STYLE_TRANSPARENT + STYLE_CENTER);
-    }
-
-    private static ImageView loadIconView(String iconPath) {
-        if (iconPath == null) return null;
-        URL url = TableColumnUtil.class.getResource(iconPath);
-        if (url == null) return null;
-
-        ImageView imageView = new ImageView(new Image(url.toExternalForm()));
-        imageView.setPreserveRatio(true);
-        imageView.setFitWidth(22);
-        imageView.setFitHeight(22);
-        return imageView;
+        column.setCellFactory(param -> new LabelCell<>(iconPath, actionEvent));
     }
 }

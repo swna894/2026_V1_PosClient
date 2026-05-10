@@ -50,22 +50,35 @@ public class PrinterService {
     /**
      * Console에 프린트 내용 출력 (디버깅용)
      */
+    /**
+     * Console에 프린트 내용 출력 (디버깅용) - Logger 사용
+     */
+   /**
+     * Console에 프린트 내용 출력 (디버깅용) - 조건부 로깅 사용
+     */
     private void printToConsole(String printerName, byte[] bytes) {
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("🖨️ [PRINT DEBUG] - Printer: " + printerName);
-        System.out.println("📊 Data size: " + bytes.length + " bytes");
-        System.out.println("=".repeat(70));
-        
-        try {
-            String content = new String(bytes, StandardCharsets.UTF_8);
-            System.out.println(content);
-        } catch (Exception e) {
-            System.out.println("⚠️ 디코딩 실패: " + e.getMessage());
+        // 조건부 로깅: 로그 레벨이 INFO 이상일 때만 실행
+        if (logger.isInfoEnabled()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("\n").append("=".repeat(70)).append("\n");
+            sb.append("🖨️ [PRINT DEBUG] - Printer: ").append(printerName).append("\n");
+            sb.append("📊 Data size: ").append(bytes.length).append(" bytes\n");
+            sb.append("=".repeat(70)).append("\n");
+            
+            try {
+                String content = new String(bytes, StandardCharsets.UTF_8);
+                sb.append(content).append("\n");
+            } catch (Exception e) {
+                sb.append("⚠️ 디코딩 실패: ").append(e.getMessage()).append("\n");
+            }
+            
+            sb.append("=".repeat(70)).append("\n");
+            sb.append("✅ Console output only\n");
+            
+            logger.info(sb.toString());
         }
-        
-        System.out.println("=".repeat(70));
-        System.out.println("✅ Console output only\n");
     }
+    
 
     /**
      * 실제 프린터로 출력

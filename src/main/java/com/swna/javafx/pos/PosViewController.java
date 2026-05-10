@@ -28,12 +28,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
 
+
 @Slf4j
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
 @FxmlView("/view/pos/PosView.fxml")
 public class PosViewController {
+
+       // ========== Constants ==========
+    private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
 
     private final PosViewModel viewModel;
     private final SafeBarcodeScanner safeBarcodeScanner;
@@ -88,29 +92,14 @@ public class PosViewController {
     @FXML private ImageView posImageView;
     @FXML private ImageView printImageView;
 
-
     @FXML
     public void initialize() {
-
-        // 1. 테이블 설정 (위임)
-        tableSetup.setup(
-            table, viewModel,
-            colNo, colBarcode, colDesc, colComment,
-            colQty, colStock, colPrice, colTotal, colDiscount,
-            colDelete, colMinus, colPlus, colDiscountPrice, colChangePrice,
-            this::showDiscountDialog, this::showPriceChangeDialog
-        );
+        // 1. 테이블 설정 (리팩토링된 방식)
+        setupTable();
         
         // 2. 상단 레이블 바인딩
-        labelTotalAmount.textProperty().bind(viewModel.totalAmountProperty().asString("Total: %.2f"));
-        labelTotalQty.textProperty().bind(viewModel.totalQtyProperty().asString("Total Qty: %d"));
-        labelDiscount.textProperty().bind(viewModel.discountProperty().asString("Discount: %.2f"));
-        labelStatus.textProperty().bind(viewModel.scanStatusProperty());
-
-        labelStatus.bindTo(viewModel.scanStatusProperty());
+        setupLabelBindings();
         
-
-
         // 3. UI 알림 타이머 설정
         uiNotifier.setupAutoClear(viewModel.scanStatusProperty());
         
@@ -123,9 +112,57 @@ public class PosViewController {
         // 6. 장바구니 버튼 숨김 처리
         cartButtonManager.hideUnused(buttonCart2, buttonCart3);
         
+        // 7. 테이블 포커스
         table.requestFocus();
     }
+    
+    // ========== Setup Methods ==========
+    
+    /**
+     * 테이블 설정 (리팩토링된 PosTableSetup 사용)
+     */
+    private void setupTable() {
+        // 컬럼 홀더 생성
+        PosTableSetup.TableColumns columns = PosTableSetup.TableColumns.builder()
+            .colNo(colNo)
+            .colBarcode(colBarcode)
+            .colDesc(colDesc)
+            .colComment(colComment)
+            .colQty(colQty)
+            .colStock(colStock)
+            .colPrice(colPrice)
+            .colTotal(colTotal)
+            .colDiscount(colDiscount)
+            .colDelete(colDelete)
+            .colMinus(colMinus)
+            .colPlus(colPlus)
+            .colDiscountPrice(colDiscountPrice)
+            .colChangePrice(colChangePrice)
+            .build();
+        
+        // 콜백 홀더 생성
+        PosTableSetup.Callbacks callbacks = PosTableSetup.Callbacks.builder()
+            .onDiscount(this::showDiscountDialog)
+            .onChangePrice(this::showPriceChangeDialog)
+            .build();
+        
+        // 테이블 설정 실행
+        tableSetup.setup(table, viewModel, columns, callbacks);
+    }
+    
+    /**
+     * 레이블 바인딩 설정
+     */
+    private void setupLabelBindings() {
+        labelTotalAmount.textProperty().bind(viewModel.totalAmountProperty().asString("Total: %.2f"));
+        labelTotalQty.textProperty().bind(viewModel.totalQtyProperty().asString("Total Qty: %d"));
+        labelDiscount.textProperty().bind(viewModel.discountProperty().asString("Discount: %.2f"));
+        labelStatus.textProperty().bind(viewModel.scanStatusProperty());
+        labelStatus.bindTo(viewModel.scanStatusProperty());
+    }
 
+    // ========== Handler Methods ==========
+    
     private void handleBarcode(String code) {
         if (code == null || code.isBlank()) return;
         Platform.runLater(() -> viewModel.scan(code));
@@ -145,6 +182,8 @@ public class PosViewController {
         );
     }
 
+    // ========== Action Methods ==========
+    
     @FXML
     private void onQuickAmount(ActionEvent event) {
         String amountText = ((Button) event.getSource()).getText().replaceAll("[^0-9.]", "");
@@ -184,75 +223,33 @@ public class PosViewController {
         );
     }
 
-    /**
-     * 결제 후 처리
-     * 
-     * @param result 결제 결과
-     * @param paymentType 결제 유형 (Cash, Mixed, Cashout)
-     */
     private void afterPayment(PaymentDialogManager.PaymentResult result, String paymentType) {
         if (result.isSuccess()) {
-            // 결제 성공
             log.info("[UI] {} payment successful: {}", paymentType, result.getMessage());
-            
-            // 성공 메시지 표시 (선택사항)
             showSuccessMessage(result.getMessage());
-            
-            // 추가 작업 (예: 영수증 출력, 장바구니 초기화 등은 ViewModel에서 이미 처리됨)
-            // ViewModel의 clear()가 호출되었으므로 UI 업데이트는 자동으로 됨
-            
         } else {
-            // 결제 실패
             log.warn("[UI] {} payment failed: {}", paymentType, result.getMessage());
-            
-            // 실패 메시지 표시
             showErrorMessage("Payment failed: " + result.getMessage());
         }
     }
 
-
-    /**
-     * 성공 메시지 표시
-     */
     private void showSuccessMessage(String message) {
-        // 방법 1: StatusBar에 표시
         statusLabelManager.setFadeOutEnabled(true);
         statusLabelManager.showSuccess(message);
-        
-        // 방법 2: 토스트 메시지
-        // Toast.show(message);
-        
-        // 방법 3: 알림 다이얼로그
-        // Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        // alert.setTitle("Success");
-        // alert.setHeaderText(null);
-        // alert.setContentText(message);
-        // alert.showAndWait();
     }
 
-    /**
-     * 에러 메시지 표시
-     */
     private void showErrorMessage(String message) {
-        // 방법 1: StatusBar에 표시
         statusLabelManager.setFadeOutEnabled(true);
         statusLabelManager.showError(message);
-        
-        // 방법 2: 에러 다이얼로그
-        // Alert alert = new Alert(Alert.AlertType.ERROR);
-        // alert.setTitle("Payment Error");
-        // alert.setHeaderText(null);
-        // alert.setContentText(message);
-        // alert.showAndWait();
     }
 
     @FXML private void onClose(MouseEvent event) { viewModel.clear(); System.exit(0); }
-    @FXML private void onActionDiscountVolumn(ActionEvent e) { log.debug("Not yet implemented"); }
-    @FXML private void onActionScanner(ActionEvent e) { log.debug("Not yet implemented"); }
-    @FXML private void onActionCancel(ActionEvent e) { log.debug("Not yet implemented"); }
-    @FXML private void onActionPrint(ActionEvent e) { log.debug("Not yet implemented"); }
-    @FXML private void onActionQty(ActionEvent e) { log.debug("Not yet implemented"); }
-    @FXML private void onActionDrawer(ActionEvent e) { log.debug("Not yet implemented"); }
-    @FXML private void onPos(ActionEvent e) { log.debug("Not yet implemented"); }
-    @FXML private void onPrint(ActionEvent e) { log.debug("Not yet implemented"); }
+    @FXML private void onActionDiscountVolumn(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
+    @FXML private void onActionScanner(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
+    @FXML private void onActionCancel(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
+    @FXML private void onActionPrint(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
+    @FXML private void onActionQty(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
+    @FXML private void onActionDrawer(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
+    @FXML private void onPos(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
+    @FXML private void onPrint(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
 }

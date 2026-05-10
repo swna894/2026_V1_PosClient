@@ -1,16 +1,18 @@
 package com.swna.javafx.pos.print;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.service.PaymentResult;
+
 import javafx.print.Printer;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -23,7 +25,6 @@ public class ReceiptPrinter {
     private static final byte[] CMD_ALIGN_LEFT = { 0x1B, 0x61, 0x00 };    // 왼쪽 정렬
     private static final byte[] FONT_58MM = { 0x1B, 0x21, 0x06 };     // 58mm 폰트
     private static final byte[] FONT_80MM = { 0x1B, 0x21, 0x03 };     // 80mm 폰트
-    private static final byte[] LF = { 0x0A };                        // Line Feed
     private static final byte[] CR_LF = { 0x0D, 0x0A };               // Carriage Return + Line Feed
 
     private final PrinterService printerService;
@@ -130,26 +131,6 @@ public class ReceiptPrinter {
         return result;
     }
     
-    /**
-     * 여러 바이트 배열을 하나로 합치기 (가변 인자 버전)
-     */
-    private byte[] combine(byte[]... arrays) {
-        int length = 0;
-        for (byte[] array : arrays) {
-            if (array != null) {
-                length += array.length;
-            }
-        }
-        byte[] result = new byte[length];
-        int pos = 0;
-        for (byte[] array : arrays) {
-            if (array != null) {
-                System.arraycopy(array, 0, result, pos, array.length);
-                pos += array.length;
-            }
-        }
-        return result;
-    }
 
     private void initializePrinterName() {
         if (this.printerName == null) {

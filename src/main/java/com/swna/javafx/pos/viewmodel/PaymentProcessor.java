@@ -129,6 +129,17 @@ public class PaymentProcessor {
     public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart,
                                     Consumer<ProcessedPayment> onComplete,
                                     PaymentResultHandler resultHandler) {
+
+                                             // 디버깅 로그: 현재 상태 출력
+        log.info("=== MIXED PAYMENT DEBUG ===");
+        log.info("Cash part: {}", cashPart);
+        log.info("Credit part: {}", creditPart);
+        log.info("Cart total amount: {}", cartManager.totalAmountProperty().get());
+        log.info("Cart total discount: {}", cartManager.totalDiscountProperty().get());
+        log.info("Total after discount: {}", getTotalAfterDiscount());
+        log.info("Cart is empty: {}", cartManager.isEmpty());
+        log.info("============================");
+
         ValidationResult validation = validateMixedPayment(cashPart, creditPart);
         if (!validation.isValid()) {
             resultHandler.onFailure(validation.getErrorMessage());
@@ -164,9 +175,7 @@ public class PaymentProcessor {
      * 할인 적용된 최종 결제 금액 계산
      */
     public BigDecimal getTotalAfterDiscount() {
-        BigDecimal total = BigDecimal.valueOf(cartManager.totalAmountProperty().get());
-        BigDecimal disc = BigDecimal.valueOf(cartManager.totalDiscountProperty().get());
-        return total.subtract(disc);
+        return BigDecimal.valueOf(cartManager.totalAmountProperty().get());
     }
 
     // ========== Private Validation Methods ==========

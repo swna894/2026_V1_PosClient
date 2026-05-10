@@ -2,13 +2,16 @@ package com.swna.javafx.pos.print;
 
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.dto.request.DiscountRequest;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
 import com.swna.javafx.pos.dto.request.SaleRequest;
+import com.swna.javafx.pos.dto.response.SaleResponse;
 import com.swna.javafx.pos.service.PaymentResult;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,35 +25,128 @@ public class ReceiptFormatter {
     private static final DecimalFormat CURRENCY_DF = new DecimalFormat("#,##0.00");
     private static final DateTimeFormatter SRC_DTF = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private static final DateTimeFormatter DST_DTF = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-    
-    // 상품명 최대 길이 (영수증 너비에 맞게 조정)
-    private static final int MAX_DESCRIPTION_LENGTH = 30;
 
-    /**
-     * 금액을 $ 표시와 함께 포맷팅
-     */
+
+    // ========== Utility Methods ==========
+    
     private String formatCurrency(double amount) {
         return "$" + CURRENCY_DF.format(amount);
     }
     
-    /**
-     * description을 지정된 길이로 자르고 ... 추가
-     */
-    private String truncateDescription(String description, int maxLength) {
-        if (description == null) return "";
-        if (description.length() <= maxLength) return description;
-        return description.substring(0, maxLength - 3) + "...";
+    private String formatCurrency(BigDecimal amount) {
+        return amount != null ? "$" + CURRENCY_DF.format(amount.doubleValue()) : "$0.00";
     }
     
-    /**
-     * description을 영수증 너비에 맞게 자르기 (style 기반)
-     */
-    private String truncateDescriptionForStyle(String description, ReceiptStyle style) {
-        // 번호(4자: "1. ") + 공백(1자) + 상품명
-        int maxLength = style.getWidth() - 6;  // 6 = 번호(4) + 여백(2)
-        return truncateDescription(description, maxLength);
+    private String truncate(String text, int maxLength) {
+        if (text == null) return "";
+        if (text.length() <= maxLength) return text;
+        return text.substring(0, maxLength - 3) + "...";
+    }
+    
+    private String truncateForStyle(String text, ReceiptStyle style) {
+        int maxLength = style.getWidth() - 6;
+        return truncate(text, maxLength);
     }
 
+    // ========== Header Builder ==========
+    
+    private void buildHeader(StringBuilder sb, ReceiptStyle style, 
+                             String receiptNo, String date, Shop shop) {
+        String shopName = (shop != null && shop.getName() != null) ? shop.getName() : "My Store";
+        String shopAddress = (shop != null && shop.getAddress() != null) ? shop.getAddress() : "";
+        
+        if (shopName.length() > style.getWidth()) {
+            shopName = truncate(shopName, style.getWidth());
+        }
+        
+        sb.append(style.center(shopName)).append(NL);
+        if (!shopAddress.isEmpty()) {
+            if (shopAddress.length() > style.getWidth()) {
+                shopAddress = truncate(shopAddress, style.getWidth());
+            }
+            sb.append(style.center(shopAddress)).append(NL);
+        }
+        sb.append(style.getLine(false)).append(NL);
+        sb.append(style.justify("Date:", date)).append(NL);
+        sb.append(style.justify("Receipt No:", receiptNo)).append(NL);
+        sb.append(style.getLine(false)).append(NL);
+    }
+
+    // ========== Body Builder ==========
+    
+    private void buildBody(StringBuilder sb, List<PosItem> posItems, ReceiptStyle style) {
+        if (posItems == null || posItems.isEmpty()) {
+            sb.append(style.center("No Items")).append(NL);
+            return;
+        }
+        
+        AtomicInteger counter = new AtomicInteger(1);
+        for (PosItem item : posItems) {
+            int number = counter.getAndIncrement();
+            String description = (item.getDescription() != null) ? item.getDescription() : item.getCode();
+            String truncatedDesc = truncateForStyle(description, style);
+            sb.append(String.format("%d. %s", number, truncatedDesc)).append(NL);
+            
+            String qtyPrice = String.format("    %d x %s", item.getQty(), formatCurrency(item.getSellingPrice()));
+            sb.append(style.justify(qtyPrice, formatCurrency(item.getFinalAmount()))).append(NL);
+        }
+        sb.append(style.getLine(false)).append(NL);
+    }
+
+    // ========== Footer Builder ==========
+    
+    private void buildFooter(StringBuilder sb, ReceiptStyle style, 
+                             double subtotal, double discountAmount, double finalAmount) {
+        
+        if (discountAmount > 0) {
+            // 할인이 있는 경우: ORIGINAL AMOUNT 표시
+            sb.append(style.justify("ORIGINAL AMOUNT", formatCurrency(subtotal))).append(NL);
+            sb.append(style.justify("DISCOUNT", "-" + formatCurrency(discountAmount))).append(NL);
+            sb.append(style.getLine(false)).append(NL);
+            // TOTAL AMOUNT = 최종 결제 금액 (subtotal - discount)
+            sb.append(style.justify("TOTAL AMOUNT", formatCurrency(finalAmount))).append(NL);
+        } else {
+            // 할인이 없는 경우: SUBTOTAL 없이 TOTAL AMOUNT만 표시
+            sb.append(style.justify("TOTAL AMOUNT", formatCurrency(finalAmount))).append(NL);
+        }
+    }
+
+    // ========== Payment Builder ==========
+    
+    private void buildPaymentInfo(StringBuilder sb, SaleRequest saleRequest, ReceiptStyle style) {
+        if (saleRequest == null || saleRequest.payments() == null || saleRequest.payments().isEmpty()) {
+            return;
+        }
+        
+        for (PaymentRequest p : saleRequest.payments()) {
+            double amount = p.amount().doubleValue();
+            double cashout = p.cashoutAmount() != null ? p.cashoutAmount().doubleValue() : 0.0;
+            
+            if ("CASH".equals(p.type())) {
+                sb.append(style.justify("CASH PAID", formatCurrency(amount))).append(NL);
+            } else if ("CARD".equals(p.type())) {
+                if (cashout > 0) {
+                    sb.append(style.justify("CARD PAID", formatCurrency(amount))).append(NL);
+                    sb.append(style.justify("CASHOUT", formatCurrency(cashout))).append(NL);
+                } else {
+                    sb.append(style.justify("CARD PAID", formatCurrency(amount))).append(NL);
+                }
+            }
+        }
+    }
+
+    // ========== Notice Builder ==========
+    
+    private void buildNotice(StringBuilder sb, ReceiptStyle style, String inform) {
+        if (inform == null || inform.isBlank()) return;
+        
+        String truncatedInform = truncate(inform, style.getWidth() * 2);
+        sb.append(style.getNoticeLine("Notice")).append(NL);
+        sb.append(wrapText(truncatedInform, style.getWidth())).append(NL);
+    }
+
+    // ========== Main Build Method ==========
+    
     public String buildContent(SaleRequest saleRequest, PaymentResult paymentResult, 
                                List<PosItem> posItems, Shop shop, 
                                ReceiptStyle style, String inform) {
@@ -59,101 +155,90 @@ public class ReceiptFormatter {
             posItems != null ? posItems.size() : 0);
         
         StringBuilder sb = new StringBuilder();
-
-        // null 안전 처리
-        String receiptNo = (paymentResult != null && paymentResult.getSaleResponse() != null) 
-            ? paymentResult.getSaleResponse().receiptNo() : "N/A";
+        
+        // 데이터 추출
+        String receiptNo = extractReceiptNo(paymentResult);
         String date = formatReceiptDate(receiptNo);
+        double subtotal = extractSubtotal(paymentResult, posItems);
+        double discountAmount = extractDiscountAmount(paymentResult, saleRequest);
+        double finalAmount = extractFinalAmount(paymentResult, subtotal, discountAmount);
         
-        String shopName = (shop != null && shop.getName() != null) ? shop.getName() : "My Store";
-        String shopAddress = (shop != null && shop.getAddress() != null) ? shop.getAddress() : "";
+        // 섹션별 빌드
+        buildHeader(sb, style, receiptNo, date, shop);
+        buildBody(sb, posItems, style);
+        buildFooter(sb, style, subtotal, discountAmount, finalAmount);
+        buildPaymentInfo(sb, saleRequest, style);
+        buildNotice(sb, style, inform);
         
-        // Shop 이름도 너무 길면 자르기
-        if (shopName.length() > style.getWidth()) {
-            shopName = truncateDescription(shopName, style.getWidth());
-        }
-
-        // [Header]
-        sb.append(style.center(shopName)).append(NL);
-        if (!shopAddress.isEmpty()) {
-            if (shopAddress.length() > style.getWidth()) {
-                shopAddress = truncateDescription(shopAddress, style.getWidth());
-            }
-            sb.append(style.center(shopAddress)).append(NL);
-        }
-        sb.append(style.getLine(false)).append(NL);
-        sb.append(style.justify("Date:", date)).append(NL);
-        sb.append(style.justify("Receipt No:", receiptNo)).append(NL);
-        sb.append(style.getLine(false)).append(NL);
+        // 감사 메시지
+        //sb.append(style.getLine(false)).append(NL);
+        //sb.append(style.center("Thank you!")).append(NL);
         
-        // [Body] - 상품 목록 (번호 추가)
-        if (posItems != null && !posItems.isEmpty()) {
-            AtomicInteger counter = new AtomicInteger(1);
-            
-            for (PosItem item : posItems) {
-                int number = counter.getAndIncrement();
-                String description = (item.getDescription() != null) ? item.getDescription() : item.getCode();
-                
-                // ✅ description을 영수증 너비에 맞게 자르기
-                String truncatedDesc = truncateDescriptionForStyle(description, style);
-                
-                // 번호를 포함한 상품명
-                sb.append(String.format("%d. %s", number, truncatedDesc)).append(NL);
-                
-                // ✅ 금액에 $ 추가
-                String qtyPrice = String.format("    %d x %s", item.getQty(), formatCurrency(item.getSellingPrice()));
-                sb.append(style.justify(qtyPrice, formatCurrency(item.getFinalAmount()))).append(NL);
-            }
-        } else {
-            sb.append(style.center("No Items")).append(NL);
-        }
-        sb.append(style.getLine(false)).append(NL);
-
-        // [Footer] - 합계 및 결제 정보
-        double totalAmount = (paymentResult != null && paymentResult.getSaleResponse() != null)
-            ? paymentResult.getSaleResponse().totalAmount().doubleValue() : 0.0;
-        
-        sb.append(style.justify("TOTAL AMOUNT", formatCurrency(totalAmount))).append(NL);
-        
-        // 결제 정보
-        if (saleRequest != null && saleRequest.payments() != null) {
-            for (PaymentRequest p : saleRequest.payments()) {
-                double amount = p.amount().doubleValue();
-                double cashout = p.cashoutAmount() != null ? p.cashoutAmount().doubleValue() : 0.0;
-                
-                if ("CASH".equals(p.type())) {
-                    sb.append(style.justify("CASH PAID", formatCurrency(amount))).append(NL);
-                    
-                } else if ("CARD".equals(p.type())) {
-                    if (cashout > 0) {
-                        double totalCharged = amount + cashout;
-                        sb.append(style.justify("CARD PAID", formatCurrency(amount))).append(NL);
-                        sb.append(style.justify("  + CASHOUT", formatCurrency(cashout))).append(NL);
-                        sb.append(style.getLine(false)).append(NL);
-                        sb.append(style.justify("TOTAL CHARGED", formatCurrency(totalCharged))).append(NL);
-                    } else {
-                        sb.append(style.justify("CARD PAID", formatCurrency(amount))).append(NL);
-                    }
-                }
-            }
-        }
-
-        // [Notice]
-        if (inform != null && !inform.isBlank()) {
-            String truncatedInform = truncateDescription(inform, style.getWidth() * 2);
-            sb.append(style.getNoticeLine("Notice")).append(NL);
-            sb.append(wrapText(truncatedInform, style.getWidth())).append(NL);
-        }
-
         String result = sb.toString();
         log.info("Content built, length: {} chars", result.length());
         
         return result;
     }
+    
+    // ========== Helper Extraction Methods ==========
+    
+    private String extractReceiptNo(PaymentResult paymentResult) {
+        if (paymentResult == null || paymentResult.getSaleResponse() == null) {
+            return "N/A";
+        }
+        return paymentResult.getSaleResponse().receiptNo();
+    }
+    
+    private double extractSubtotal(PaymentResult paymentResult, List<PosItem> posItems) {
+        if (paymentResult != null && paymentResult.getSaleResponse() != null) {
+            SaleResponse response = paymentResult.getSaleResponse();
+            if (response.totalAmount() != null) {
+                return response.totalAmount().doubleValue();
+            }
+        }
+        
+        if (posItems != null) {
+            return posItems.stream()
+                .mapToDouble(item -> item.getOriginalPrice() * item.getQty())
+                .sum();
+        }
+        return 0.0;
+    }
+    
+    private double extractDiscountAmount(PaymentResult paymentResult, SaleRequest saleRequest) {
+        // SaleResponse에서 discountAmount 가져오기
+        if (paymentResult != null && paymentResult.getSaleResponse() != null) {
+            SaleResponse response = paymentResult.getSaleResponse();
+            if (response.discountAmount() != null) {
+                return response.discountAmount().doubleValue();
+            }
+        }
+        
+        // SaleRequest의 discounts에서 계산 - DiscountRequest는 value() 필드 사용
+        if (saleRequest != null && saleRequest.discounts() != null) {
+            return saleRequest.discounts().stream()
+                .mapToDouble(d -> d.value() != null ? d.value().doubleValue() : 0.0)
+                .sum();
+        }
+        return 0.0;
+    }
+    
+    private double extractFinalAmount(PaymentResult paymentResult, double subtotal, double discountAmount) {
+        if (paymentResult != null && paymentResult.getSaleResponse() != null) {
+            SaleResponse response = paymentResult.getSaleResponse();
+            if (response.finalAmount() != null) {
+                return response.finalAmount().doubleValue();
+            }
+        }
+        
+        return subtotal - discountAmount;
+    }
 
     private String formatReceiptDate(String receiptNo) {
         try {
-            if (receiptNo == null || !receiptNo.contains("_")) return LocalDateTime.now().format(DST_DTF);
+            if (receiptNo == null || !receiptNo.contains("_")) {
+                return LocalDateTime.now().format(DST_DTF);
+            }
             return LocalDateTime.parse(receiptNo.split("_")[0], SRC_DTF).format(DST_DTF);
         } catch (Exception e) {
             log.warn("Date parsing failed for receiptNo: {}", receiptNo);

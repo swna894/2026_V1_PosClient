@@ -31,7 +31,6 @@ public class SafeBarcodeScanner {
     // =========================
     private static final int DEFAULT_QUEUE_CAPACITY = 1000;
     private static final int MAX_BARCODE_LENGTH = 128;
-    private static final long THREAD_SLEEP_MILLIS = 10;
 
     // =========================
     // Fields
