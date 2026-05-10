@@ -28,7 +28,6 @@ public class PrintToggleService {
      */
     public void setPrintEnabled(boolean enabled) {
         printEnabled.set(enabled);
-        log.info("Print toggled: {}", enabled ? "ON" : "OFF");
     }
     
     /**

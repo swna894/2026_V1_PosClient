@@ -24,7 +24,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
@@ -68,6 +71,7 @@ public class PosViewController {
     @FXML private TableColumn<PosItem, Void> colDiscountPrice;
     @FXML private TableColumn<PosItem, Void> colChangePrice;
 
+    @FXML private BorderPane rootPane;
     // Info Labels
     @FXML private Label labelDiscount;
     @FXML private Label labelClockTime;
@@ -98,6 +102,9 @@ public class PosViewController {
 
     @FXML
     public void initialize() {
+        // 0. Hotkeys 설정
+        setupHotkeys();
+
         // 1. 테이블 설정
         setupTable();
         
@@ -247,13 +254,13 @@ public class PosViewController {
     }
 
     @FXML private void onClose(MouseEvent event) { viewModel.clear(); System.exit(0); }
-    @FXML private void onActionDiscountVolumn(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
-    @FXML private void onActionScanner(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
-    @FXML private void onActionCancel(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
-    @FXML private void onActionQty(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
-    @FXML private void onActionPrint(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
-    @FXML private void onActionDrawer(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
-    @FXML private void onPos(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
+    @FXML private void onActionDiscountVolumn(ActionEvent e) { log.info("onActionDiscountVolumn"); }
+    @FXML private void onActionScanner(ActionEvent e) { log.info("onActionScanner"); }
+    @FXML private void onActionCancel(ActionEvent e) { log.info("onActionCancel"); }
+    @FXML private void onActionQty(ActionEvent e) { log.info("onActionQty"); }
+    @FXML private void onActionPrint(ActionEvent e) { log.info("onActionPrint"); }
+    @FXML private void onActionDrawer(ActionEvent e) { log.info("onActionDrawer"); }
+    @FXML private void onPos(ActionEvent e) { log.info("onPos"); }
     
     /**
      * Print 버튼 클릭 시 토글 (ON/OFF)
@@ -291,5 +298,77 @@ public class PosViewController {
             buttonOnPrint.setText("OFF");
             buttonOnPrint.getStyleClass().add("print-off");
         }
+    }
+
+    /**
+     * POS 시스템에서 사용하는 키보드 단축키(Hotkeys)를 등록합니다.
+     * 루트 컨테이너(rootPane)에 EventFilter를 추가하여 포커스 위치에 상관없이 작동합니다.
+     */
+    private void setupHotkeys() {
+        // 1. rootPane에 키 이벤트 필터 등록
+        rootPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            
+            // 화살표 키(UP, DOWN)는 TableView의 기본 행 이동 기능을 사용해야 하므로
+            // 별도의 처리를 하지 않고 이벤트를 통과시킵니다.
+            if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.DOWN) {
+                return; 
+            }
+
+            switch (event.getCode()) {
+                case F1 -> {
+                    // 현금함 열기 [cite: 46, 48]
+                    buttonDrawer.fire(); 
+                    event.consume(); // 이벤트가 다른 컨트롤로 전파되는 것을 방지
+                }
+                case F2 -> {
+                    // 장바구니 1번 액션 [cite: 22, 23]
+                    buttonCart1.fire();
+                    event.consume();
+                }
+                case F5 -> {
+                    // 장바구니 3번 액션 [cite: 26, 27]
+                    buttonDiscountVolumn.fire();
+                    event.consume();
+                }
+                case F6 -> {
+                    // 장바구니 3번 액션 [cite: 26, 27]
+                    buttonScanner.fire();
+                    event.consume();
+                }
+                case F7 -> {
+                    // 장바구니 3번 액션 [cite: 26, 27]
+                    buttonCancel.fire();
+                    event.consume();
+                }
+                case F8 -> {
+                    // 프린트 설정 토글 [cite: 35, 51]
+                    buttonOnPrint.fire();
+                    event.consume();
+                }
+                case F9 -> {
+                    // 프린트 설정 토글 [cite: 35, 51]
+                    buttonQty.fire();
+                    event.consume();
+                }
+                case F10 -> {
+                    // 현금 결제 실행 [cite: 39, 41]
+                    buttonCash.fire();
+                    event.consume();
+                }
+                case F11 -> {
+                    // 신용카드/혼합 결제 실행 [cite: 42, 43]
+                    buttonCredit.fire();
+                    event.consume();
+                }
+                case F12 -> {
+                    // 캐시아웃 결제 실행 [cite: 44, 45]
+                    buttonCashout.fire();
+                    event.consume();
+                }
+                default -> {
+                    // 지정되지 않은 키는 무시
+                }
+            }
+        });
     }
 }
