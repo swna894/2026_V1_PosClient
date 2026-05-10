@@ -24,7 +24,10 @@ public class ReceiptFormatter {
     private static final DecimalFormat CURRENCY_DF = new DecimalFormat("#,##0.00");
     private static final DateTimeFormatter SRC_DTF = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private static final DateTimeFormatter DST_DTF = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-
+    
+    // ESC/POS 바코드 제어 명령어
+    private static final char ESC = 0x1B;  // Escape character
+    private static final char GS = 0x1D;   // Group Separator
 
     // ========== Utility Methods ==========
     
@@ -67,7 +70,7 @@ public class ReceiptFormatter {
         sb.append(style.getLine(false)).append(NL);
     }
 
-    // ========== Body Builder (개선된 할인 표시) ==========
+    // ========== Body Builder ==========
     
     private void buildBody(StringBuilder sb, List<PosItem> posItems, ReceiptStyle style) {
         if (posItems == null || posItems.isEmpty()) {
@@ -146,6 +149,47 @@ public class ReceiptFormatter {
         }
     }
 
+    // ========== Barcode Builder (추가됨) ==========
+    
+    /**
+     * ESC/POS 명령어로 Code128 바코드 생성
+     * @param sb StringBuilder
+     * @param receiptNo 영수증 번호 (바코드 데이터)
+     * @param style 스타일
+     */
+    private void buildBarcode(StringBuilder sb, String receiptNo, ReceiptStyle style) {
+        if (receiptNo == null || receiptNo.isBlank()) {
+            return;
+        }
+        
+        // 바코드 아래에 표시할 여백
+        sb.append(NL);
+        
+        // ESC/POS 바코드 명령어 시퀀스
+        // GS k m n [d1...dk] NUL
+        // m=73 : CODE128
+        
+        // 1. 바코드 높이 설정 (기본값 162, 선택사항)
+        sb.append(GS).append('h').append((char)162);
+        
+        // 2. 바코드 너비 설정 (2 ~ 6, 기본값 3)
+        sb.append(GS).append('w').append((char)3);
+        
+        // 3. 바코드 인쇄 위치 아래에 텍스트 표시 (HRI)
+        sb.append(GS).append('H').append((char)2);  // 2 = 아래에 표시
+        
+        // 4. Code128 바코드 인쇄 명령
+        sb.append(GS).append('k').append((char)73);  // GS k 73 = Code128
+        sb.append((char)receiptNo.length());          // 데이터 길이
+        sb.append(receiptNo);                         // 바코드 데이터
+        sb.append((char)0);                           // NUL 종료
+        
+        sb.append(NL);
+        
+        // 바코드 아래에 텍스트로도 receiptNo 표시 (선택사항, 인식 실패 시 대비)
+        sb.append(style.center(receiptNo)).append(NL);
+    }
+
     // ========== Notice Builder ==========
     
     private void buildNotice(StringBuilder sb, ReceiptStyle style, String inform) {
@@ -186,6 +230,10 @@ public class ReceiptFormatter {
         buildFooter(sb, style, subtotal, discountAmount, finalAmount);
         buildPaymentInfo(sb, saleRequest, style);
         buildNotice(sb, style, inform);
+        
+        // 바코드 추가 (영수증 하단)
+        sb.append(style.getLine(false)).append(NL);
+        buildBarcode(sb, receiptNo, style);
         
         String result = sb.toString();
         log.info("Content built, length: {} chars", result.length());
