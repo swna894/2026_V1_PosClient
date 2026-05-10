@@ -1,7 +1,6 @@
 package com.swna.javafx.pos.service;
 
 import java.io.FileNotFoundException;
-import java.math.BigDecimal;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -19,6 +18,7 @@ import DotNetInterop.ArgumentException;
 import DotNetInterop.ArgumentNullException;
 import DotNetInterop.InvalidOperationException;
 import Verifone.Vault.Common.TransactionResult;
+import Verifone.Vault.POSInterface.CardInfo;
 import Verifone.Vault.POSInterface.PurchaseTransaction;
 import Verifone.Vault.POSInterface.RefundTransaction;
 import Verifone.Vault.POSInterface.TransactionInfo;
@@ -76,7 +76,7 @@ public class VaultService {
 
             String receiptNo = request.transactionId() != null ? 
                 request.transactionId() : UUID.randomUUID().toString();
-
+            //TODO 카드번호 및 종류 기록 정리 필요 -> handleSuccess
             PurchaseTransaction purchaseTx = new PurchaseTransaction(receiptNo, request.amount());
             purchaseTx.setTransactionCurrency(request.currency());
 
@@ -116,6 +116,22 @@ public class VaultService {
             return CardAuthResult.failure("Purchase failed: " + e.getMessage());
         }
     }
+
+
+    private String handleSuccess(PurchaseTransaction purchaseTx) {
+		String cardNumber = null;
+		CardInfo cardInfo = purchaseTx.getCardInfo();
+		if (cardInfo != null) {
+			cardNumber = cardInfo.getPAN();
+			if (cardNumber == null) {
+				cardNumber = purchaseTx.getCardInfo().getPAN() + " " + purchaseTx.getCardInfo().getExpiryDate();
+			}
+		}
+		logger.info("Transaction succeeded");
+		logger.info("Truncated PAN = {}", purchaseTx.getCardInfo().getPAN());
+		logger.info("Duplicate Receipt = \n{}", purchaseTx.getTxInfo().getDuplicateReceiptImage());
+		return cardNumber;
+	}
 
     /**
      * 환불 거래

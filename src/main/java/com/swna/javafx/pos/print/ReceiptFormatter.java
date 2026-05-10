@@ -1,21 +1,21 @@
 package com.swna.javafx.pos.print;
 
+import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.stereotype.Component;
+
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.pos.domain.PosItem;
-import com.swna.javafx.pos.dto.request.DiscountRequest;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.SaleResponse;
 import com.swna.javafx.pos.service.PaymentResult;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-import java.text.DecimalFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component
@@ -26,7 +26,6 @@ public class ReceiptFormatter {
     private static final DateTimeFormatter DST_DTF = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     
     // ESC/POS 바코드 제어 명령어
-    private static final char ESC = 0x1B;  // Escape character
     private static final char GS = 0x1D;   // Group Separator
 
     // ========== Utility Methods ==========
