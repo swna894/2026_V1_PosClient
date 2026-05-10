@@ -1,18 +1,6 @@
-// PosViewModel.java
 package com.swna.javafx.pos.viewmodel;
 
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_HOLD_NO_CART;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_HOLD_NO_ITEMS;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_HOLD_RESUMED;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_HOLD_SAVED;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_ITEM_NOT_FOUND;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_PAYMENT_FAIL;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_PAYMENT_SUCCESS;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_QUICK_ADD;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_READY;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_SCANNING;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_SCAN_SUCCESS;
-import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.STATUS_SEARCH_FAILED;
+import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -83,27 +71,67 @@ public class PosViewModel {
     }
     
     // ========== CartManager Delegate ==========
-    public ObservableList<PosItem> getPosItems() { return cartManager.getItems(); }
-    public DoubleProperty totalAmountProperty() { return cartManager.totalAmountProperty(); }
-    public DoubleProperty discountProperty() { return cartManager.totalDiscountProperty(); }
-    public IntegerProperty totalQtyProperty() { return cartManager.totalQtyProperty(); }
-    public ObjectProperty<PosItem> selectedItemProperty() { return cartManager.selectedItemProperty(); }
+    public ObservableList<PosItem> getPosItems() { 
+        return cartManager.getItems(); 
+    }
     
-    public void increaseQty(PosItem item) { cartManager.increaseQty(item); }
-    public void decreaseQty(PosItem item) { cartManager.decreaseQty(item); }
-    public void removeItem(PosItem item) { cartManager.removeItem(item); }
+    public DoubleProperty totalAmountProperty() { 
+        return cartManager.totalAmountProperty(); 
+    }
+    
+    public DoubleProperty discountProperty() { 
+        return cartManager.totalDiscountProperty(); 
+    }
+    
+    public IntegerProperty totalQtyProperty() { 
+        return cartManager.totalQtyProperty(); 
+    }
+    
+    public ObjectProperty<PosItem> selectedItemProperty() { 
+        return cartManager.selectedItemProperty(); 
+    }
+    
+    public void increaseQty(PosItem item) { 
+        cartManager.increaseQty(item); 
+    }
+    
+    public void decreaseQty(PosItem item) { 
+        cartManager.decreaseQty(item); 
+    }
+    
+    public void removeItem(PosItem item) { 
+        cartManager.removeItem(item); 
+    }
+    
     public void clear() { 
         cartManager.clear();
         scannedCode.set("");
     }
-    public boolean hasItems() { return !cartManager.isEmpty(); }
+    
+    public boolean hasItems() { 
+        return !cartManager.isEmpty(); 
+    }
     
     // ========== DiscountManager Delegate ==========
-    public void discountItemPrice(PosItem item, double newPrice) { discountManager.discountItemPrice(item, newPrice); }
-    public void changeItemPrice(PosItem item, double newPrice) { discountManager.changeItemPrice(item, newPrice); }
-    public void applyDiscountPercent(double percent) { discountManager.applyPercentToSelected(percent); }
-    public void applyDiscountAmount(double amount) { discountManager.applyAmountToSelected(amount); }
-    public void applyUnitDiscount(double unitDiscountAmount) { discountManager.applyUnitDiscountToSelected(unitDiscountAmount); }
+    public void discountItemPrice(PosItem item, double newPrice) { 
+        discountManager.discountItemPrice(item, newPrice); 
+    }
+    
+    public void changeItemPrice(PosItem item, double newPrice) { 
+        discountManager.changeItemPrice(item, newPrice); 
+    }
+    
+    public void applyDiscountPercent(double percent) { 
+        discountManager.applyPercentToSelected(percent); 
+    }
+    
+    public void applyDiscountAmount(double amount) { 
+        discountManager.applyAmountToSelected(amount); 
+    }
+    
+    public void applyUnitDiscount(double unitDiscountAmount) { 
+        discountManager.applyUnitDiscountToSelected(unitDiscountAmount); 
+    }
     
     // ========== HoldManager Delegate ==========
     public void holdCart() {
@@ -122,34 +150,43 @@ public class PosViewModel {
         }
     }
     
-    public boolean hasHoldItems() { return holdManager.hasHoldItems(); }
+    public boolean hasHoldItems() { 
+        return holdManager.hasHoldItems(); 
+    }
     
     // ========== ScanHandler Delegate ==========
-    public void scan(String barcode) { scanHandler.scan(barcode); }
+    public void scan(String barcode) { 
+        scanHandler.scan(barcode); 
+    }
+    
     public void addQuickAmountItem(double amount) { 
         scanHandler.addQuickAmountItem(amount);
         scanStatus.set(String.format(STATUS_QUICK_ADD, amount));
     }
     
     // ========== UI Properties ==========
-    public StringProperty scannedCodeProperty() { return scannedCode; }
-    public StringProperty scanStatusProperty() { return scanStatus; }
+    public StringProperty scannedCodeProperty() { 
+        return scannedCode; 
+    }
     
-    // ========== 결제 메서드 (위임) - 콜백 없음 버전 ==========
+    public StringProperty scanStatusProperty() { 
+        return scanStatus; 
+    }
+    
+    // ========== 결제 관련 Public API ==========
+    
+    /**
+     * 할인 적용된 최종 결제 금액
+     */
+    public BigDecimal getTotalAfterDiscount() {
+        return paymentProcessor.getTotalAfterDiscount();
+    }
+    
+    // ========== 현금 결제 ==========
     
     public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash) {
-        processCashPayment(totalAmount, receivedCash, null);
+        processCashPayment(totalAmount, receivedCash, (Consumer<Boolean>) null);
     }
-    
-    public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount) {
-        processCashoutPayment(cashoutAmount, totalCardAmount, null);
-    }
-    
-    public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart) {
-        processMixedPayment(cashPart, creditPart, null);
-    }
-    
-    // ========== 결제 메서드 (위임) - 콜백 있음 버전 ==========
     
     public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash, 
                                    Consumer<Boolean> onComplete) {
@@ -159,17 +196,70 @@ public class PosViewModel {
         );
     }
     
+    // ========== 현금인출 결제 (카드번호 포함) ==========
+    
+    public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount) {
+        processCashoutPayment(cashoutAmount, totalCardAmount, null, null);
+    }
+    
+    public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount,
+                                      String cardNumber) {
+        processCashoutPayment(cashoutAmount, totalCardAmount, cardNumber, null);
+    }
+    
     public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount,
                                       Consumer<Boolean> onComplete) {
-        paymentProcessor.processCashoutPayment(cashoutAmount, totalCardAmount,
+        processCashoutPayment(cashoutAmount, totalCardAmount, null, onComplete);
+    }
+    
+    public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount,
+                                      String cardNumber, Consumer<Boolean> onComplete) {
+        paymentProcessor.processCashoutPayment(cashoutAmount, totalCardAmount, cardNumber,
             processed -> handleProcessedPayment(processed, onComplete),
             createResultHandler()
         );
     }
     
+    // ========== 순수 카드 결제 ==========
+    
+    public void processCreditPayment(BigDecimal cardAmount) {
+        processCreditPayment(cardAmount, null, null);
+    }
+    
+    public void processCreditPayment(BigDecimal cardAmount, String cardNumber) {
+        processCreditPayment(cardAmount, cardNumber, null);
+    }
+    
+    public void processCreditPayment(BigDecimal cardAmount, Consumer<Boolean> onComplete) {
+        processCreditPayment(cardAmount, null, onComplete);
+    }
+    
+    public void processCreditPayment(BigDecimal cardAmount, String cardNumber, 
+                                     Consumer<Boolean> onComplete) {
+        paymentProcessor.processCreditPayment(cardAmount, cardNumber,
+            processed -> handleProcessedPayment(processed, onComplete),
+            createResultHandler()
+        );
+    }
+    
+    // ========== 혼합 결제 (현금 + 카드) ==========
+    
+    public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart) {
+        processMixedPayment(cashPart, creditPart, null, null);
+    }
+    
+    public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart, String cardNumber) {
+        processMixedPayment(cashPart, creditPart, cardNumber, null);
+    }
+    
     public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart,
                                     Consumer<Boolean> onComplete) {
-        paymentProcessor.processMixedPayment(cashPart, creditPart,
+        processMixedPayment(cashPart, creditPart, null, onComplete);
+    }
+    
+    public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart,
+                                    String cardNumber, Consumer<Boolean> onComplete) {
+        paymentProcessor.processMixedPayment(cashPart, creditPart, cardNumber,
             processed -> handleProcessedPayment(processed, onComplete),
             createResultHandler()
         );
@@ -182,10 +272,9 @@ public class PosViewModel {
      */
     private void handleProcessedPayment(PaymentProcessor.ProcessedPayment processed, 
                                         Consumer<Boolean> onComplete) {
-
         List<PosItem> itemsSnapshot = List.copyOf(getPosItems());
 
-        if (processed.isSuccess()) {
+        if (processed.success()) {
             // SaleRequest를 이벤트로 발행
             eventPublisher.publishEvent(new PaymentSuccessEvent(
                 this, 
@@ -221,7 +310,6 @@ public class PosViewModel {
         return new PaymentProcessor.PaymentResultHandler() {
             @Override
             public void onFailure(String message) {
-                // 유효성 검증 실패 시 UI 업데이트
                 Platform.runLater(() -> {
                     scanStatus.set(STATUS_PAYMENT_FAIL + ": " + message);
                 });
@@ -229,19 +317,19 @@ public class PosViewModel {
             
             @Override
             public void handleSuccess(String successMessage) {
-                // 성공 메시지 로깅 (UI 업데이트는 handleProcessedPayment에서 처리)
                 log.info("[VM] {}", successMessage);
             }
             
             @Override
             public void handleFailure(String errorMessage) {
-                // 결제 실패 시 UI 업데이트
                 Platform.runLater(() -> {
                     scanStatus.set(STATUS_PAYMENT_FAIL + ": " + errorMessage);
                 });
             }
         };
     }
+    
+    // ========== Event Listeners ==========
     
     @EventListener
     public void handlePrintFailure(PrintFailureEvent event) {

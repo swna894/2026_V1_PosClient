@@ -24,37 +24,75 @@ import net.rgielen.fxweaver.core.FxmlView;
 @RequiredArgsConstructor
 public class CashoutDialogController extends BasePaymentDialog {
 
-    @FXML private Label lblAmount;      // Total amount
-    @FXML private Label lblDiscount;    // Discount amount
-    @FXML private Label lblCredit;      // Card payment amount
-    @FXML private TextField txtCashout; // Cash out request amount
+    @FXML private Label lblAmount;
+    @FXML private Label lblDiscount;
+    @FXML private Label lblCredit;
+    @FXML private TextField txtCashout;
 
-    private BigDecimal totalAfterDiscount;  // Final amount after discount
-    private BiConsumer<BigDecimal, BigDecimal> onProcessComplete;
+    private BigDecimal totalAfterDiscount;
+    private CashoutCallback callback;
     private final CardClient cardClient;
 
-    public void initData(BigDecimal totalAmount, BigDecimal discount, 
-                         BiConsumer<BigDecimal, BigDecimal> callback) {
-        this.totalAfterDiscount = totalAmount;
-        this.onProcessComplete = callback;
+    // ========== Callback Interfaces ==========
+    
+    @FunctionalInterface
+    public interface CashoutCallback {
+        void onPaymentComplete(BigDecimal cashoutAmount, BigDecimal totalAmount, String cardNumber);
+    }
+    
+    // ========== Initialization ==========
 
+    /**
+     * 레거시 콜백 지원 (카드번호 없음 - 호환성 유지)
+     */
+    public void initData(BigDecimal totalAmount, BigDecimal discount, 
+                         BiConsumer<BigDecimal, BigDecimal> legacyCallback) {
+        this.totalAfterDiscount = totalAmount;
+        this.callback = (cashout, total, cardNumber) -> {
+            log.debug("[CashoutDialog] Legacy callback - ignoring cardNumber: {}", cardNumber);
+            legacyCallback.accept(cashout, total);
+        };
+
+        setupUI(totalAmount, discount);
+        setupInputHandlers();
+        
+        log.debug("[CashoutDialog] Initialized with legacy callback - totalAfterDiscount: {}", totalAfterDiscount);
+    }
+    
+    /**
+     * 새로운 콜백 지원 (카드번호 포함)
+     */
+    public void initData(BigDecimal totalAmount, BigDecimal discount, 
+                         CashoutCallback callback) {
+        this.totalAfterDiscount = totalAmount;
+        this.callback = callback;
+
+        setupUI(totalAmount, discount);
+        setupInputHandlers();
+        
+        log.debug("[CashoutDialog] Initialized with callback - totalAfterDiscount: {}", totalAfterDiscount);
+    }
+    
+    private void setupUI(BigDecimal totalAmount, BigDecimal discount) {
         lblAmount.setText(CURRENCY_FORMAT.format(totalAmount));
         lblDiscount.setText(CURRENCY_FORMAT.format(discount));
         
-        applyNumericFilter(txtCashout);
-        setupKeyEvents(txtCashout);
-
         txtCashout.setText("0.00");
         txtCashout.selectAll();
-
-        txtCashout.textProperty().addListener((obs, old, val) -> updateTotalCardAmount(val));
-        updateTotalCardAmount(txtCashout.getText());
+        
+        applyNumericFilter(txtCashout);
+        setupKeyEvents(txtCashout);
         
         txtCashout.requestFocus();
-        
-        log.debug("[CashoutDialog] Initialized - totalAfterDiscount: {}", totalAfterDiscount);
+    }
+    
+    private void setupInputHandlers() {
+        txtCashout.textProperty().addListener((obs, old, val) -> updateTotalCardAmount(val));
+        updateTotalCardAmount(txtCashout.getText());
     }
 
+    // ========== UI Update Methods ==========
+    
     private void updateTotalCardAmount(String input) {
         try {
             BigDecimal cashoutAmount = parseCashoutInput(input);
@@ -66,6 +104,7 @@ public class CashoutDialogController extends BasePaymentDialog {
             log.debug("[CashoutDialog] cashout: {}, totalCard: {}", cashoutAmount, totalCardAmount);
         } catch (Exception e) {
             lblCredit.setText("Invalid");
+            lblCredit.setStyle("-fx-text-fill: red;");
             log.warn("[CashoutDialog] Parse error: {}", input, e);
         }
     }
@@ -81,6 +120,8 @@ public class CashoutDialogController extends BasePaymentDialog {
         return totalAfterDiscount.add(cashoutAmount);
     }
     
+    // ========== Validation Methods ==========
+    
     private boolean isCashoutValid() {
         try {
             BigDecimal cashoutAmount = parseCashoutInput(txtCashout.getText());
@@ -89,17 +130,27 @@ public class CashoutDialogController extends BasePaymentDialog {
             return false;
         }
     }
+    
+    private void showValidationError() {
+        txtCashout.setStyle("-fx-border-color: red;");
+        lblCredit.setText("Invalid cashout amount");
+        lblCredit.setStyle("-fx-text-fill: red; -fx-font-size: 18px;");
+        txtCashout.requestFocus();
+    }
 
+    // ========== Payment Processing ==========
+    
     @Override
     protected void handleConfirm() {
         if (!isCashoutValid()) {
-            txtCashout.setStyle("-fx-border-color: red;");
-            lblCredit.setText("Invalid cashout amount");
-            lblCredit.setStyle("-fx-text-fill: red; -fx-font-size: 18px;");
-            txtCashout.requestFocus();
+            showValidationError();
             return;
         }
         
+        processPayment();
+    }
+    
+    private void processPayment() {
         try {
             BigDecimal cashoutAmount = parseCashoutInput(txtCashout.getText());
             BigDecimal totalCardAmount = calculateTotalCardAmount(cashoutAmount);
@@ -107,32 +158,16 @@ public class CashoutDialogController extends BasePaymentDialog {
             log.info("[CashoutDialog] Payment request - cashout: ${}, totalCard: ${}", 
                 cashoutAmount, totalCardAmount);
             
-            // Process card payment with cashout
-            CardAuthResult result = cardClient.purchaseWithCashOut(totalCardAmount, cashoutAmount);
+            // 카드 결제 실행
+            CardAuthResult result = executeCardPayment(cashoutAmount, totalCardAmount);
             
             if (!result.isSuccess()) {
-                if (result.isCancelled()) {
-                    log.info("[CashoutDialog] Payment cancelled by user");
-                    showError("Payment cancelled");
-                } else if (result.isTimeout()) {
-                    log.warn("[CashoutDialog] Payment timeout");
-                    showError("Payment timeout - please try again");
-                } else {
-                    log.error("[CashoutDialog] Payment failed: {}", result.getMessage());
-                    showError("Payment failed: " + result.getMessage());
-                }
+                handlePaymentFailure(result);
                 return;
             }
             
-            log.info("[CashoutDialog] Card payment successful - authCode: {}, txId: {}, cashout: {}", 
-                result.getAuthCode(), result.getTransactionId(), result.getCashOutAmount());
-            
-            // Execute callback (receipt printing handled by caller)
-            if (onProcessComplete != null) {
-                onProcessComplete.accept(cashoutAmount, totalAfterDiscount);
-            }
-            
-            closeDialog();
+            // 결제 성공 처리
+            handlePaymentSuccess(cashoutAmount, totalAfterDiscount, result);
             
         } catch (Exception e) {
             log.error("[CashoutDialog] Payment error", e);
@@ -141,16 +176,54 @@ public class CashoutDialogController extends BasePaymentDialog {
         }
     }
     
+    private CardAuthResult executeCardPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount) {
+        if (cashoutAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            log.info("[CashoutDialog] No cashout - processing normal purchase");
+            return cardClient.purchase(totalCardAmount);
+        } else {
+            log.info("[CashoutDialog] Processing cashout purchase");
+            return cardClient.purchaseWithCashOut(totalCardAmount, cashoutAmount);
+        }
+    }
+    
+    private void handlePaymentSuccess(BigDecimal cashoutAmount, BigDecimal totalAmount, CardAuthResult result) {
+        String cardNumber = result.getCardNumber();
+        
+        log.info("[CashoutDialog] Card payment successful - authCode: {}, txId: {}, cardNumber: {}, cashout: {}", 
+            result.getAuthCode(), result.getTransactionId(), cardNumber, result.getCashOutAmount());
+        
+        // ✅ 카드번호를 포함한 콜백 실행
+        if (callback != null) {
+            callback.onPaymentComplete(cashoutAmount, totalAmount, cardNumber);
+        }
+        
+        closeDialog();
+    }
+    
+    private void handlePaymentFailure(CardAuthResult result) {
+        if (result.isCancelled()) {
+            log.info("[CashoutDialog] Payment cancelled by user");
+            showError("Payment cancelled");
+        } else if (result.isTimeout()) {
+            log.warn("[CashoutDialog] Payment timeout");
+            showError("Payment timeout - please try again");
+        } else {
+            log.error("[CashoutDialog] Payment failed: {}", result.getMessage());
+            showError("Payment failed: " + result.getMessage());
+        }
+    }
+
     private void showError(String message) {
         lblCredit.setText(message);
         lblCredit.setStyle("-fx-text-fill: red; -fx-font-size: 14px;");
         
-        // Restore after 3 seconds
+        // 3초 후 복원
         new Thread(() -> {
             try {
                 Thread.sleep(3000);
                 Platform.runLater(() -> {
                     updateTotalCardAmount(txtCashout.getText());
+                    txtCashout.setStyle("");
                 });
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

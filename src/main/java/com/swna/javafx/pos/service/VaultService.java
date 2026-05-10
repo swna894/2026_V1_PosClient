@@ -76,8 +76,10 @@ public class VaultService {
 
             String receiptNo = request.transactionId() != null ? 
                 request.transactionId() : UUID.randomUUID().toString();
-            //TODO 카드번호 및 종류 기록 정리 필요 -> handleSuccess
+
+            //TODO 카드번호 및 종류 기록  -> handleSuccess
             PurchaseTransaction purchaseTx = new PurchaseTransaction(receiptNo, request.amount());
+            String cardNumber = handleSuccess(purchaseTx);
             purchaseTx.setTransactionCurrency(request.currency());
 
             if (request.hasCashOut()) {
@@ -96,13 +98,15 @@ public class VaultService {
                             info.getAuthCode(),
                             info.getAcquirerReference(),
                             request.amount(),
-                            request.cashOutAmount()
+                            request.cashOutAmount(),
+                            cardNumber
                         );
                     } else {
                         yield CardAuthResult.success(
                             info.getAuthCode(),
                             info.getAcquirerReference(),
-                            request.amount()
+                            request.amount(),
+                            cardNumber
                         );
                     }
                 }
@@ -119,19 +123,33 @@ public class VaultService {
 
 
     private String handleSuccess(PurchaseTransaction purchaseTx) {
-		String cardNumber = null;
-		CardInfo cardInfo = purchaseTx.getCardInfo();
-		if (cardInfo != null) {
-			cardNumber = cardInfo.getPAN();
-			if (cardNumber == null) {
-				cardNumber = purchaseTx.getCardInfo().getPAN() + " " + purchaseTx.getCardInfo().getExpiryDate();
-			}
-		}
-		logger.info("Transaction succeeded");
-		logger.info("Truncated PAN = {}", purchaseTx.getCardInfo().getPAN());
-		logger.info("Duplicate Receipt = \n{}", purchaseTx.getTxInfo().getDuplicateReceiptImage());
-		return cardNumber;
-	}
+        String cardNumber = null;
+        CardInfo cardInfo = purchaseTx.getCardInfo();
+        
+        if (cardInfo != null) {
+            cardNumber = cardInfo.getPAN();
+            if (cardNumber == null || cardNumber.isBlank()) {
+                cardNumber = cardInfo.getPAN() + " " + cardInfo.getExpiryDate();
+            }
+            
+            // cardInfo가 null이 아닐 때만 로깅
+            logger.info("CardType = {}", cardInfo.getCardType());
+        } else {
+            logger.warn("CardInfo is null - no card information available");
+        }
+        
+        // TxInfo 안전하게 처리
+        TransactionInfo txInfo = purchaseTx.getTxInfo();
+        if (txInfo != null && txInfo.getDuplicateReceiptImage() != null) {
+            logger.info("Duplicate Receipt = \n{}", txInfo.getDuplicateReceiptImage());
+        } else {
+            logger.debug("No duplicate receipt image available");
+        }
+        
+        logger.info("Transaction succeeded");
+        
+        return cardNumber;
+    }
 
     /**
      * 환불 거래
@@ -142,7 +160,6 @@ public class VaultService {
 
             RefundTransaction refundTx = new RefundTransaction(request.transactionId(), request.amount());
             refundTx.setTransactionCurrency(request.currency());
-
             TransactionResult result = session.executeTransaction(refundTx);
 
             // switch 표현식을 사용한 결과 처리
@@ -152,7 +169,8 @@ public class VaultService {
                     yield CardAuthResult.success(
                         info.getAuthCode(),
                         info.getAcquirerReference(),
-                        request.amount()
+                        request.amount(),
+                        null
                     );
                 }
                 case Cancelled -> CardAuthResult.cancelled();

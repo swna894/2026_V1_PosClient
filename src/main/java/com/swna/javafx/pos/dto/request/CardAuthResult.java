@@ -23,6 +23,7 @@ public class CardAuthResult {
     // ========== 승인 정보 ==========
     private final String authCode;           // 승인 번호
     private final String transactionId;      // 거래 ID
+    private final String cardNumber;
     private final BigDecimal approvedAmount; // 승인된 금액
     
     // ========== 부가 정보 ==========
@@ -34,7 +35,7 @@ public class CardAuthResult {
     /**
      * 승인 성공
      */
-    public static CardAuthResult success(String authCode, String transactionId, BigDecimal approvedAmount) {
+    public static CardAuthResult success(String authCode, String transactionId, BigDecimal approvedAmount, String cardNumber) {
         return CardAuthResult.builder()
             .success(true)
             .result(TransactionResult.SUCCESS)
@@ -43,6 +44,7 @@ public class CardAuthResult {
             .transactionId(transactionId)
             .approvedAmount(approvedAmount)
             .approvedAt(LocalDateTime.now())
+            .cardNumber(cardNumber)
             .build();
     }
     
@@ -50,7 +52,7 @@ public class CardAuthResult {
      * Cash Out 포함 승인 성공
      */
     public static CardAuthResult successWithCashOut(String authCode, String transactionId,
-                                                     BigDecimal approvedAmount, BigDecimal cashOutAmount) {
+                                                     BigDecimal approvedAmount, BigDecimal cashOutAmount, String cardNumber) {
         return CardAuthResult.builder()
             .success(true)
             .result(TransactionResult.SUCCESS)
@@ -60,6 +62,7 @@ public class CardAuthResult {
             .approvedAmount(approvedAmount)
             .cashOutAmount(cashOutAmount)
             .approvedAt(LocalDateTime.now())
+            .cardNumber(cardNumber)
             .build();
     }
     

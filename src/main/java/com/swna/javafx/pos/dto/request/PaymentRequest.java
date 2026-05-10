@@ -21,6 +21,7 @@ public record PaymentRequest(
     @PositiveOrZero(message = "Cash-out amount must be zero or positive.")
     BigDecimal cashoutAmount, // Extra cash requested during card transaction
 
-    String approvalNo // Card authorization number
+    String approvalNo, // Card authorization number
+    String cardNumber
 
 ) {}

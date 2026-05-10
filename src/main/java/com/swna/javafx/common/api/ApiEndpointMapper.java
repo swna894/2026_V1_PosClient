@@ -28,7 +28,7 @@ public class ApiEndpointMapper {
     public static final String PRODUCT_LABELS = API_BASE + "/products/labels";
     public static final String PRODUCT_BARCODE = API_BASE + "/products/barcode/{barcode}";
 
-    public static final String SHOP_GET = "/shops/first";
+    public static final String SHOP_GET = API_BASE + "/shops/first";
     
     // POST 엔드포인트
     public static final String SALE_CREATE = API_BASE + "/sales";
