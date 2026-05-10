@@ -13,6 +13,7 @@ import com.swna.javafx.pos.manager.ClockManager;
 import com.swna.javafx.pos.manager.PaymentDialogManager;
 import com.swna.javafx.pos.manager.PosTableSetup;
 import com.swna.javafx.pos.manager.UiNotifier;
+import com.swna.javafx.pos.service.PrintToggleService;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
 
 import javafx.application.Platform;
@@ -36,7 +37,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @FxmlView("/view/pos/PosView.fxml")
 public class PosViewController {
 
-       // ========== Constants ==========
+    // ========== Constants ==========
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
 
     private final PosViewModel viewModel;
@@ -48,6 +49,7 @@ public class PosViewController {
     private final BarcodeScannerManager scannerManager;
     private final CartButtonManager cartButtonManager;
     private final StatusLabelManager statusLabelManager;
+    private final PrintToggleService printToggleService;  // 추가
 
     // FXML Components
     @FXML private TableView<PosItem> table;
@@ -87,6 +89,8 @@ public class PosViewController {
     @FXML private Button buttonCredit;
     @FXML private Button buttonCashout;
     @FXML private Button buttonDrawer;
+    @FXML private Button buttonOnPos;
+    @FXML private Button buttonOnPrint;
     
     // Image Views
     @FXML private ImageView posImageView;
@@ -94,7 +98,7 @@ public class PosViewController {
 
     @FXML
     public void initialize() {
-        // 1. 테이블 설정 (리팩토링된 방식)
+        // 1. 테이블 설정
         setupTable();
         
         // 2. 상단 레이블 바인딩
@@ -114,15 +118,19 @@ public class PosViewController {
         
         // 7. 테이블 포커스
         table.requestFocus();
+        
+        // 8. Print 버튼 초기 상태 설정 (서비스 상태 반영)
+        updatePrintButtonState();
+        
+        // 9. Print 상태 변경 리스너 등록
+        printToggleService.printEnabledProperty().addListener((obs, oldVal, newVal) -> {
+            Platform.runLater(this::updatePrintButtonState);
+        });
     }
     
     // ========== Setup Methods ==========
     
-    /**
-     * 테이블 설정 (리팩토링된 PosTableSetup 사용)
-     */
     private void setupTable() {
-        // 컬럼 홀더 생성
         PosTableSetup.TableColumns columns = PosTableSetup.TableColumns.builder()
             .colNo(colNo)
             .colBarcode(colBarcode)
@@ -140,19 +148,14 @@ public class PosViewController {
             .colChangePrice(colChangePrice)
             .build();
         
-        // 콜백 홀더 생성
         PosTableSetup.Callbacks callbacks = PosTableSetup.Callbacks.builder()
             .onDiscount(this::showDiscountDialog)
             .onChangePrice(this::showPriceChangeDialog)
             .build();
         
-        // 테이블 설정 실행
         tableSetup.setup(table, viewModel, columns, callbacks);
     }
     
-    /**
-     * 레이블 바인딩 설정
-     */
     private void setupLabelBindings() {
         labelTotalAmount.textProperty().bind(viewModel.totalAmountProperty().asString("Total: %.2f"));
         labelTotalQty.textProperty().bind(viewModel.totalQtyProperty().asString("Total Qty: %d"));
@@ -247,9 +250,48 @@ public class PosViewController {
     @FXML private void onActionDiscountVolumn(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
     @FXML private void onActionScanner(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
     @FXML private void onActionCancel(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
-    @FXML private void onActionPrint(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
     @FXML private void onActionQty(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
+    @FXML private void onActionPrint(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
     @FXML private void onActionDrawer(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
     @FXML private void onPos(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
-    @FXML private void onPrint(ActionEvent e) { log.debug(NOT_IMPLEMENTED_MSG); }
+    
+    /**
+     * Print 버튼 클릭 시 토글 (ON/OFF)
+     * - ON: 프린트 활성화 (실제 프린터로 출력)
+     * - OFF: 프린트 비활성화 (출력하지 않음)
+     */
+    @FXML 
+    private void onPrint(ActionEvent e) {
+        printToggleService.toggle();
+        String statusMsg = printToggleService.isPrintEnabled() 
+            ? "Print enabled (ON)" 
+            : "Print disabled (OFF)";
+            
+        if (printToggleService.isPrintEnabled()) {
+            showSuccessMessage(statusMsg);  // 초록색
+        } else {
+            showErrorMessage(statusMsg);     // 빨간색
+        }
+    
+        log.info("Print toggled: {}", printToggleService.isPrintEnabled() ? "ON" : "OFF");
+    }
+    
+    /**
+     * Print 버튼 UI 업데이트 (텍스트 및 색상 변경)
+     * - ON: 녹색 텍스트 (print-on 클래스 추가)
+     * - OFF: 빨간색 텍스트 (print-off 클래스 추가)
+     * - 버튼 기본 스타일(btn, btn-md)은 유지
+     */
+    private void updatePrintButtonState() {
+        // 기존 ON/OFF 관련 스타일 클래스 제거
+        buttonOnPrint.getStyleClass().removeAll("print-on", "print-off");
+        
+        if (printToggleService.isPrintEnabled()) {
+            buttonOnPrint.setText("ON");
+            buttonOnPrint.getStyleClass().add("print-on");
+        } else {
+            buttonOnPrint.setText("OFF");
+            buttonOnPrint.getStyleClass().add("print-off");
+        }
+    }
 }

@@ -98,14 +98,44 @@
    -fx-background-color: #2F2B43;
 }
 
+/* 대형 버튼 (기존) */
 .btn-lg {
    -fx-pref-width: 140px;
    -fx-padding: 3 30 3 30;
 }
 
+/* 중형 버튼 (신규) */
+.btn-md {
+   -fx-pref-width: 100px;
+   -fx-padding: 3 20 3 20;
+}
+
+/* 소형 버튼 (신규) */
+.btn-sm {
+   -fx-pref-width: 70px;
+   -fx-padding: 3 10 3 10;
+}
+
+/* 초소형 버튼 (신규) */
+.btn-xs {
+   -fx-pref-width: 50px;
+   -fx-padding: 3 5 3 5;
+}
+
 .btn.cart-held {
    -fx-background-color: #80e777;
    -fx-text-fill: white;
+   -fx-font-weight: bold;
+}
+
+/* Print 버튼 ON/OFF 스타일 - 글자색만 변경, 배경은 btn 스타일 유지 */
+.print-on {
+   -fx-text-fill: green;
+   -fx-font-weight: bold;
+}
+
+.print-off {
+   -fx-text-fill: red;
    -fx-font-weight: bold;
 }
 

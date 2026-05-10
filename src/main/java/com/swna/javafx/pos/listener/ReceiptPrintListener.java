@@ -8,6 +8,7 @@ import com.swna.javafx.pos.event.PaymentSuccessEvent;
 import com.swna.javafx.pos.event.PrintFailureEvent;
 import com.swna.javafx.pos.print.ReceiptPrinter;
 import com.swna.javafx.pos.print.ReceiptStyle;
+import com.swna.javafx.pos.service.PrintToggleService;
 import com.swna.javafx.pos.service.PaymentResult;
 
 import java.util.List;
@@ -28,17 +29,25 @@ public class ReceiptPrintListener {
     private final ApplicationEventPublisher eventPublisher;
     private final ReceiptPrinter receiptPrinter;
     private final ShopViewModel shopViewModel;
+    private final PrintToggleService printToggleService;  // 추가
 
     @Async("printExecutor")
     @EventListener
     public void printReceipt(PaymentSuccessEvent event) {
+        
+        // ========== 프린트 활성화 여부 확인 (서비스 사용) ==========
+        if (!printToggleService.isPrintEnabled()) {
+            String receiptNo = event.getPaymentResult().getReceiptNo();
+            log.info("Print is DISABLED - Skipping receipt printing. Receipt No: {}", receiptNo);
+            return;  // 프린트 안 함
+        }
+        // =========================================================
+        
         SaleRequest saleRequest = event.getSaleRequest();
         PaymentResult paymentResult = event.getPaymentResult();
         List<PosItem> posItems = event.getPosItems();
 
-        // ✅ ShopViewModel의 getShopBlocking() 사용
         Shop shop = getShopInfo();
-        System.out.println("shop: " + shop);
         String receiptNo = paymentResult.getReceiptNo();
         log.info("Starting receipt printing - Receipt No: {}", receiptNo);
         
@@ -60,11 +69,6 @@ public class ReceiptPrintListener {
         }
     }
 
-    /**
-     * Shop 정보 가져오기
-     * - 캐시 우선
-     * - 캐시 없으면 ShopViewModel.getShopBlocking() 사용 (자동으로 기본값 반환)
-     */
     private Shop getShopInfo() {
         // 1. 먼저 캐시 확인
         Shop cachedShop = shopViewModel.getCachedShop();
@@ -74,7 +78,6 @@ public class ReceiptPrintListener {
         }
         
         // 2. 캐시가 없으면 ShopViewModel의 블로킹 메서드 사용
-        //    (내부에서 API 호출 후 실패 시 기본 Shop 반환)
         log.info("No cached shop, loading from API via ShopViewModel...");
         Shop shop = shopViewModel.getShopBlocking();
         
@@ -88,16 +91,13 @@ public class ReceiptPrintListener {
         return shop;
     }
     
-    /**
-     * 기본 Shop 생성 (최후의 방법)
-     */
     private Shop createDefaultShop() {
         log.debug("Creating default shop using factory method");
         return Shop.create(
-            "My Store",           // name
-            "Store Address",      // address
-            "000-0000-0000",      // phone
-            "000-00-00000"        // businessNo
+            "My Store",
+            "Store Address",
+            "000-0000-0000",
+            "000-00-00000"
         );
     }
 

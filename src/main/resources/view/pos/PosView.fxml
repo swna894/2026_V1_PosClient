@@ -450,8 +450,9 @@
          <!-- POS STATUS -->
          <!-- ================================================= -->
 
-         <Button mnemonicParsing="false" onAction="#onPos" prefHeight="34" focusTraversable="false"
-            styleClass="btn,btn-lg" text="OFF">
+         <Button fx:id="buttonOnPos" mnemonicParsing="false" onAction="#onPos" prefHeight="34"
+            focusTraversable="false"
+            styleClass="btn,btn-md" text="OFF">
             <graphic>
                <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
@@ -466,8 +467,8 @@
          <!-- PRINT STATUS -->
          <!-- ================================================= -->
 
-         <Button mnemonicParsing="false" onAction="#onPrint" prefHeight="34"
-            focusTraversable="false" styleClass="btn,btn-lg" text="OFF">
+         <Button fx:id="buttonOnPrint" mnemonicParsing="false" onAction="#onPrint" prefHeight="34"
+            focusTraversable="false" styleClass="btn,btn-md" text="OFF">
 
             <graphic>
 
