@@ -266,14 +266,12 @@ public class PosViewController {
         String statusMsg = printToggleService.isPrintEnabled() 
             ? "Print enabled (ON)" 
             : "Print disabled (OFF)";
-            
+
         if (printToggleService.isPrintEnabled()) {
             showSuccessMessage(statusMsg);  // 초록색
         } else {
             showErrorMessage(statusMsg);     // 빨간색
         }
-    
-        log.info("Print toggled: {}", printToggleService.isPrintEnabled() ? "ON" : "OFF");
     }
     
     /**
