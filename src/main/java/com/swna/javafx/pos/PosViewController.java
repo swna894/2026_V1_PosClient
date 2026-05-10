@@ -13,6 +13,7 @@ import com.swna.javafx.pos.manager.ClockManager;
 import com.swna.javafx.pos.manager.PaymentDialogManager;
 import com.swna.javafx.pos.manager.PosTableSetup;
 import com.swna.javafx.pos.manager.UiNotifier;
+import com.swna.javafx.pos.service.PosToggleService;
 import com.swna.javafx.pos.service.PrintToggleService;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
 
@@ -40,9 +41,13 @@ import net.rgielen.fxweaver.core.FxmlView;
 @FxmlView("/view/pos/PosView.fxml")
 public class PosViewController {
 
-    // ========== Constants ==========
-    private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
+    // 스타일 클래스 상수 정의
+    private static final String STYLE_ON = "print-on";
+    private static final String STYLE_OFF = "print-off";
+    private static final String TEXT_ON = "ON";
+    private static final String TEXT_OFF = "OFF";
 
+    // ========== Constants ==========
     private final PosViewModel viewModel;
     private final SafeBarcodeScanner safeBarcodeScanner;
     private final PosTableSetup tableSetup;
@@ -52,7 +57,8 @@ public class PosViewController {
     private final BarcodeScannerManager scannerManager;
     private final CartButtonManager cartButtonManager;
     private final StatusLabelManager statusLabelManager;
-    private final PrintToggleService printToggleService;  // 추가
+    private final PrintToggleService printToggleService; 
+    private final PosToggleService posToggleService; 
 
     // FXML Components
     @FXML private TableView<PosItem> table;
@@ -128,11 +134,11 @@ public class PosViewController {
         
         // 8. Print 버튼 초기 상태 설정 (서비스 상태 반영)
         updatePrintButtonState();
+        updatePosButtonState();
         
         // 9. Print 상태 변경 리스너 등록
-        printToggleService.printEnabledProperty().addListener((obs, oldVal, newVal) -> {
-            Platform.runLater(this::updatePrintButtonState);
-        });
+        printToggleService.printEnabledProperty().addListener((obs, oldVal, newVal) ->  Platform.runLater(this::updatePrintButtonState));
+        posToggleService.posEnabledProperty().addListener((obs, oldVal, newVal) ->  Platform.runLater(this::updatePosButtonState));
     }
     
     // ========== Setup Methods ==========
@@ -260,7 +266,34 @@ public class PosViewController {
     @FXML private void onActionQty(ActionEvent e) { log.info("onActionQty"); }
     @FXML private void onActionPrint(ActionEvent e) { log.info("onActionPrint"); }
     @FXML private void onActionDrawer(ActionEvent e) { log.info("onActionDrawer"); }
-    @FXML private void onPos(ActionEvent e) { log.info("onPos"); }
+    @FXML
+    private void onPos(ActionEvent e) {
+        posToggleService.toggle();
+        updatePosButtonState();
+        
+        String msg = posToggleService.isPosEnabled() ? "POS 결제 활성화" : "POS 결제 비활성화";
+        if (posToggleService.isPosEnabled()) {
+            showSuccessMessage(msg);
+        } else {
+            showErrorMessage(msg);
+        }
+    }
+
+    /**
+     * POS 버튼 UI 업데이트 (텍스트 및 스타일 클래스 변경)
+     */
+    private void updatePosButtonState() {
+        // 기존 스타일 클래스 제거 (Print와 동일한 클래스 재사용 가능 또는 별도 정의)
+        buttonOnPos.getStyleClass().removeAll(STYLE_ON, STYLE_OFF);
+        
+        if (posToggleService.isPosEnabled()) {
+            buttonOnPos.setText(TEXT_ON);
+            buttonOnPos.getStyleClass().add(STYLE_ON); // 녹색 스타일
+        } else {
+            buttonOnPos.setText(TEXT_OFF);
+            buttonOnPos.getStyleClass().add(STYLE_OFF); // 빨간색 스타일
+        }
+    }
     
     /**
      * Print 버튼 클릭 시 토글 (ON/OFF)
@@ -289,14 +322,14 @@ public class PosViewController {
      */
     private void updatePrintButtonState() {
         // 기존 ON/OFF 관련 스타일 클래스 제거
-        buttonOnPrint.getStyleClass().removeAll("print-on", "print-off");
+        buttonOnPrint.getStyleClass().removeAll(STYLE_ON, STYLE_OFF);
         
         if (printToggleService.isPrintEnabled()) {
-            buttonOnPrint.setText("ON");
-            buttonOnPrint.getStyleClass().add("print-on");
+            buttonOnPrint.setText(TEXT_ON);
+            buttonOnPrint.getStyleClass().add(STYLE_ON);
         } else {
-            buttonOnPrint.setText("OFF");
-            buttonOnPrint.getStyleClass().add("print-off");
+            buttonOnPrint.setText(TEXT_OFF);
+            buttonOnPrint.getStyleClass().add(STYLE_OFF);
         }
     }
 

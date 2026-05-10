@@ -142,4 +142,20 @@ public class CardAuthResult {
         CANCELLED,  // 사용자 취소
         TIMED_OUT   // 시간 초과
     }
+
+    /**
+     * POS 비활성 모드(Test/Demo)일 때 사용할 가상 승인 결과 생성
+     */
+    public static CardAuthResult virtualSuccess(String transactionId, BigDecimal amount) {
+        return CardAuthResult.builder()
+            .success(true)
+            .result(TransactionResult.SUCCESS) // Enum 값 사용
+            .message("가상 결제 승인 완료 (POS OFF 모드)")
+            .authCode("VIRTUAL-9999")
+            .transactionId(transactionId)
+            .approvedAmount(amount)
+            .cardNumber("411111******1111")
+            .approvedAt(LocalDateTime.now())
+            .build();
+    }
 }

@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CardClient {
     
     private final VaultService vaultService;
+    private final PosToggleService posToggleService;
     
     /**
      * 일반 카드 결제
@@ -29,6 +30,14 @@ public class CardClient {
     public CardAuthResult purchase(String transactionId, BigDecimal amount) {
         log.info("[CardClient] 카드 결제 요청 - txId: {}, amount: ${}", transactionId, amount);
         
+        // POS 결제가 OFF인 경우
+        //TODO CardAuthResult.virtualSuccess 결과 확인
+        if (!posToggleService.isPosEnabled()) {
+            log.info("[CardClient] POS 결제 비활성 상태 - 가상 승인 처리");
+            // 가상의 성공 결과 반환 (테스트용)
+            return CardAuthResult.virtualSuccess(transactionId, amount); 
+        }
+
         CardAuthRequest request = CardAuthRequest.purchase(transactionId, amount);
         CardAuthResult result = vaultService.processTransaction(request);
         
@@ -48,6 +57,14 @@ public class CardClient {
         log.info("[CardClient] 현금인출 결제 요청 - txId: {}, amount: ${}, cashOut: ${}", 
             transactionId, amount, cashOutAmount);
         
+        // POS 결제가 OFF인 경우
+        //TODO CardAuthResult.virtualSuccess 결과 확인
+        if (!posToggleService.isPosEnabled()) {
+            log.info("[CardClient] POS 결제 비활성 상태 - 가상 승인 처리");
+            // 가상의 성공 결과 반환 (테스트용)
+            return CardAuthResult.virtualSuccess(transactionId, amount); 
+        }
+
         CardAuthRequest request = CardAuthRequest.cashOut(transactionId, amount, cashOutAmount);
         CardAuthResult result = vaultService.processTransaction(request);
         
