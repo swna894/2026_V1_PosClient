@@ -58,7 +58,7 @@ public abstract class BaseViewModel {
 
         // 🔥 Network layer
         if (ex instanceof NetworkException) {
-            setError("서버에 연결할 수 없습니다.");
+            setError("Cannot connect to the server.");
             return;
         }
 

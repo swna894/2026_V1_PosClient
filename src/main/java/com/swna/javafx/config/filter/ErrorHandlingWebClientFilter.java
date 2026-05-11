@@ -25,7 +25,7 @@ public class ErrorHandlingWebClientFilter implements ExchangeFilterFunction {
                 // 🔥 네트워크 에러 변환
                 .onErrorMap(
                         WebClientRequestException.class,
-                        ex -> new NetworkException("서버에 연결할 수 없습니다.")
+                        ex -> new NetworkException("Cannot connect to the server.")
                 )
 
                 .flatMap(response -> {

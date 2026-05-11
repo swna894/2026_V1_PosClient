@@ -44,6 +44,7 @@ public class PaymentService {
             apiEndpointMapper.getMetadata(API_SALE_CREATE);
 
         log.error("======== payment ========");
+        request.items().forEach(item -> log.error("{}", item));
         request.payments().forEach(payment -> log.error("{}", payment));
         log.error("{}", request.discounts());
 

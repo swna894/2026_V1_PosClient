@@ -105,14 +105,14 @@ public record ApiResponse<T>(
         }
         
         return switch (code) {
-            case ERROR_CODE_NOT_FOUND -> "🔍 " + (message != null ? message : "데이터를 찾을 수 없습니다.");
-            case ERROR_CODE_INVALID_INPUT -> "❌ " + (message != null ? message : "잘못된 입력입니다.");
-            case ERROR_CODE_UNAUTHORIZED -> "🔒 " + (message != null ? message : "로그인이 필요합니다.");
-            case ERROR_CODE_FORBIDDEN -> "🚫 " + (message != null ? message : "접근 권한이 없습니다.");
-            case ERROR_CODE_SERVER_ERROR -> "🖥️ " + (message != null ? message : "서버 오류가 발생했습니다.");
-            case ERROR_CODE_NETWORK_ERROR -> "🌐 " + (message != null ? message : "네트워크 연결을 확인해주세요.");
-            case ERROR_CODE_TIMEOUT -> "⏰ " + (message != null ? message : "요청 시간이 초과되었습니다.");
-            default -> (message != null ? message : "오류가 발생했습니다.");
+            case ERROR_CODE_NOT_FOUND -> "🔍 " + (message != null ? message : "Data not found.");
+            case ERROR_CODE_INVALID_INPUT -> "❌ " + (message != null ? message : "Invalid input.");
+            case ERROR_CODE_UNAUTHORIZED -> "🔒 " + (message != null ? message : "Authentication required.");
+            case ERROR_CODE_FORBIDDEN -> "🚫 " + (message != null ? message : "Access denied.");
+            case ERROR_CODE_SERVER_ERROR -> "🖥️ " + (message != null ? message : "A server error occurred.");
+            case ERROR_CODE_NETWORK_ERROR -> "🌐 " + (message != null ? message : "Please check your network connection.");
+            case ERROR_CODE_TIMEOUT -> "⏰ " + (message != null ? message : "Request timed out.");
+            default -> (message != null ? message : "An error occurred.");
         };
     }
 
