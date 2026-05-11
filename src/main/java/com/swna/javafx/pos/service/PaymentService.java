@@ -43,7 +43,9 @@ public class PaymentService {
         ApiEndpointMapper.DomainMetadata<ApiResponse<SaleResponse>> metadata = 
             apiEndpointMapper.getMetadata(API_SALE_CREATE);
 
-        System.out.println("pamyment = " + request.payments());
+        log.error("======== payment ========");
+        request.payments().forEach(payment -> log.error("{}", payment));
+        log.error("{}", request.discounts());
 
         // 2. API 호출 및 결과 처리
         return commonApiClient.postForData(metadata, request, Map.of(), Map.of())

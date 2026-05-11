@@ -151,10 +151,10 @@ public class CardAuthResult {
             .success(true)
             .result(TransactionResult.SUCCESS) // Enum 값 사용
             .message("가상 결제 승인 완료 (POS OFF 모드)")
-            .authCode("VIRTUAL-9999")
+            .authCode("VIRTUAL SUCCESS")
             .transactionId(transactionId)
             .approvedAmount(amount)
-            .cardNumber("411111******1111")
+            .cardNumber("VIRTUAL SUCCESS")
             .approvedAt(LocalDateTime.now())
             .build();
     }

@@ -3,8 +3,10 @@ package com.swna.javafx.config.filter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Component
 public class LoggingWebClientFilter {
 
@@ -13,13 +15,9 @@ public class LoggingWebClientFilter {
     // =========================
     public ExchangeFilterFunction logRequest() {
         return (request, next) -> {
-
-            System.out.println("➡️ REQUEST: " + request.method() + " " + request.url());
-
-            request.headers().forEach((name, values) ->
-                    values.forEach(v -> System.out.println(name + ": " + v))
-            );
-
+       
+            log.info("➡️ REQUEST: = {}", request.method() + " " + request.url());
+            request.headers().forEach((name, values) -> values.forEach(v -> log.info("{} : {}", name , v)));
             return next.exchange(request);
         };
     }
@@ -29,9 +27,7 @@ public class LoggingWebClientFilter {
     // =========================
     public ExchangeFilterFunction logResponse() {
         return ExchangeFilterFunction.ofResponseProcessor(response -> {
-
-            System.out.println("⬅️ RESPONSE: " + response.statusCode());
-
+            log.info("⬅️ RESPONSE: = {}", response.statusCode());
             return Mono.just(response);
         });
     }

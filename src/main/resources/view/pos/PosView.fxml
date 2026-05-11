@@ -18,7 +18,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane fx:id="rootPane" prefHeight="565.0" prefWidth="1273.0" styleClass="root-boardpane"
-   stylesheets="@../../styles/pos_main.css" xmlns="http://javafx.com/javafx/22"
+   stylesheets="@../../styles/pos_main.css" xmlns="http://javafx.com/javafx/21"
    xmlns:fx="http://javafx.com/fxml/1"
    fx:controller="com.swna.javafx.pos.PosViewController">
 

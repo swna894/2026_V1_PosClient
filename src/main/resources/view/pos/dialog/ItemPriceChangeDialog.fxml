@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css"
-   xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
+   xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
    fx:controller="com.swna.javafx.pos.dialog.ItemPriceChangeDialogController">
 
    <padding>

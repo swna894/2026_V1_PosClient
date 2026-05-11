@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class PrintToggleService {
     
-    private final BooleanProperty printEnabled = new SimpleBooleanProperty(true);
+    private final BooleanProperty printEnabled = new SimpleBooleanProperty(false);
     
     /**
      * 프린트 활성화 여부 확인

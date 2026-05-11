@@ -23,6 +23,7 @@ public class CashDialogController extends BasePaymentDialog {
     private BigDecimal totalAmount;
     private Consumer<BigDecimal> onPaymentComplete;
 
+    // PaymentDialogManager.PaymentDialogController.initData 참조
     public void initData(BigDecimal total, BigDecimal discount, Consumer<BigDecimal> callback) {
         this.totalAmount = total;
         this.onPaymentComplete = callback;

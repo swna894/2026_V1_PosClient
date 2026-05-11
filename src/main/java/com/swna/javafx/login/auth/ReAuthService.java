@@ -34,7 +34,7 @@ public class ReAuthService {
         }
 
         refreshMono = authWebClient.post()
-                .uri("/auth/refresh")
+                .uri("/auth/reissue")
                 .bodyValue(Map.of("refreshToken", tokenStore.getRefreshToken()))
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<ApiResponse<LoginResponse>>() {})
