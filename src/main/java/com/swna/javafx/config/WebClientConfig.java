@@ -2,6 +2,7 @@ package com.swna.javafx.config;
 
 import java.time.Duration;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -45,35 +46,35 @@ public class WebClientConfig {
 
                 /* 
                  * 필터 적용 순서 (중요): 
-                 * 필터는 등록된 순서대로 요청(Request)을 처리하고, 
-                 * 반대 순서로 응답(Response)을 처리합니다.
+                 * --- 요청(Request) 시 실행 순서 (위 -> 아래) --- 
+                 * --- 응답(Response) 시 실행 순서 (아래 -> 위) ---
                  */
-
-                // 1. 로그 필터: 요청의 시작과 응답의 끝을 기록
                 .filter(loggingFilter.logRequest())
                 .filter(loggingFilter.logResponse())
+                
+                .filter(authFilter.authFilter()) // 3. (응답) 마지막 처리
 
-                // 2. 인증 필터: 헤더에 Authorization 토큰 등을 삽입
-                .filter(authFilter.authFilter())
+                // 🔴 중요: ErrorFilter를 먼저 등록
+                .filter(errorFilter)            // 2. (응답) ReAuth 실패 시 여기서 에러 변환
 
-                // 3. 재인증 필터: 만약 401 Unauthorized가 발생하면 토큰을 갱신하고 재요청 수행
-                .filter(reAuthFilter)
-
-                // 4. 에러 표준화 필터: 각기 다른 외부 에러 규격을 우리 시스템 표준 에러로 변환
-                .filter(errorFilter)
-
+                // 🔴 중요: ReAuthFilter를 나중에 등록
+                .filter(reAuthFilter)           // 1. (응답) 가장 먼저 401인지 확인하고 재시도
+                
                 .build();
     }
 
     /**
-     * 인증 전용 WebClient 빈
-     * 로그인이나 토큰 재발급 등 '인증' 자체를 위해 호출할 때는 
-     * 무한 루프(재인증 필터의 중복 실행)를 방지하기 위해 필터가 없는 클라이언트를 사용합니다.
+     * 인증 전용 WebClient 빈 (필터 없음)
+     * 로그인, 토큰 재발급 등 인증 관련 API 호출 전용
      */
     @Bean
     public WebClient authWebClient(ApiProperties apiProperties) {
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofSeconds(10)); // 인증은 좀 더 여유있게
+
         return WebClient.builder()
                 .baseUrl(apiProperties.getBaseUrl())
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     }
 }

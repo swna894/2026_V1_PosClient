@@ -21,7 +21,7 @@ public class AuthApiClient {
     public Mono<TokenResponse> refresh(String refreshToken) {
 
         return webClient.post()
-                .uri("/auth/refresh")
+                .uri("/auth/reissue")
                 .bodyValue(Map.of("refreshToken", refreshToken))
                 .retrieve()
                 .bodyToMono(TokenResponse.class);
