@@ -36,7 +36,8 @@
 
             <HBox alignment="CENTER_LEFT">
                <children>
-                  <Label fx:id="labelTotalAmount" styleClass="top-label-total" text="Total: 0.00" />
+                  <Label fx:id="labelTotalAmount" styleClass="top-label-total" text="Total: 0.00"
+                     minWidth="250.0" />
                </children>
             </HBox>
 
@@ -85,7 +86,7 @@
 
             <TableColumn fx:id="colNo" prefWidth="80" />
             <TableColumn fx:id="colDelete" prefWidth="80" />
-            <TableColumn fx:id="colBarcode" prefWidth="180" text="BARCODE" />
+            <TableColumn fx:id="colBarcode" prefWidth="190" text="BARCODE" />
             <TableColumn fx:id="colDesc" prefWidth="400" text="DESCRIPTION" />
             <TableColumn fx:id="colMinus" prefWidth="80" />
             <TableColumn fx:id="colQty" prefWidth="80" text="QTY" />
@@ -96,7 +97,7 @@
             <TableColumn fx:id="colStock" prefWidth="80" text="STOCK" />
             <TableColumn fx:id="colDiscountPrice" prefWidth="120" />
             <TableColumn fx:id="colChangePrice" prefWidth="120" />
-            <TableColumn fx:id="colComment" prefWidth="260" text="COMMENT" />
+            <TableColumn fx:id="colComment" prefWidth="303" text="COMMENT" />
 
          </columns>
 

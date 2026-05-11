@@ -131,6 +131,7 @@ public class PosViewController {
         
         // 7. 테이블 포커스
         table.requestFocus();
+        colChangePrice.setVisible(false);
         
         // 8. Print 버튼 초기 상태 설정 (서비스 상태 반영)
         updatePrintButtonState();
