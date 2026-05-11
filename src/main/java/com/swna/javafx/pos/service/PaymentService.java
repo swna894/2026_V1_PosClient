@@ -3,6 +3,9 @@ package com.swna.javafx.pos.service;
 import com.swna.javafx.common.api.ApiEndpointMapper;
 import com.swna.javafx.common.api.CommonApiClient;
 import com.swna.javafx.common.response.ApiResponse;
+import com.swna.javafx.pos.dto.request.DiscountRequest;
+import com.swna.javafx.pos.dto.request.PaymentRequest;
+import com.swna.javafx.pos.dto.request.SaleItemRequest;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.SaleResponse;
 
@@ -43,10 +46,41 @@ public class PaymentService {
         ApiEndpointMapper.DomainMetadata<ApiResponse<SaleResponse>> metadata = 
             apiEndpointMapper.getMetadata(API_SALE_CREATE);
 
-        log.error("======== payment ========");
-        request.items().forEach(item -> log.error("{}", item));
-        request.payments().forEach(payment -> log.error("{}", payment));
-        log.error("{}", request.discounts());
+     log.error("======== SaleRequest Detail ========");
+    log.error("Payment Type: {}", paymentType);
+    
+    // Items 출력
+    log.error("--- Items ({}) ---", request.items().size());
+    for (int i = 0; i < request.items().size(); i++) {
+        SaleItemRequest item = request.items().get(i);
+        log.error("Item[{}]: barcode={}, qty={}, originalPrice={}, sellingPrice={}, discountValue={}, discountType={}, comment={}",
+            i, item.barcode(), item.quantity(), item.originalPrice(), 
+            item.sellingPrice(), item.discountValue(), item.discountType(), item.comment());
+    }
+    
+    // Payments 출력
+    log.error("--- Payments ({}) ---", request.payments().size());
+    for (int i = 0; i < request.payments().size(); i++) {
+        PaymentRequest payment = request.payments().get(i);
+        log.error("Payment[{}]: type={}, amount={}, receivedAmount={}, cashoutAmount={}, approvalNo={}, cardNumber={}",
+            i, payment.type(), payment.amount(), payment.receivedAmount(), 
+            payment.cashoutAmount(), payment.approvalNo(), payment.cardNumber());
+    }
+    
+    // Discounts 출력
+    if (request.discounts() != null && !request.discounts().isEmpty()) {
+        log.error("--- Discounts ({}) ---", request.discounts().size());
+        for (DiscountRequest discount : request.discounts()) {
+            log.error("Discount: type={}, value={}, reason={}", 
+                discount.type(), discount.value(), discount.reason());
+        }
+    } else {
+        log.error("--- Discounts: none ---");
+    }
+    
+    log.error("Total Items Count: {}", request.items().size());
+    log.error("Total Payments Count: {}", request.payments().size());
+    log.error("===================================");
 
         // 2. API 호출 및 결과 처리
         return commonApiClient.postForData(metadata, request, Map.of(), Map.of())
