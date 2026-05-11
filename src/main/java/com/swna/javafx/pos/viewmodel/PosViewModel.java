@@ -296,7 +296,7 @@ public class PosViewModel {
     
     private void updateUIBeforeComplete(PaymentProcessor.ProcessedPayment processed) {
         Platform.runLater(() -> {
-            scanStatus.set(STATUS_PAYMENT_SUCCESS + ": " + processed.getReceiptNo());
+            scanStatus.set(processed.saleRequest().getPaymentTypeCode() + " " + STATUS_PAYMENT_SUCCESS   );
             clear();
         });
     }

@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 
 import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.*;
 
+
 @Slf4j
 @RequiredArgsConstructor
 public class PaymentProcessor {
