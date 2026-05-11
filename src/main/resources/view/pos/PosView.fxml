@@ -34,10 +34,9 @@
          </padding>
          <children>
 
-            <HBox alignment="CENTER_LEFT">
+            <HBox alignment="CENTER_LEFT" minWidth="450.0">
                <children>
-                  <Label fx:id="labelTotalAmount" styleClass="top-label-total" text="Total: 0.00"
-                     minWidth="250.0" />
+                  <Label fx:id="labelTotalAmount" styleClass="top-label-total" text="Total: 0.00" />
                </children>
             </HBox>
 
@@ -59,7 +58,8 @@
                   <Insets bottom="15.0" />
                </HBox.margin>
             </StatusLabel>
-            <VBox alignment="BOTTOM_RIGHT" spacing="0.0" styleClass="time-container">
+            <VBox alignment="BOTTOM_RIGHT" spacing="0.0" styleClass="time-container"
+               minWidth="150.0">
                <children>
                   <Label fx:id="labelClockTime" styleClass="top-label-clock-time" text="오전 11:05" />
                   <Label fx:id="labelClockDate" styleClass="top-label-clock-date" text="2026-05-03" />
