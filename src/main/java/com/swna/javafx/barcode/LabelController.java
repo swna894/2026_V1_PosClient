@@ -1,7 +1,13 @@
 package com.swna.javafx.barcode;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -10,6 +16,7 @@ import com.swna.javafx.barcode.domain.BarcodeLabel;
 import com.swna.javafx.barcode.viewModel.LabelViewModel;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.print.PrinterJob;
 import javafx.scene.control.Alert;
@@ -101,11 +108,49 @@ public class LabelController {
     private void onGenerate() {
         try {
             viewModel.exportToPdf();
-            showInfo("성공", "PDF가 생성되었습니다.");
+            //showInfo("Success", "PDF has been generated successfully.");
+
+            // 파일 경로를 직접 생성
+            Path generatedFilePath = Paths.get(System.getProperty("user.home"), 
+                                              "Downloads", 
+                                              "barcode_labels.pdf");
+
+            
+            if (generatedFilePath != null) {
+                openPdfFile(generatedFilePath);
+            }
         } catch (Exception e) {
             log.error("PDF Export Error", e);
-            showError("오류", "PDF 생성 실패: " + e.getMessage());
+            showError("Error", "PDF generation failed: " + e.getMessage());
         }
+    }
+
+    private void openPdfFile(Path pdfPath) {
+        if (pdfPath == null || !Files.exists(pdfPath)) {
+            return;
+        }
+        
+        CompletableFuture.runAsync(() -> {
+            try {
+                ProcessBuilder pb = new ProcessBuilder(
+                    "cmd.exe", "/c", "start", pdfPath.toString()
+                );
+                Process process = pb.start();
+                
+                boolean completed = process.waitFor(2, TimeUnit.SECONDS);
+                if (completed && process.exitValue() != 0) {
+                    log.warn("Process exited with code: {}", process.exitValue());
+                }
+            } catch (IOException e) {
+                log.error("Failed to open PDF: {}", e.getMessage());
+                Platform.runLater(() -> 
+                    showInfo("PDF Location", "PDF saved at: " + pdfPath.toAbsolutePath())
+                );
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();  // 복원
+                log.error("Interrupted while opening PDF");
+            }
+        });
     }
     
     @FXML

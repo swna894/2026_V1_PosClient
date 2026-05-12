@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.SplitPane?>
@@ -10,9 +11,12 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="600" prefWidth="800" stylesheets="@../../styles/pos_main.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.barcode.LabelController">
+<BorderPane prefHeight="600" prefWidth="800" stylesheets="@../../styles/pos_main.css"
+   xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.barcode.LabelController">
 
    <!-- 중앙 영역: 테이블과 미리보기 분할 -->
    <center>
@@ -24,8 +28,10 @@
                <TableView fx:id="table" styleClass="table-center-heade" VBox.vgrow="ALWAYS">
                   <columns>
                      <TableColumn fx:id="colNo" prefWidth="50.0" text="NO" />
-                     <TableColumn fx:id="colCheckbox" maxWidth="1.7976931348623157E308" minWidth="-1.0" prefWidth="50.0" styleClass="table-center" />
-                     <TableColumn fx:id="barcodeColumn" maxWidth="1.7976931348623157E308" prefWidth="150.0" text="BARCODE" />
+                     <TableColumn fx:id="colCheckbox" maxWidth="1.7976931348623157E308"
+                        minWidth="-1.0" prefWidth="50.0" styleClass="table-center" />
+                     <TableColumn fx:id="barcodeColumn" maxWidth="1.7976931348623157E308"
+                        prefWidth="150.0" text="BARCODE" />
                      <TableColumn fx:id="descriptionColumn" prefWidth="500" text="DESCRIPTION" />
                      <TableColumn fx:id="priceColumn" prefWidth="100" text="PRICE" />
                   </columns>
@@ -33,13 +39,17 @@
             </VBox>
 
             <!-- 오른쪽: 출력 미리보기 (printArea) -->
-            <VBox fx:id="printArea" alignment="CENTER" spacing="20" style="-fx-background-color: white; -fx-border-color: #cccccc;">
+            <VBox fx:id="printArea" alignment="CENTER" spacing="20"
+               style="-fx-background-color: white; -fx-border-color: #cccccc;">
                <padding>
                   <Insets bottom="20" left="20" right="20" top="20" />
                </padding>
-               <Label fx:id="previewName" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="선택된 상품 없음" />
-               <ImageView fx:id="barcodeImageView" fitHeight="100" fitWidth="200" pickOnBounds="true" preserveRatio="true" />
-               <Label fx:id="previewBarcodeText" style="-fx-font-family: 'Monospaced';" text="000000000000" />
+               <Label fx:id="previewName" style="-fx-font-size: 16px; -fx-font-weight: bold;"
+                  text="선택된 상품 없음" />
+               <ImageView fx:id="barcodeImageView" fitHeight="100" fitWidth="200"
+                  pickOnBounds="true" preserveRatio="true" />
+               <Label fx:id="previewBarcodeText" style="-fx-font-family: 'Monospaced';"
+                  text="000000000000" />
 
                <ProgressIndicator fx:id="progressIndicator" visible="false" />
                <Label fx:id="lblStatus" text="Ready" />
@@ -51,14 +61,19 @@
       </SplitPane>
    </center>
    <top>
-      <HBox alignment="CENTER_RIGHT" prefHeight="69.0" prefWidth="800.0" spacing="10" BorderPane.alignment="CENTER">
+      <HBox alignment="CENTER_RIGHT" prefHeight="43.0" prefWidth="800.0" spacing="10"
+         BorderPane.alignment="CENTER">
          <padding>
-            <Insets bottom="15" left="15" right="15" top="10" />
+            <Insets bottom="10.0" left="10.0" right="10.0" top="12.0" />
          </padding>
-         <Button fx:id="btnGenerate" onAction="#onGenerate" prefHeight="40" prefWidth="140" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;" text="Generate PDF" />
-         <Button onAction="#handlePrint" prefHeight="40" prefWidth="100" text="Print" />
-         <Button fx:id="btnCancel" onAction="#onCancel" prefHeight="40" prefWidth="100" text="Cancel" />
-         <Button fx:id="btnCancel1" onAction="#onCancel" prefHeight="40" prefWidth="100" text="Close" />
+         <ComboBox prefWidth="150.0" />
+         <Region HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+         <Button fx:id="btnGenerate" onAction="#onGenerate" prefHeight="40" prefWidth="140"
+            styleClass="btn,btn-lg" text="Generate PDF" />
+         <Button fx:id="btnCancel" onAction="#onCancel" prefHeight="40" prefWidth="100"
+            styleClass="btn,btn-lg" text="Cancel" />
+         <Button fx:id="btnCancel1" onAction="#onCancel" prefHeight="40" prefWidth="100"
+            styleClass="btn,btn-lg" text="Close" />
       </HBox>
    </top>
 </BorderPane>
