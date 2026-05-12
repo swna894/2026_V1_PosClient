@@ -36,7 +36,8 @@
 
             <HBox alignment="CENTER_LEFT" minWidth="450.0">
                <children>
-                  <Label fx:id="labelTotalAmount" styleClass="top-label-total" text="Total: 0.00" />
+                  <Label fx:id="labelTotalAmount" styleClass="top-label-total" text="Total: 0.00"
+                     minWidth="450.0" />
                </children>
             </HBox>
 
@@ -79,7 +80,7 @@
 
    <center>
 
-      <TableView fx:id="table" prefHeight="500" styleClass="table-center-pos"
+      <TableView fx:id="table" prefHeight="500" styleClass="table-center-header"
          BorderPane.alignment="CENTER">
 
          <columns>
@@ -311,7 +312,7 @@
             <graphic>
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
                   <image>
-                     <Image url="@../../images/20_barcode.png" />
+                     <Image url="@../../images/scan_24px.png" />
                   </image>
                </ImageView>
             </graphic>
@@ -447,6 +448,23 @@
 
          <Region HBox.hgrow="ALWAYS" />
 
+         <!-- ================================================= -->
+         <!-- GENERATE barcode -->
+         <!-- ================================================= -->
+
+         <Button fx:id="buttonOnGenerate" mnemonicParsing="false" onAction="#onGenerate"
+            prefHeight="34"
+            focusTraversable="false"
+            styleClass="btn,btn-sm">
+            <graphic>
+               <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
+                  preserveRatio="true">
+                  <image>
+                     <Image url="@../../images/20_barcode.png" />
+                  </image>
+               </ImageView>
+            </graphic>
+         </Button>
          <!-- ================================================= -->
          <!-- POS STATUS -->
          <!-- ================================================= -->
