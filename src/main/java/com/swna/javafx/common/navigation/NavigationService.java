@@ -58,8 +58,7 @@ public class NavigationService {
                 (obs, oldVal, newVal) ->
                         Platform.runLater(() -> {
                             if (newVal == AuthState.AUTHENTICATED) {
-                                //navigate(PosViewController.class);
-                                openPosStage();
+                                navigateStage(PosViewController.class);
                             } else {
                                 navigate(LoginViewController.class);
                             }
@@ -80,18 +79,17 @@ public class NavigationService {
         }
     }
 
-    private void openPosStage() {
+    public <T> void navigateStage(Class<T> controllerClass) {
         try {
             stage.close();
 
             Stage newStage = new Stage();
             newStage.getIcons().add( new Image("/images/pos_system.png") );
 
-            newStage.initStyle(StageStyle.DECORATED);
-
-            Parent root = fxWeaver.loadView(PosViewController.class);
-
+            Parent root = fxWeaver.loadView(controllerClass);
+            
             Scene scene = new Scene(root);
+            newStage.initStyle(StageStyle.DECORATED);
             newStage.setScene(scene);
             newStage.setMaximized(true);
             newStage.show();
@@ -133,6 +131,7 @@ public class NavigationService {
         if (viewClass.equals(LoginViewController.class)) {
             stage.setFullScreen(false);
             stage.setMaximized(false);
+            stage.initStyle(StageStyle.UNDECORATED);
             stage.centerOnScreen();
 
         } else {
@@ -141,7 +140,7 @@ public class NavigationService {
             // POS 화면
             // =========================
             stage.setFullScreen(true);
-
+            stage.initStyle(StageStyle.DECORATED);
             Object controller =  fxWeaver.getBean(viewClass);
 
             if (controller instanceof ViewInfo viewInfo) {

@@ -195,24 +195,19 @@ public class PosTableSetup {
      */
     private void setupDataColumns(TableColumns columns) {
         // 바코드 - 중앙 정렬, 읽기 전용
-        TableColumnUtil.makeStringColumn(columns.colBarcode, 
-            PosItem::barcodeProperty, PosItem::setBarcode, READ_ONLY, ALIGN_CENTER, null);
+        TableColumnUtil.makeStringColumn(columns.colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, READ_ONLY, ALIGN_CENTER, null);
         
         // 상품명 - 왼쪽 정렬, 읽기 전용
-        TableColumnUtil.makeStringColumn(columns.colDesc, 
-            PosItem::descriptionProperty, PosItem::setDescription, READ_ONLY, ALIGN_LEFT, null);
+        TableColumnUtil.makeStringColumn(columns.colDesc, PosItem::descriptionProperty, PosItem::setDescription, READ_ONLY, ALIGN_LEFT, null);
         
         // 코멘트 - 왼쪽 정렬, 읽기 전용
-        TableColumnUtil.makeStringColumn(columns.colComment, 
-            PosItem::commentProperty, PosItem::setComment, READ_ONLY, ALIGN_LEFT, null);
+        TableColumnUtil.makeStringColumn(columns.colComment, PosItem::commentProperty, PosItem::setComment, READ_ONLY, ALIGN_LEFT, null);
         
         // 수량 - 중앙 정렬, 편집 가능
-        TableColumnUtil.makeIntegerColumn(columns.colQty, 
-            PosItem::qtyProperty, PosItem::setQty, EDITABLE, ALIGN_CENTER, null);
+        TableColumnUtil.makeIntegerColumn(columns.colQty,  PosItem::qtyProperty, PosItem::setQty, EDITABLE, ALIGN_CENTER, null);
         
         // 재고 - 중앙 정렬, 읽기 전용
-        TableColumnUtil.makeIntegerColumn(columns.colStock, 
-            PosItem::stockProperty, PosItem::setStock, READ_ONLY, ALIGN_CENTER, null);
+        TableColumnUtil.makeIntegerColumn(columns.colStock, PosItem::stockProperty, PosItem::setStock, READ_ONLY, ALIGN_CENTER, null);
         
         // 단가 - 오른쪽 정렬, 읽기 전용
         TableColumnUtil.makeCurrencyColumn(columns.colPrice, 

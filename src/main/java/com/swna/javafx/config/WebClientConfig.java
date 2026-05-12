@@ -14,6 +14,8 @@ import com.swna.javafx.config.filter.ErrorHandlingWebClientFilter;
 import com.swna.javafx.config.filter.LoggingWebClientFilter;
 import com.swna.javafx.config.filter.ReAuthWebClientFilter;
 
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import reactor.netty.http.client.HttpClient;
 
 /**
@@ -27,23 +29,30 @@ public class WebClientConfig {
      * 다양한 필터(로깅, 인증, 에러 핸들링)가 적용되어 있습니다.
      */
     @Bean
-    @Primary // 동일한 타입의 빈이 여러 개일 때 우선적으로 주입되도록 설정
+    @Primary
     public WebClient webClient(
-            ApiProperties apiProperties,         // API 기본 정보 (URL 등)
-            AuthWebClientFilter authFilter,      // 인증 토큰 추가 필터
-            LoggingWebClientFilter loggingFilter, // 요청/응답 로깅 필터
-            ReAuthWebClientFilter reAuthFilter,  // 401 에러 시 토큰 재발급 및 재시도 필터
-            ErrorHandlingWebClientFilter errorFilter // 에러 응답 표준화 필터
+            ApiProperties apiProperties,
+            AuthWebClientFilter authFilter,
+            LoggingWebClientFilter loggingFilter,
+            ReAuthWebClientFilter reAuthFilter,
+            ErrorHandlingWebClientFilter errorFilter
         ) {
 
-        // 하위 Netty HttpClient 설정 (타임아웃 등 네트워크 레벨 설정)
+        // 하위 Netty HttpClient 설정 (타임아웃, 버퍼 등 네트워크 레벨 설정)
         HttpClient httpClient = HttpClient.create()
-                .responseTimeout(Duration.ofSeconds(5)); // 응답 지연 5초 제한
+                .responseTimeout(Duration.ofSeconds(30))  // 응답 타임아웃 5초 → 30초로 증가
+                .doOnConnected(conn -> 
+                    conn.addHandlerLast(new ReadTimeoutHandler(30))
+                       .addHandlerLast(new WriteTimeoutHandler(30))
+                );
 
         return WebClient.builder()
-                .baseUrl(apiProperties.getBaseUrl()) // 기본 호스트 주소 설정
-                .clientConnector(new ReactorClientHttpConnector(httpClient)) // 생성한 HttpClient 연결
-
+                .baseUrl(apiProperties.getBaseUrl())
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .codecs(configurer -> {
+                    // 🔥 중요: 버퍼 크기를 20MB로 증가 (기본값 256KB)
+                    configurer.defaultCodecs().maxInMemorySize(20 * 1024 * 1024);
+                })
                 /* 
                  * 필터 적용 순서 (중요): 
                  * --- 요청(Request) 시 실행 순서 (위 -> 아래) --- 
@@ -52,13 +61,13 @@ public class WebClientConfig {
                 .filter(loggingFilter.logRequest())
                 .filter(loggingFilter.logResponse())
                 
-                .filter(authFilter.authFilter()) // 3. (응답) 마지막 처리
+                .filter(authFilter.authFilter())
 
                 // 🔴 중요: ErrorFilter를 먼저 등록
-                .filter(errorFilter)            // 2. (응답) ReAuth 실패 시 여기서 에러 변환
+                .filter(errorFilter)
 
                 // 🔴 중요: ReAuthFilter를 나중에 등록
-                .filter(reAuthFilter)           // 1. (응답) 가장 먼저 401인지 확인하고 재시도
+                .filter(reAuthFilter)
                 
                 .build();
     }
@@ -70,11 +79,15 @@ public class WebClientConfig {
     @Bean
     public WebClient authWebClient(ApiProperties apiProperties) {
         HttpClient httpClient = HttpClient.create()
-                .responseTimeout(Duration.ofSeconds(10)); // 인증은 좀 더 여유있게
+                .responseTimeout(Duration.ofSeconds(10));
 
         return WebClient.builder()
                 .baseUrl(apiProperties.getBaseUrl())
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .codecs(configurer -> {
+                    // 인증 응답도 버퍼 크기 증가
+                    configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024);
+                })
                 .build();
     }
 }

@@ -1,79 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns="http://javafx.com/javafx"
-   xmlns:fx="http://javafx.com/fxml"
-   fx:controller="com.swna.javafx.barcode.BarcodeLabelController"
-   prefWidth="800" prefHeight="600">
-
-   <!-- 상단 타이틀 영역 -->
-   <top>
-      <VBox spacing="10">
-         <padding>
-            <Insets top="15" right="15" bottom="10" left="15" />
-         </padding>
-         <Label text="Barcode Label PDF Generator"
-            style="-fx-font-size: 18px; -fx-font-weight: bold;" />
-         <Label text="A4 65 Labels (5 x 13)" style="-fx-font-size: 12px;" />
-      </VBox>
-   </top>
+<BorderPane prefHeight="600" prefWidth="800" stylesheets="@../../styles/pos_main.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.barcode.LabelController">
 
    <!-- 중앙 영역: 테이블과 미리보기 분할 -->
    <center>
-      <SplitPane dividerPositions="0.6">
+      <SplitPane dividerPositions="0.6858974358974359" prefHeight="520.0" prefWidth="928.0">
          <items>
             <!-- 왼쪽: 상품 목록 테이블 -->
-            <VBox spacing="10">
-               <padding>
-                  <Insets top="10" right="10" bottom="10" left="10" />
-               </padding>
+            <VBox>
                <!-- [수정 사항] TableColumn에 fx:id를 부여하고 내부 cellValueFactory 삭제 -->
-               <TableView fx:id="productTable" VBox.vgrow="ALWAYS">
+               <TableView fx:id="table" styleClass="table-center-heade" VBox.vgrow="ALWAYS">
                   <columns>
-                     <TableColumn fx:id="barcodeColumn" text="바코드" prefWidth="150" />
-                     <TableColumn fx:id="descriptionColumn" text="상품명" prefWidth="200" />
-                     <TableColumn fx:id="priceColumn" text="가격" prefWidth="100" />
+                     <TableColumn fx:id="colNo" prefWidth="50.0" text="NO" />
+                     <TableColumn fx:id="colCheckbox" maxWidth="1.7976931348623157E308" minWidth="-1.0" prefWidth="50.0" styleClass="table-center" />
+                     <TableColumn fx:id="barcodeColumn" maxWidth="1.7976931348623157E308" prefWidth="150.0" text="BARCODE" />
+                     <TableColumn fx:id="descriptionColumn" prefWidth="500" text="DESCRIPTION" />
+                     <TableColumn fx:id="priceColumn" prefWidth="100" text="PRICE" />
                   </columns>
                </TableView>
             </VBox>
 
             <!-- 오른쪽: 출력 미리보기 (printArea) -->
-            <VBox fx:id="printArea" spacing="20" alignment="CENTER"
-               style="-fx-background-color: white; -fx-border-color: #cccccc;">
+            <VBox fx:id="printArea" alignment="CENTER" spacing="20" style="-fx-background-color: white; -fx-border-color: #cccccc;">
                <padding>
-                  <Insets top="20" right="20" bottom="20" left="20" />
+                  <Insets bottom="20" left="20" right="20" top="20" />
                </padding>
-               <Label fx:id="previewName" style="-fx-font-size: 16px; -fx-font-weight: bold;"
-                  text="선택된 상품 없음" />
-               <ImageView fx:id="barcodeImageView" fitWidth="200" fitHeight="100"
-                  pickOnBounds="true" preserveRatio="true" />
-               <Label fx:id="previewBarcodeText" style="-fx-font-family: 'Monospaced';"
-                  text="000000000000" />
+               <Label fx:id="previewName" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="선택된 상품 없음" />
+               <ImageView fx:id="barcodeImageView" fitHeight="100" fitWidth="200" pickOnBounds="true" preserveRatio="true" />
+               <Label fx:id="previewBarcodeText" style="-fx-font-family: 'Monospaced';" text="000000000000" />
 
                <ProgressIndicator fx:id="progressIndicator" visible="false" />
                <Label fx:id="lblStatus" text="Ready" />
             </VBox>
          </items>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" />
+         </padding>
       </SplitPane>
    </center>
-
-   <!-- 하단 버튼 영역 -->
-   <bottom>
-      <HBox spacing="10" alignment="CENTER_RIGHT">
+   <top>
+      <HBox alignment="CENTER_RIGHT" prefHeight="69.0" prefWidth="800.0" spacing="10" BorderPane.alignment="CENTER">
          <padding>
-            <Insets top="10" right="15" bottom="15" left="15" />
+            <Insets bottom="15" left="15" right="15" top="10" />
          </padding>
-         <Button text="Print" onAction="#handlePrint" prefWidth="100" prefHeight="40" />
-         <Button fx:id="btnGenerate" text="Generate PDF" onAction="#onGenerate" prefWidth="140"
-            prefHeight="40"
-            style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;" />
-         <Button fx:id="btnCancel" text="Cancel" onAction="#onCancel" prefWidth="100"
-            prefHeight="40" />
+         <Button fx:id="btnGenerate" onAction="#onGenerate" prefHeight="40" prefWidth="140" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;" text="Generate PDF" />
+         <Button onAction="#handlePrint" prefHeight="40" prefWidth="100" text="Print" />
+         <Button fx:id="btnCancel" onAction="#onCancel" prefHeight="40" prefWidth="100" text="Cancel" />
+         <Button fx:id="btnCancel1" onAction="#onCancel" prefHeight="40" prefWidth="100" text="Close" />
       </HBox>
-   </bottom>
+   </top>
 </BorderPane>

@@ -3,6 +3,8 @@ package com.swna.javafx.pos;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.barcode.LabelController;
+import com.swna.javafx.common.navigation.NavigationService;
 import com.swna.javafx.common.util.StatusLabel;
 import com.swna.javafx.common.util.StatusLabelManager;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
@@ -50,12 +52,13 @@ public class PosViewController {
     // ========== Constants ==========
     private final PosViewModel viewModel;
     private final SafeBarcodeScanner safeBarcodeScanner;
+    private final BarcodeScannerManager scannerManager;
     private final PosTableSetup tableSetup;
     private final PaymentDialogManager paymentDialogManager;
     private final UiNotifier uiNotifier;
     private final ClockManager clockManager;
-    private final BarcodeScannerManager scannerManager;
     private final CartButtonManager cartButtonManager;
+    private final NavigationService navigationService;
     private final StatusLabelManager statusLabelManager;
     private final PrintToggleService printToggleService; 
     private final PosToggleService posToggleService; 
@@ -99,6 +102,7 @@ public class PosViewController {
     @FXML private Button buttonCredit;
     @FXML private Button buttonCashout;
     @FXML private Button buttonDrawer;
+    @FXML private Button buttonOnGenerate;
     @FXML private Button buttonOnPos;
     @FXML private Button buttonOnPrint;
     
@@ -267,6 +271,7 @@ public class PosViewController {
     @FXML private void onActionQty(ActionEvent e) { log.info("onActionQty"); }
     @FXML private void onActionPrint(ActionEvent e) { log.info("onActionPrint"); }
     @FXML private void onActionDrawer(ActionEvent e) { log.info("onActionDrawer"); }
+    @FXML private void onGenerate(ActionEvent e) { navigationService.navigateStage(LabelController.class); }
     @FXML
     private void onPos(ActionEvent e) {
         posToggleService.toggle();
