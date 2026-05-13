@@ -1,4 +1,4 @@
-package com.swna.javafx.pos.service;
+package com.swna.javafx.pos.infrastructure;
 
 import java.io.FileNotFoundException;
 import java.util.UUID;

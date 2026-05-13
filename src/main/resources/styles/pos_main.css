@@ -99,6 +99,11 @@
 }
 
 /* 대형 버튼 (기존) */
+.btn-xlg {
+   -fx-pref-width: 160px;
+   -fx-padding: 3 30 3 30;
+}
+
 .btn-lg {
    -fx-pref-width: 140px;
    -fx-padding: 3 30 3 30;

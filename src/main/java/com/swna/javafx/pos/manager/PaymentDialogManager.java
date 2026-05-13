@@ -34,12 +34,12 @@ public class PaymentDialogManager {
     /**
      * 현금 결제 다이얼로그 표시
      */
-    public void showCashDialog(PosViewModel viewModel, Consumer<PaymentResult> callback) {
+    public void showCashDialog(PosViewModel viewModel, Consumer<DialogResult> callback) {
         BigDecimal total = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
         BigDecimal discount = BigDecimal.valueOf(viewModel.discountProperty().get());
 
         if (total.compareTo(BigDecimal.ZERO) <= 0) {
-            callback.accept(PaymentResult.failure("No items to pay"));
+            callback.accept(DialogResult.failure("No items to pay"));
             return;
         }
 
@@ -47,10 +47,10 @@ public class PaymentDialogManager {
             controller.initData(total, discount, receivedCash -> 
                 viewModel.processCashPayment(total, receivedCash, success -> {
                     if (Boolean.TRUE.equals(success)) {
-                        PaymentResult result = PaymentResult.success("Change: " + receivedCash.subtract(total));
+                        DialogResult result = DialogResult.success("Change: " + receivedCash.subtract(total));
                         callback.accept(result);
                     } else {
-                        callback.accept(PaymentResult.failure("Payment failed"));
+                        callback.accept(DialogResult.failure("Payment failed"));
                     }
                 })
             )
@@ -60,12 +60,12 @@ public class PaymentDialogManager {
     /**
      * 카드/현금 혼합 결제 다이얼로그 표시 (TriConsumer 사용)
      */
-    public void showCreditDialog(PosViewModel viewModel, Consumer<PaymentResult> callback) {
+    public void showCreditDialog(PosViewModel viewModel, Consumer<DialogResult> callback) {
         BigDecimal total = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
         BigDecimal discount = BigDecimal.valueOf(viewModel.discountProperty().get());
 
         if (total.compareTo(BigDecimal.ZERO) <= 0) {
-            callback.accept(PaymentResult.failure("No items to pay"));
+            callback.accept(DialogResult.failure("No items to pay"));
             return;
         }
 
@@ -76,13 +76,13 @@ public class PaymentDialogManager {
             
             viewModel.processMixedPayment(cashPart, creditPart, cardNumber, success -> {
                 if (Boolean.TRUE.equals(success)) {
-                    PaymentResult result = PaymentResult.success(
+                    DialogResult result = DialogResult.success(
                         String.format("Cash: $%.2f, Credit: $%.2f, Card: %s", 
                             cashPart, creditPart, maskCardNumber(cardNumber))
                     );
                     callback.accept(result);
                 } else {
-                    callback.accept(PaymentResult.failure("Mixed payment failed"));
+                    callback.accept(DialogResult.failure("Mixed payment failed"));
                 }
             });
         };
@@ -95,12 +95,12 @@ public class PaymentDialogManager {
     /**
      * 현금 인출(Cashout) 결제 다이얼로그 표시
      */
-    public void showCashoutDialog(PosViewModel viewModel, Consumer<PaymentResult> callback) {
+    public void showCashoutDialog(PosViewModel viewModel, Consumer<DialogResult> callback) {
         BigDecimal total = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
         BigDecimal discount = BigDecimal.valueOf(viewModel.discountProperty().get());
 
         if (total.compareTo(BigDecimal.ZERO) <= 0) {
-            callback.accept(PaymentResult.failure("No items to pay for cashout"));
+            callback.accept(DialogResult.failure("No items to pay for cashout"));
             return;
         }
 
@@ -108,13 +108,13 @@ public class PaymentDialogManager {
             controller.initData(total, discount, (cashoutAmount, totalCredit, cardNumber) -> 
                 viewModel.processCashoutPayment(cashoutAmount, totalCredit, cardNumber, success -> {
                     if (Boolean.TRUE.equals(success)) {
-                        PaymentResult result = PaymentResult.success(
+                        DialogResult result = DialogResult.success(
                             String.format("EFTPOS: $%.2f, Cashout: $%.2f, Card: %s", 
                                 totalCredit, cashoutAmount, maskCardNumber(cardNumber))
                         );
                         callback.accept(result);
                     } else {
-                        callback.accept(PaymentResult.failure("Cashout failed"));
+                        callback.accept(DialogResult.failure("Cashout failed"));
                     }
                 })
             )
@@ -191,16 +191,16 @@ public class PaymentDialogManager {
      * 결제 결과를 담는 내부 클래스
      */
     @lombok.Value
-    public static class PaymentResult {
+    public static class DialogResult {
         boolean success;
         String message;
         
-        public static PaymentResult success(String message) {
-            return new PaymentResult(true, message);
+        public static DialogResult success(String message) {
+            return new DialogResult(true, message);
         }
         
-        public static PaymentResult failure(String message) {
-            return new PaymentResult(false, message);
+        public static DialogResult failure(String message) {
+            return new DialogResult(false, message);
         }
     }
 }

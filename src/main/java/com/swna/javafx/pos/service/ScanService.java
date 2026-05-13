@@ -4,30 +4,23 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeoutException;
 
 import org.springframework.stereotype.Service;
 
-import com.swna.javafx.common.api.ApiEndpointMapper;
-import com.swna.javafx.common.api.ApiResponseException;
-import com.swna.javafx.common.api.CommonApiClient;
-import com.swna.javafx.common.response.ApiResponse;
+import com.swna.javafx.pos.api.ProductApiService;
 import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.response.ProductResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 @Slf4j 
 @Service
 @RequiredArgsConstructor
-public class PosService {
+public class ScanService {
 
-    
-    private final CommonApiClient apiClient;
-    private final ApiEndpointMapper apiMapper;
+    private final ProductApiService productApi;
     
     // API 호출 타임아웃 (초)
     private static final int API_TIMEOUT_SECONDS = 10;
@@ -63,37 +56,13 @@ public class PosService {
             return Mono.just(cached);
         }
         
-        // 2. 타입 안전한 메타데이터 조회
-        var metadata = apiMapper.<ApiResponse<ProductResponse>>getMetadata("barcode_search");
-        
-        // 3. 경로 변수 설정
-        Map<String, Object> pathVars = Map.of("barcode", barcode);
-        
-        // 4. API 호출 (getForData 사용 - 자동 언래핑)
-        return apiClient.getForData(metadata, pathVars, null)
+        // 2. API 호출 (getForData 사용 - 자동 언래핑)
+        return productApi.getProductByBarcode(barcode)
                 .timeout(Duration.ofSeconds(API_TIMEOUT_SECONDS))
                 .retry(RETRY_COUNT)
-                .subscribeOn(Schedulers.boundedElastic())
                 .map(this::toPosItemWithCache)
-                .doOnSuccess(item -> {
-                    if (item != null) {
-                        log.info("[Scan] Product found: {} ({})", item.getDescription(), barcode);
-                    }
-                })
-                .onErrorResume(ApiResponseException.class, e -> {
-                    // API 응답 실패 (비즈니스 에러)
-                    log.warn("[Scan] API error for barcode {}: code={}, message={}", 
-                        barcode, e.getCode(), e.getMessage());
-                    return Mono.empty();
-                })
-                .onErrorResume(TimeoutException.class, e -> {
-                    // 타임아웃 에러
-                    log.error("[Scan] Timeout for barcode {}: {}", barcode, e.getMessage());
-                    return Mono.empty();
-                })
-                .onErrorResume(Exception.class, e -> {
-                    // 기타 에러
-                    log.error("[Scan] Unexpected error for barcode {}: {}", barcode, e.getMessage(), e);
+                .onErrorResume(e -> {
+                    log.error("Scan failed for barcode: {}", barcode, e);
                     return Mono.empty();
                 });
     }

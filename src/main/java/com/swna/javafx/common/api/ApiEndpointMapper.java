@@ -26,7 +26,6 @@ public class ApiEndpointMapper {
     // GET 엔드포인트
     public static final String PRODUCTS = API_BASE + "/products";
     public static final String PRODUCT_LABELS = API_BASE + "/products/labels";
-    public static final String PRODUCT_BARCODE = API_BASE + "/products/barcode/{barcode}";
 
     public static final String SHOP_GET = API_BASE + "/shops/first";
     
@@ -39,10 +38,6 @@ public class ApiEndpointMapper {
     private static final Map<String, DomainMetadata<?>> REGISTRY = Map.of(
         // GET - PageResult<Product> (페이징 응답 - ApiResponse 래퍼 없음)
         "product_page", new DomainMetadata<PageResult<Product>>( PRODUCTS,  HttpMethod.GET,  new ParameterizedTypeReference<PageResult<Product>>() {}
-        ),
-        
-        // GET - ApiResponse<ProductResponse> (단일 상품 조회)
-        "barcode_search", new DomainMetadata<ApiResponse<ProductResponse>>(  PRODUCT_BARCODE,  HttpMethod.GET,  new ParameterizedTypeReference<ApiResponse<ProductResponse>>() {}
         ),
         
         // GET - ApiResponse<List<BarcodeLabelDto>> (라벨 목록)

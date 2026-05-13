@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.pos.dto.request.CardAuthRequest;
 import com.swna.javafx.pos.dto.request.CardAuthResult;
+import com.swna.javafx.pos.infrastructure.VaultService;
+import com.swna.javafx.pos.service.config.PosToggleService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CardClient {
+public class CardPaymentService {
     
     private final VaultService vaultService;
     private final PosToggleService posToggleService;

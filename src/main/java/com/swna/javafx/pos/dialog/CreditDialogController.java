@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.pos.dto.request.CardAuthResult;
 import com.swna.javafx.pos.functional.TriConsumer;
-import com.swna.javafx.pos.service.CardClient;
+import com.swna.javafx.pos.service.CardPaymentService;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -31,7 +31,7 @@ public class CreditDialogController extends BasePaymentDialog {
 
     private BigDecimal totalToPay;
     private CreditCallback callback;
-    private final CardClient cardClient;
+    private final CardPaymentService cardClient;
 
     // ========== Callback Interface ==========
     

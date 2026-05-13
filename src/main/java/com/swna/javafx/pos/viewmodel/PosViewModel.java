@@ -14,7 +14,7 @@ import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.event.PaymentSuccessEvent;
 import com.swna.javafx.pos.event.PrintFailureEvent;
 import com.swna.javafx.pos.service.PaymentService;
-import com.swna.javafx.pos.service.PosService;
+import com.swna.javafx.pos.service.ScanService;
 import com.swna.javafx.pos.viewmodel.handler.ScanHandler;
 import com.swna.javafx.pos.viewmodel.manager.CartManager;
 import com.swna.javafx.pos.viewmodel.manager.DiscountManager;
@@ -46,7 +46,7 @@ public class PosViewModel {
     private final StringProperty scanStatus = new SimpleStringProperty(STATUS_READY);
     
     public PosViewModel(ApplicationEventPublisher eventPublisher, 
-                        PosService posService, 
+                        ScanService posService, 
                         PaymentService paymentService) {
         this.eventPublisher = eventPublisher;
         this.cartManager = new CartManager();

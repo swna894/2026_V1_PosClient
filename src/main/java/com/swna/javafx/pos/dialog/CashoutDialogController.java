@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.pos.dto.request.CardAuthResult;
 import com.swna.javafx.pos.functional.TriConsumer;
-import com.swna.javafx.pos.service.CardClient;
+import com.swna.javafx.pos.service.CardPaymentService;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -31,7 +31,7 @@ public class CashoutDialogController extends BasePaymentDialog {
 
     private BigDecimal totalAfterDiscount;
     private TriConsumer<BigDecimal, BigDecimal, String> callback;  // ✅ 하나의 타입으로 통일
-    private final CardClient cardClient;
+    private final CardPaymentService cardClient;
 
     // ========== Initialization - 단일 메서드만 유지 ==========
 

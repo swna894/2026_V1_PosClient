@@ -2,7 +2,6 @@ package com.swna.javafx.config;
 
 import java.time.Duration;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -49,10 +48,10 @@ public class WebClientConfig {
         return WebClient.builder()
                 .baseUrl(apiProperties.getBaseUrl())
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
-                .codecs(configurer -> {
+                .codecs(configurer -> 
                     // 🔥 중요: 버퍼 크기를 20MB로 증가 (기본값 256KB)
-                    configurer.defaultCodecs().maxInMemorySize(20 * 1024 * 1024);
-                })
+                    configurer.defaultCodecs().maxInMemorySize(20 * 1024 * 1024)
+                )
                 /* 
                  * 필터 적용 순서 (중요): 
                  * --- 요청(Request) 시 실행 순서 (위 -> 아래) --- 
@@ -84,10 +83,10 @@ public class WebClientConfig {
         return WebClient.builder()
                 .baseUrl(apiProperties.getBaseUrl())
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
-                .codecs(configurer -> {
+                .codecs(configurer -> 
                     // 인증 응답도 버퍼 크기 증가
-                    configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024);
-                })
+                    configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024)
+                )
                 .build();
     }
 }

@@ -15,8 +15,8 @@ import com.swna.javafx.pos.manager.ClockManager;
 import com.swna.javafx.pos.manager.PaymentDialogManager;
 import com.swna.javafx.pos.manager.PosTableSetup;
 import com.swna.javafx.pos.manager.UiNotifier;
-import com.swna.javafx.pos.service.PosToggleService;
-import com.swna.javafx.pos.service.PrintToggleService;
+import com.swna.javafx.pos.service.config.PosToggleService;
+import com.swna.javafx.pos.service.config.PrintToggleService;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
 
 import javafx.application.Platform;
@@ -244,7 +244,7 @@ public class PosViewController {
         );
     }
 
-    private void afterPayment(PaymentDialogManager.PaymentResult result, String paymentType) {
+    private void afterPayment(PaymentDialogManager.DialogResult result, String paymentType) {
         if (result.isSuccess()) {
             log.info("[UI] {} payment successful: {}", paymentType, result.getMessage());
             showSuccessMessage(result.getMessage());

@@ -3,7 +3,7 @@ package com.swna.javafx.pos.viewmodel.handler;
 import java.util.Optional;
 
 import com.swna.javafx.pos.domain.PosItem;
-import com.swna.javafx.pos.service.PosService;
+import com.swna.javafx.pos.service.ScanService;
 import com.swna.javafx.pos.viewmodel.manager.CartManager;
 
 import javafx.application.Platform;
@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ScanHandler {
     
-    private final PosService posService;
+    private final ScanService posService;
     private final CartManager cartManager;
 
     public static final String QUICK_ITEM_PREFIX = "QUICK";
@@ -23,7 +23,7 @@ public class ScanHandler {
     private Runnable onNotFound;
     private Runnable onError;
     
-    public ScanHandler(PosService posService, CartManager cartManager) {
+    public ScanHandler(ScanService posService, CartManager cartManager) {
         this.posService = posService;
         this.cartManager = cartManager;
     }

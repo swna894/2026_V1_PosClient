@@ -61,7 +61,7 @@ public class LabelViewModel extends BaseViewModel {
         
         List<BarcodeLabelDto> selectedDtos = selectedLabels.stream()
             .map(BarcodeLabel::toDto)
-            .collect(Collectors.toList());
+            .toList();
         
         pdfGenerator.generate(selectedDtos);
     }
@@ -74,7 +74,7 @@ public class LabelViewModel extends BaseViewModel {
         
         List<BarcodeLabelDto> dtos = productList.stream()
             .map(BarcodeLabel::toDto)
-            .collect(Collectors.toList());
+            .toList();
         
         pdfGenerator.generate(dtos);
     }
@@ -120,7 +120,7 @@ public class LabelViewModel extends BaseViewModel {
         }
         return dtoList.stream()
             .map(BarcodeLabel::fromDto)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**

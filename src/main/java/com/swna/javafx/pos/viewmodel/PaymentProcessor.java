@@ -6,7 +6,7 @@ import com.swna.javafx.pos.dto.request.DiscountType;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
 import com.swna.javafx.pos.dto.request.SaleItemRequest;
 import com.swna.javafx.pos.dto.request.SaleRequest;
-import com.swna.javafx.pos.service.PaymentResult;
+import com.swna.javafx.pos.dto.response.PaymentResult;
 import com.swna.javafx.pos.service.PaymentService;
 import com.swna.javafx.pos.viewmodel.manager.CartManager;
 import javafx.collections.ObservableList;

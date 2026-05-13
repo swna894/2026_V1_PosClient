@@ -1,4 +1,4 @@
-package com.swna.javafx.pos.service;
+package com.swna.javafx.pos.service.config;
 
 import org.springframework.stereotype.Service;
 import javafx.beans.property.BooleanProperty;

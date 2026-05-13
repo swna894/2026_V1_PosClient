@@ -7,6 +7,7 @@ import com.swna.javafx.pos.dto.request.DiscountRequest;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
 import com.swna.javafx.pos.dto.request.SaleItemRequest;
 import com.swna.javafx.pos.dto.request.SaleRequest;
+import com.swna.javafx.pos.dto.response.PaymentResult;
 import com.swna.javafx.pos.dto.response.SaleResponse;
 
 import lombok.extern.slf4j.Slf4j;
