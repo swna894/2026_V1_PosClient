@@ -1,0 +1,63 @@
+/* supplier.css */
+
+/* 기본 행 스타일 */
+.supplier-row {
+   -fx-background-color: transparent;
+}
+
+.supplier-row:hover {
+   -fx-background-color: #f5f5f5;
+}
+
+/* 활성화된 행 스타일 */
+.supplier-active {
+   -fx-background-color: #e8f5e9;
+}
+
+.supplier-active:hover {
+   -fx-background-color: #c8e6c9;
+}
+
+/* 비활성화된 행 스타일 */
+.supplier-inactive {
+   -fx-background-color: #ffebee;
+}
+
+.supplier-inactive:hover {
+   -fx-background-color: #ffcdd2;
+}
+
+/* 선택된 행 스타일 */
+.table-row-cell:selected {
+   -fx-background-color: #2196f3;
+   -fx-text-fill: white;
+}
+
+.table-row-cell:selected .text {
+   -fx-fill: white;
+}
+
+/* 테이블 컬럼 헤더 */
+.table-view .column-header {
+   -fx-background-color: #e9ecef;
+   -fx-font-weight: bold;
+}
+
+.table-view .column-header .label {
+   -fx-font-weight: bold;
+   -fx-padding: 8px;
+}
+
+/* 프로그레스 인디케이터 */
+.progress-indicator {
+   -fx-progress-color: #007bff;
+}
+
+/* 툴팁 스타일 */
+.tooltip {
+   -fx-background-color: #333;
+   -fx-text-fill: white;
+   -fx-font-size: 12px;
+   -fx-padding: 8px;
+   -fx-background-radius: 5px;
+}

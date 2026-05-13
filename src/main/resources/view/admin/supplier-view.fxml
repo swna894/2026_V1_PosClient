@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.supplier.controller.SupplierController">
+
+   <padding>
+      <Insets top="10" right="10" bottom="10" left="10" />
+   </padding>
+
+   <!-- 상단 툴바 -->
+   <ToolBar>
+      <Button fx:id="refreshButton" text="Refresh" graphicTextGap="5">
+         <graphic>
+            <Label text="🔄" />
+         </graphic>
+      </Button>
+      <Separator orientation="VERTICAL" />
+      <Button fx:id="addButton" text="Add" graphicTextGap="5">
+         <graphic>
+            <Label text="➕" />
+         </graphic>
+      </Button>
+      <Button fx:id="editButton" text="Edit" graphicTextGap="5" disable="true">
+         <graphic>
+            <Label text="✏️" />
+         </graphic>
+      </Button>
+      <Button fx:id="deleteButton" text="Delete" graphicTextGap="5" disable="true">
+         <graphic>
+            <Label text="🗑️" />
+         </graphic>
+      </Button>
+   </ToolBar>
+
+   <!-- 검색 영역 -->
+   <HBox spacing="10" alignment="CENTER_LEFT">
+      <Label text="Search:" />
+      <TextField fx:id="searchField" promptText="Abbr, Name, Company, Phone..." HBox.hgrow="ALWAYS" />
+      <CheckBox fx:id="activeOnlyCheckBox" text="Active Only" />
+      <Label fx:id="countLabel" text="Total: 0 / Filtered: 0" style="-fx-text-fill: #666;" />
+   </HBox>
+
+   <!-- 상태 표시줄 -->
+   <HBox spacing="10" alignment="CENTER_LEFT">
+      <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="20" prefWidth="20" />
+      <Label fx:id="statusLabel" text="Ready" style="-fx-text-fill: #666;" />
+   </HBox>
+
+   <!-- 거래처 테이블 (rowFactory는 Controller에서 설정) -->
+   <TableView fx:id="supplierTable" VBox.vgrow="ALWAYS">
+      <columns>
+         <TableColumn fx:id="idColumn" text="ID" prefWidth="60" />
+         <TableColumn fx:id="abbrColumn" text="Abbr" prefWidth="80" />
+         <TableColumn fx:id="nameColumn" text="Name" prefWidth="150" />
+         <TableColumn fx:id="companyColumn" text="Company" prefWidth="150" />
+         <TableColumn fx:id="phoneColumn" text="Phone" prefWidth="120" />
+         <TableColumn fx:id="emailColumn" text="Email" prefWidth="180" />
+         <TableColumn fx:id="addressColumn" text="Address" prefWidth="200" />
+         <TableColumn fx:id="activeColumn" text="Status" prefWidth="80" />
+      </columns>
+   </TableView>
+</VBox>
