@@ -1,16 +1,13 @@
 package com.swna.javafx.barcode.service;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.function.Consumer;
 
 import org.springframework.stereotype.Service;
 
+import com.swna.javafx.barcode.api.BarcodeLabelApiClient;
 import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 import com.swna.javafx.barcode.infrastructre.PdfLabelGenerator;
-import com.swna.javafx.common.api.ApiEndpointMapper;
-import com.swna.javafx.common.api.CommonApiClient;
-import com.swna.javafx.common.response.ApiResponse;
 import com.swna.javafx.common.util.PdfOpenUtil;
 
 import javafx.application.Platform;
@@ -23,59 +20,33 @@ import reactor.core.scheduler.Schedulers;
  * 바코드 라벨 인쇄 서비스
  * 
  * 리팩토링 주요 변경사항:
- * 1. CommonApiClient의 타입 안전한 메서드 사용 (getForData)
- * 2. 명시적인 제네릭 타입 파라미터 전달
- * 3. 타임아웃 및 재시도 정책 추가
- * 4. 에러 처리 강화
- *//**
- * 바코드 라벨 인쇄 서비스
- * 
- * 리팩토링 주요 변경사항:
- * 1. CommonApiClient의 타입 안전한 메서드 사용 (getForData)
- * 2. 명시적인 제네릭 타입 파라미터 전달
- * 3. 타임아웃 및 재시도 정책 추가
- * 4. 에러 처리 강화
+ * 1. WebClientCommon 적용 및 API 로직 분리 (BarcodeLabelApiClient)
+ * 2. ApiEndpointMapper 및 CommonApiClient 의존성 제거
+ * 3. 명확한 책임 분리: API 통신과 비즈니스 로직 분리
+ * 4. 코드 간소화 및 가독성 향상
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BarcodeLabelPrintService {
 
-       // API 호출 타임아웃 (초)
-    private static final int API_TIMEOUT_SECONDS = 30;
-    
-    // 재시도 횟수
-    private static final int RETRY_COUNT = 3;
-    
-    private final CommonApiClient apiClient;
-    private final ApiEndpointMapper endpointMapper;
+    private final BarcodeLabelApiClient labelApiClient;
     private final PdfLabelGenerator pdfGenerator;
 
-
     // =========================
-    // Public Methods (Type-Safe)
+    // Public Methods
     // =========================
     
     /**
-     * 라벨 데이터 조회 (타입 안전한 버전)
+     * 라벨 데이터 조회
      * 
      * @return 라벨 DTO 리스트 Mono
      */
     public Mono<List<BarcodeLabelDto>> getLabelDataList() {
-        // 1. 타입 안전한 메타데이터 조회
-        var metadata = endpointMapper.<ApiResponse<List<BarcodeLabelDto>>>getMetadata("label_list");
-        
-        // 2. Flux를 사용하여 스트림으로 처리 (여러 개의 ApiResponse를 받는 경우)
-        //    또는 단일 ApiResponse<List<T>>를 받는 경우 getForData 사용
-        return apiClient.getFluxForData(metadata, null, null)
-                .collectList()  // Flux<List<T>> → Mono<List<T>>
-                .timeout(Duration.ofSeconds(API_TIMEOUT_SECONDS))
-                .retry(RETRY_COUNT)
-                .subscribeOn(Schedulers.boundedElastic())
-                .onErrorResume(e -> {
-                    log.error("[Label] Failed to load label data", e);
-                    return Mono.just(List.of());  // 에러 시 빈 리스트 반환
-                });
+        return labelApiClient.getLabelDataList()
+            .doOnSubscribe(sub -> log.debug("[Label] Fetching label data..."))
+            .doOnSuccess(data -> log.debug("[Label] Fetched {} labels", data.size()))
+            .doOnError(e -> log.error("[Label] Failed to fetch label data", e));
     }
 
     /**
@@ -136,10 +107,10 @@ public class BarcodeLabelPrintService {
                 throw new RuntimeException("PDF Generation failed: " + e.getMessage(), e);
             }
         }).subscribeOn(Schedulers.boundedElastic())
-        .then(); // 어떤 Mono든 Void 타입으로 변환
+        .then();
     }
 
-  /**
+    /**
      * 비동기 PDF 생성 (Future 스타일, 콜백 지원)
      */
     public void generateLabelsAsync(Runnable onSuccess, Consumer<Throwable> onError) {

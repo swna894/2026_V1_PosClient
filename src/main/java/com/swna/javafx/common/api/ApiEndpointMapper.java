@@ -36,10 +36,6 @@ public class ApiEndpointMapper {
     // 타입 안전한 메타데이터 레지스트리 (제네릭 적용)
     // =========================
     private static final Map<String, DomainMetadata<?>> REGISTRY = Map.of(
-        // GET - PageResult<Product> (페이징 응답 - ApiResponse 래퍼 없음)
-        "product_page", new DomainMetadata<PageResult<Product>>( PRODUCTS,  HttpMethod.GET,  new ParameterizedTypeReference<PageResult<Product>>() {}
-        ),
-        
         // GET - ApiResponse<List<BarcodeLabelDto>> (라벨 목록)
         "label_list", new DomainMetadata<ApiResponse<List<BarcodeLabelDto>>>( PRODUCT_LABELS,  HttpMethod.GET,  new ParameterizedTypeReference<ApiResponse<List<BarcodeLabelDto>>>() {} ),
         
