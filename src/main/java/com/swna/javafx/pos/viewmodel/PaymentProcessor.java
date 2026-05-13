@@ -1,5 +1,6 @@
 package com.swna.javafx.pos.viewmodel;
 
+import com.swna.javafx.pos.api.PaymentApiService;
 import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.request.DiscountRequest;
 import com.swna.javafx.pos.dto.request.DiscountType;
@@ -7,7 +8,6 @@ import com.swna.javafx.pos.dto.request.PaymentRequest;
 import com.swna.javafx.pos.dto.request.SaleItemRequest;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.PaymentResult;
-import com.swna.javafx.pos.service.PaymentService;
 import com.swna.javafx.pos.viewmodel.manager.CartManager;
 import javafx.collections.ObservableList;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.*;
 public class PaymentProcessor {
 
     private final CartManager cartManager;
-    private final PaymentService paymentService;
+    private final PaymentApiService paymentService;
 
     // ========== Result Record ==========
     

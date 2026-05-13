@@ -44,19 +44,39 @@ public class WebClientCommon {
     }
 
     /* =========================================================
-     * POST / PUT / DELETE
+     * POST
      * ========================================================= */
 
     public <T> Mono<T> post(String url, @Nullable Object requestBody, @NonNull Class<T> responseType) {
         return exchangeMono(HttpMethod.POST, url, requestBody, responseType);
     }
 
+    public <T> Mono<T> post(String url, @Nullable Object requestBody, @NonNull ParameterizedTypeReference<T> typeRef) {
+        return exchangeMono(HttpMethod.POST, url, requestBody, typeRef);
+    }
+
+    /* =========================================================
+     * PUT
+     * ========================================================= */
+
     public <T> Mono<T> put(String url, @Nullable Object requestBody, @NonNull Class<T> responseType) {
         return exchangeMono(HttpMethod.PUT, url, requestBody, responseType);
     }
 
+    public <T> Mono<T> put(String url, @Nullable Object requestBody, @NonNull ParameterizedTypeReference<T> typeRef) {
+        return exchangeMono(HttpMethod.PUT, url, requestBody, typeRef);
+    }
+
+    /* =========================================================
+     * DELETE
+     * ========================================================= */
+
     public <T> Mono<T> delete(String url, @NonNull Class<T> responseType) {
         return exchangeMono(HttpMethod.DELETE, url, null, responseType);
+    }
+
+    public <T> Mono<T> delete(String url, @NonNull ParameterizedTypeReference<T> typeRef) {
+        return exchangeMono(HttpMethod.DELETE, url, null, typeRef);
     }
 
     /* =========================================================

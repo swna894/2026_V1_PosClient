@@ -10,10 +10,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.pos.api.PaymentApiService;
 import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.event.PaymentSuccessEvent;
 import com.swna.javafx.pos.event.PrintFailureEvent;
-import com.swna.javafx.pos.service.PaymentService;
 import com.swna.javafx.pos.service.ScanService;
 import com.swna.javafx.pos.viewmodel.handler.ScanHandler;
 import com.swna.javafx.pos.viewmodel.manager.CartManager;
@@ -47,7 +47,7 @@ public class PosViewModel {
     
     public PosViewModel(ApplicationEventPublisher eventPublisher, 
                         ScanService posService, 
-                        PaymentService paymentService) {
+                        PaymentApiService paymentService) {
         this.eventPublisher = eventPublisher;
         this.cartManager = new CartManager();
         this.discountManager = new DiscountManager(cartManager);
