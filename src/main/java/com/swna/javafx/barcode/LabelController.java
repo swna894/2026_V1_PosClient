@@ -46,9 +46,11 @@ public class LabelController {
 
     @FXML private TableView<BarcodeLabel> table;
 
-    @FXML private TableColumn<BarcodeLabel, Boolean> colCheckbox;
     @FXML private TableColumn<BarcodeLabel, String> colNo;
+    @FXML private TableColumn<BarcodeLabel, Boolean> colCheckbox;
     @FXML private TableColumn<BarcodeLabel, String> barcodeColumn;
+    @FXML private TableColumn<BarcodeLabel, String> codeColumn;
+    @FXML private TableColumn<BarcodeLabel, String> supplierColumn;
     @FXML private TableColumn<BarcodeLabel, String> descriptionColumn;
     @FXML private TableColumn<BarcodeLabel, BigDecimal> priceColumn;
 
@@ -90,6 +92,8 @@ public class LabelController {
         TableColumnUtil.createCheckBoxHeaderColumn( table, colCheckbox, BarcodeLabel::selectedProperty, "", CHECKBOX_COLUMN_WIDTH );
      
         TableColumnUtil.makeStringColumn(  barcodeColumn, BarcodeLabel::barcodeProperty, BarcodeLabel::setBarcode, false, TableColumnUtil.CENTER, null  );
+        TableColumnUtil.makeStringColumn(  codeColumn, BarcodeLabel::codeProperty, BarcodeLabel::setCode, false, TableColumnUtil.CENTER, null  );
+        TableColumnUtil.makeStringColumn(  supplierColumn, BarcodeLabel::companyProperty, BarcodeLabel::setCompany, false, TableColumnUtil.CENTER, null  );
         TableColumnUtil.makeStringColumn( descriptionColumn, BarcodeLabel::descriptionProperty, BarcodeLabel::setDescription, false, TableColumnUtil.LEFT, null );
         TableColumnUtil.makeBigDecimalCurrencyColumn( priceColumn,  BarcodeLabel::priceProperty,  false, TableColumnUtil.RIGHT, null );
     }
