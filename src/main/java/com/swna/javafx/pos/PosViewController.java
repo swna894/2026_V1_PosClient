@@ -3,6 +3,7 @@ package com.swna.javafx.pos;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.supplier.SupplierController;
 import com.swna.javafx.barcode.LabelController;
 import com.swna.javafx.common.navigation.NavigationService;
 import com.swna.javafx.common.util.StatusLabel;
@@ -105,6 +106,7 @@ public class PosViewController {
     @FXML private Button buttonOnGenerate;
     @FXML private Button buttonOnPos;
     @FXML private Button buttonOnPrint;
+    @FXML private Button buttonSupplier;
     
     // Image Views
     @FXML private ImageView posImageView;
@@ -320,6 +322,14 @@ public class PosViewController {
         }
     }
     
+    @FXML 
+    private void onSupplier(ActionEvent e) {
+       // 새로운 창(Stage)으로 띄우고 싶을 때
+        navigationService.navigateStage(SupplierController.class);
+        
+        // 또는 현재 창의 씬(Scene)만 교체하고 싶을 때
+        // navigationService.navigate(SupplierController.class)
+    }
     /**
      * Print 버튼 UI 업데이트 (텍스트 및 색상 변경)
      * - ON: 녹색 텍스트 (print-on 클래스 추가)

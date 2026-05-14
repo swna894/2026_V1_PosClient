@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 
 <VBox spacing="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.swna.javafx.supplier.controller.SupplierController">
+   fx:controller="com.swna.javafx.admin.supplier.SupplierController">
 
    <padding>
       <Insets top="10" right="10" bottom="10" left="10" />
@@ -13,6 +13,14 @@
 
    <!-- 상단 툴바 -->
    <ToolBar>
+      <Button fx:id="backButton" text="Back to POS" graphicTextGap="5"
+         style="-fx-background-color: #607D8B; -fx-text-fill: white;">
+         <graphic>
+            <Label text="&#x2b05;" style="-fx-text-fill: white;" />
+         </graphic>
+      </Button>
+
+      <Separator orientation="VERTICAL" />
       <Button fx:id="refreshButton" text="Refresh" graphicTextGap="5">
          <graphic>
             <Label text="🔄" />
@@ -21,17 +29,17 @@
       <Separator orientation="VERTICAL" />
       <Button fx:id="addButton" text="Add" graphicTextGap="5">
          <graphic>
-            <Label text="➕" />
+            <Label text="&#x2795;" />
          </graphic>
       </Button>
       <Button fx:id="editButton" text="Edit" graphicTextGap="5" disable="true">
          <graphic>
-            <Label text="✏️" />
+            <Label text="&#x270f;" />
          </graphic>
       </Button>
       <Button fx:id="deleteButton" text="Delete" graphicTextGap="5" disable="true">
          <graphic>
-            <Label text="🗑️" />
+            <Label text="&#x1f5d1;" />
          </graphic>
       </Button>
    </ToolBar>
@@ -53,13 +61,14 @@
    <!-- 거래처 테이블 (rowFactory는 Controller에서 설정) -->
    <TableView fx:id="supplierTable" VBox.vgrow="ALWAYS">
       <columns>
-         <TableColumn fx:id="idColumn" text="ID" prefWidth="60" />
+         <TableColumn fx:id="noColumn" text="ID" prefWidth="60" />
          <TableColumn fx:id="abbrColumn" text="Abbr" prefWidth="80" />
          <TableColumn fx:id="nameColumn" text="Name" prefWidth="150" />
          <TableColumn fx:id="companyColumn" text="Company" prefWidth="150" />
          <TableColumn fx:id="phoneColumn" text="Phone" prefWidth="120" />
          <TableColumn fx:id="emailColumn" text="Email" prefWidth="180" />
          <TableColumn fx:id="addressColumn" text="Address" prefWidth="200" />
+         <TableColumn fx:id="actionColumn" text="Status" prefWidth="120" />
          <TableColumn fx:id="activeColumn" text="Status" prefWidth="80" />
       </columns>
    </TableView>

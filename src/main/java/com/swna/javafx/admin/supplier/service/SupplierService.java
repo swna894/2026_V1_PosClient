@@ -1,103 +1,94 @@
 package com.swna.javafx.admin.supplier.service;
 
+import com.swna.javafx.admin.supplier.domain.Supplier;
+import com.swna.javafx.admin.supplier.dto.SupplierRequestRecord;
 
-import javafx.application.Platform;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import com.swna.javafx.admin.supplier.api.SupplierApiClient;
-import com.swna.javafx.admin.supplier.dto.SupplierResponseRecord;
-
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SupplierService {
 
-    private final SupplierApiClient supplierApiClient;
+    private final SupplierRepository repository;
 
     /**
-     * 전체 거래처 목록 조회 (Mono 반환)
+     * 전체 거래처 조회
      */
-    public Mono<List<SupplierResponseRecord>> getAllSuppliers() {
-        return supplierApiClient.getAllSuppliers()
-            .doOnSubscribe(sub -> log.debug("[SupplierService] Fetching all suppliers..."))
-            .doOnSuccess(suppliers -> log.debug("[SupplierService] Fetched {} suppliers", suppliers.size()))
-            .doOnError(error -> log.error("[SupplierService] Failed to fetch suppliers", error));
+    public Mono<List<Supplier>> getAllSuppliers() {
+        return repository.findAll()
+                .map(records -> records.stream()
+                        .map(Supplier::from)
+                        .toList()
+                );
     }
-    
-    /**
-     * 활성화된 거래처 목록 조회
-     */
-    public Mono<List<SupplierResponseRecord>> getActiveSuppliers() {
-        return supplierApiClient.getActiveSuppliers();
-    }
-    
-    /**
-     * 거래처 단건 조회
-     */
-    public Mono<SupplierResponseRecord> getSupplierById(Long id) {
-        return supplierApiClient.getSupplierById(id);
-    }
-    
+
     /**
      * 거래처 검색
      */
-    public Mono<List<SupplierResponseRecord>> searchSuppliers(String keyword) {
-        return supplierApiClient.searchSuppliers(keyword);
+    public Mono<List<Supplier>> searchSuppliers(String keyword) {
+        return repository.search(keyword)
+                .map(records -> records.stream()
+                        .map(Supplier::from)
+                        .toList()
+                );
     }
-    
-    // =========================================================
-    // 콜백 기반 비동기 메서드 (JavaFX UI용)
-    // =========================================================
-    
+
     /**
-     * 전체 거래처 조회 (콜백 방식)
+     * 단건 조회
      */
-    public void getAllSuppliersAsync(Runnable onLoading, 
-                                      Consumer<List<SupplierResponseRecord>> onSuccess, 
-                                      Consumer<Throwable> onError) {
-        
-        if (onLoading != null) {
-            Platform.runLater(onLoading);
-        }
-        
-        getAllSuppliers()
-            .subscribe(
-                suppliers -> Platform.runLater(() -> onSuccess.accept(suppliers)),
-                error -> Platform.runLater(() -> onError.accept(error))
-            );
+    public Mono<Supplier> getSupplier(Long id) {
+        return repository.findById(id)
+                .map(Supplier::from);
     }
-    
+
     /**
-     * 활성화된 거래처 조회 (콜백 방식)
+     * 거래처 저장 (생성 또는 수정)
      */
-    public void getActiveSuppliersAsync(Consumer<List<SupplierResponseRecord>> onSuccess, 
-                                         Consumer<Throwable> onError) {
+    public Mono<Supplier> saveSupplier(Supplier supplier) {
+        SupplierRequestRecord request = SupplierRequestRecord.from(supplier);
         
-        getActiveSuppliers()
-            .subscribe(
-                suppliers -> Platform.runLater(() -> onSuccess.accept(suppliers)),
-                error -> Platform.runLater(() -> onError.accept(error))
-            );
+        return repository.save(request)
+                .map(Supplier::from)
+                .doOnSuccess(saved -> log.info("Saved supplier: {}", saved.getId()))
+                .doOnError(error -> log.error("Failed to save supplier: {}", error.getMessage()));
     }
-    
+
     /**
-     * 거래처 검색 (콜백 방식)
+     * 새 거래처 생성
      */
-    public void searchSuppliersAsync(String keyword,
-                                      Consumer<List<SupplierResponseRecord>> onSuccess,
-                                      Consumer<Throwable> onError) {
+    public Mono<Supplier> createSupplier(Supplier supplier) {
+        SupplierRequestRecord request = SupplierRequestRecord.from(supplier);
         
-        searchSuppliers(keyword)
-            .subscribe(
-                suppliers -> Platform.runLater(() -> onSuccess.accept(suppliers)),
-                error -> Platform.runLater(() -> onError.accept(error))
-            );
+        return repository.create(request)
+                .map(Supplier::from)
+                .doOnSuccess(created -> log.info("Created supplier: {}", created.getId()))
+                .doOnError(error -> log.error("Failed to create supplier: {}", error.getMessage()));
+    }
+
+    /**
+     * 거래처 수정
+     */
+    public Mono<Supplier> updateSupplier(Long id, Supplier supplier) {
+        SupplierRequestRecord request = SupplierRequestRecord.from(supplier);
+        
+        return repository.update(id, request)
+                .map(Supplier::from)
+                .doOnSuccess(updated -> log.info("Updated supplier: {}", updated.getId()))
+                .doOnError(error -> log.error("Failed to update supplier: {}", error.getMessage()));
+    }
+
+    /**
+     * 거래처 삭제
+     */
+    public Mono<Void> deleteSupplier(Long id) {
+        return repository.delete(id)
+                .doOnSuccess(v -> log.info("Deleted supplier: {}", id))
+                .doOnError(error -> log.error("Failed to delete supplier: {}", error.getMessage()));
     }
 }

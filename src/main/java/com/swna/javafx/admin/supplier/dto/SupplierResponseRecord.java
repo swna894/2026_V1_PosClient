@@ -1,8 +1,5 @@
 package com.swna.javafx.admin.supplier.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import java.time.LocalDateTime;
-
 public record SupplierResponseRecord(
     Long id,
     String abbr,
@@ -12,13 +9,8 @@ public record SupplierResponseRecord(
     String phone,
     String cellphone,
     String address,
-    boolean active,
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime createdAt,
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime updatedAt
+    boolean active
+
 ) {
     public String getDisplayName() {
         return String.format("%s (%s)", name, abbr);

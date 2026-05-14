@@ -1,0 +1,25 @@
+/* label.css */
+
+.preview-container {
+   -fx-background-color: #f8f9fa;
+   -fx-border-color: #dee2e6;
+   -fx-border-width: 0 0 0 1;
+}
+
+.table-view {
+   -fx-selection-bar: #2196f3;
+}
+
+.table-row-cell:filled:selected {
+   -fx-background-color: #2196f3;
+}
+
+.table-row-cell:filled:selected .text {
+   -fx-fill: white;
+}
+
+/* 툴바 내 버튼 호버 효과 */
+.tool-bar .button:hover {
+   -fx-cursor: hand;
+   -fx-opacity: 0.8;
+}

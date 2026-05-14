@@ -9,7 +9,7 @@ import com.swna.javafx.admin.supplier.dto.SupplierResponseRecord;
  * JavaFX TableView용 Supplier Domain 클래스
  * Property 기반으로 UI 바인딩 지원
  */
-public class SupplierDomain {
+public class Supplier {
     
     private final LongProperty id = new SimpleLongProperty();
     private final StringProperty abbr = new SimpleStringProperty();
@@ -20,29 +20,12 @@ public class SupplierDomain {
     private final StringProperty cellphone = new SimpleStringProperty();
     private final StringProperty address = new SimpleStringProperty();
     private final BooleanProperty active = new SimpleBooleanProperty();
-    private final ObjectProperty<LocalDateTime> createdAt = new SimpleObjectProperty<>();
-    private final ObjectProperty<LocalDateTime> updatedAt = new SimpleObjectProperty<>();
     
     // ===== 생성자 =====
-    public SupplierDomain() {}
-    
-    public SupplierDomain(Long id, String abbr, String name, String company, 
-                          String email, String phone, String cellphone, 
-                          String address, boolean active) {
-        setId(id);
-        setAbbr(abbr);
-        setName(name);
-        setCompany(company);
-        setEmail(email);
-        setPhone(phone);
-        setCellphone(cellphone);
-        setAddress(address);
-        setActive(active);
-    }
     
     // ===== DTO 변환 메서드 =====
-    public static SupplierDomain from(SupplierResponseRecord dto) {
-        SupplierDomain domain = new SupplierDomain();
+    public static Supplier from(SupplierResponseRecord dto) {
+        Supplier domain = new Supplier();
         domain.setId(dto.id());
         domain.setAbbr(dto.abbr());
         domain.setName(dto.name());
@@ -52,8 +35,6 @@ public class SupplierDomain {
         domain.setCellphone(dto.cellphone() != null ? dto.cellphone() : "");
         domain.setAddress(dto.address() != null ? dto.address() : "");
         domain.setActive(dto.active());
-        domain.setCreatedAt(dto.createdAt());
-        domain.setUpdatedAt(dto.updatedAt());
         return domain;
     }
     
@@ -104,15 +85,6 @@ public class SupplierDomain {
     public void setActive(boolean value) { active.set(value); }
     public BooleanProperty activeProperty() { return active; }
     
-    // createdAt
-    public LocalDateTime getCreatedAt() { return createdAt.get(); }
-    public void setCreatedAt(LocalDateTime value) { createdAt.set(value); }
-    public ObjectProperty<LocalDateTime> createdAtProperty() { return createdAt; }
-    
-    // updatedAt
-    public LocalDateTime getUpdatedAt() { return updatedAt.get(); }
-    public void setUpdatedAt(LocalDateTime value) { updatedAt.set(value); }
-    public ObjectProperty<LocalDateTime> updatedAtProperty() { return updatedAt; }
     
     // ===== 편의 메서드 =====
     public String getStatusText() {

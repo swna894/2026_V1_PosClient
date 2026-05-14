@@ -1,7 +1,7 @@
 package com.swna.javafx.admin.supplier.util;
 
 
-import com.swna.javafx.admin.supplier.domain.SupplierDomain;
+import com.swna.javafx.admin.supplier.domain.Supplier;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -17,7 +17,7 @@ public class SupplierCellFactory {
     /**
      * 상태 표시 Cell (Active/Inactive with circle indicator)
      */
-    public static class StatusCell extends TableCell<SupplierDomain, Boolean> {
+    public static class StatusCell extends TableCell<Supplier, Boolean> {
         private final HBox content;
         private final Circle indicator;
         private final Label label;
@@ -55,7 +55,7 @@ public class SupplierCellFactory {
     /**
      * 전화번호 포맷 Cell
      */
-    public static class PhoneCell extends TableCell<SupplierDomain, String> {
+    public static class PhoneCell extends TableCell<Supplier, String> {
         @Override
         protected void updateItem(String phone, boolean empty) {
             super.updateItem(phone, empty);
@@ -84,7 +84,7 @@ public class SupplierCellFactory {
     /**
      * 날짜 포맷 Cell
      */
-    public static class DateCell extends TableCell<SupplierDomain, java.time.LocalDateTime> {
+    public static class DateCell extends TableCell<Supplier, java.time.LocalDateTime> {
         private final java.time.format.DateTimeFormatter formatter = 
             java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         
@@ -103,7 +103,7 @@ public class SupplierCellFactory {
     /**
      * 툴팁이 있는 Cell
      */
-    public static class TooltipCell extends TableCell<SupplierDomain, String> {
+    public static class TooltipCell extends TableCell<Supplier, String> {
         @Override
         protected void updateItem(String value, boolean empty) {
             super.updateItem(value, empty);

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.swna.javafx.common.util.StatusLabel?>
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -18,9 +19,8 @@
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane fx:id="rootPane" prefHeight="565.0" prefWidth="1273.0" styleClass="root-boardpane"
-   stylesheets="@../../styles/pos_main.css" xmlns="http://javafx.com/javafx/21"
-   xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.swna.javafx.pos.PosViewController">
+   stylesheets="@../../styles/pos_main.css" xmlns="http://javafx.com/javafx/22"
+   xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.pos.PosViewController">
 
    <!-- ===================================================== -->
    <!-- TOP -->
@@ -36,8 +36,8 @@
 
             <HBox alignment="CENTER_LEFT" minWidth="450.0">
                <children>
-                  <Label fx:id="labelTotalAmount" styleClass="top-label-total" text="Total: 0.00"
-                     minWidth="450.0" />
+                  <Label fx:id="labelTotalAmount" minWidth="450.0" styleClass="top-label-total"
+                     text="Total: 0.00" />
                </children>
             </HBox>
 
@@ -59,8 +59,8 @@
                   <Insets bottom="15.0" />
                </HBox.margin>
             </StatusLabel>
-            <VBox alignment="BOTTOM_RIGHT" spacing="0.0" styleClass="time-container"
-               minWidth="150.0">
+            <VBox alignment="BOTTOM_RIGHT" minWidth="150.0" spacing="0.0"
+               styleClass="time-container">
                <children>
                   <Label fx:id="labelClockTime" styleClass="top-label-clock-time" text="오전 11:05" />
                   <Label fx:id="labelClockDate" styleClass="top-label-clock-date" text="2026-05-03" />
@@ -119,87 +119,87 @@
       <GridPane hgap="10" styleClass="right-panel-quick" vgap="10">
 
          <!-- Row 0 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$0.5" GridPane.columnIndex="0" GridPane.rowIndex="0" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$0.7" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
          <!-- Row 1 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$1.0" GridPane.columnIndex="0" GridPane.rowIndex="1" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$1.2" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
          <!-- Row 2 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$1.5" GridPane.columnIndex="0" GridPane.rowIndex="2" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$2.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
          <!-- Row 3 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$2.5" GridPane.columnIndex="0" GridPane.rowIndex="3" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$3.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
          <!-- Row 4 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$3.5" GridPane.columnIndex="0" GridPane.rowIndex="4" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$4.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
          <!-- Row 5 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$5.0" GridPane.columnIndex="0" GridPane.rowIndex="5" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$5.5" GridPane.columnIndex="1" GridPane.rowIndex="5" />
 
          <!-- Row 6 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$6.0" GridPane.columnIndex="0" GridPane.rowIndex="6" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$6.5" GridPane.columnIndex="1" GridPane.rowIndex="6" />
 
          <!-- Row 7 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$7.0" GridPane.columnIndex="0" GridPane.rowIndex="7" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$7.5" GridPane.columnIndex="1" GridPane.rowIndex="7" />
 
          <!-- Row 8 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$8.0" GridPane.columnIndex="0" GridPane.rowIndex="8" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$8.5" GridPane.columnIndex="1" GridPane.rowIndex="8" />
 
          <!-- Row 9 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$9.0" GridPane.columnIndex="0" GridPane.rowIndex="9" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$9.5" GridPane.columnIndex="1" GridPane.rowIndex="9" />
 
          <!-- Row 10 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$10.0" GridPane.columnIndex="0" GridPane.rowIndex="10" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$10.5" GridPane.columnIndex="1" GridPane.rowIndex="10" />
 
          <!-- Row 11 -->
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$11.0" GridPane.columnIndex="0" GridPane.rowIndex="11" />
 
-         <Button onAction="#onQuickAmount" styleClass="grid-button" focusTraversable="false"
+         <Button focusTraversable="false" onAction="#onQuickAmount" styleClass="grid-button"
             text="\$11.5" GridPane.columnIndex="1" GridPane.rowIndex="11" />
 
          <columnConstraints>
@@ -240,7 +240,7 @@
          <!-- CART -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonCart1" onAction="#onActionCart" focusTraversable="false"
+         <Button fx:id="buttonCart1" focusTraversable="false" onAction="#onActionCart"
             styleClass="btn,btn-lg" text="[F2]">
             <tooltip>
                <Tooltip text="ADD TO CART" />
@@ -254,7 +254,7 @@
             </graphic>
          </Button>
 
-         <Button fx:id="buttonCart2" onAction="#onActionCart" focusTraversable="false"
+         <Button fx:id="buttonCart2" focusTraversable="false" onAction="#onActionCart"
             styleClass="btn,btn-lg" text="[F3]">
             <tooltip>
                <Tooltip text="ADD TO CART" />
@@ -268,7 +268,7 @@
             </graphic>
          </Button>
 
-         <Button fx:id="buttonCart3" onAction="#onActionCart" focusTraversable="false"
+         <Button fx:id="buttonCart3" focusTraversable="false" onAction="#onActionCart"
             styleClass="btn,btn-lg" text="[F4]">
             <tooltip>
                <Tooltip text="ADD TO CART" />
@@ -286,8 +286,8 @@
          <!-- DISCOUNT -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonDiscountVolumn" onAction="#onActionDiscountVolumn"
-            focusTraversable="false" styleClass="btn,btn-lg" text="[F5]">
+         <Button fx:id="buttonDiscountVolumn" focusTraversable="false"
+            onAction="#onActionDiscountVolumn" styleClass="btn,btn-lg" text="[F5]">
             <tooltip>
                <Tooltip text="VOLUMN DISCOUNT" />
             </tooltip>
@@ -304,7 +304,7 @@
          <!-- SCANNER -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonScanner" onAction="#onActionScanner" focusTraversable="false"
+         <Button fx:id="buttonScanner" focusTraversable="false" onAction="#onActionScanner"
             styleClass="btn,btn-lg" text="[F6]">
             <tooltip>
                <Tooltip text="RECEIPT SCANNING" />
@@ -322,7 +322,7 @@
          <!-- CANCEL -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonCancel" onAction="#onActionCancel" focusTraversable="false"
+         <Button fx:id="buttonCancel" focusTraversable="false" onAction="#onActionCancel"
             styleClass="btn,btn-lg" text="[F7]">
             <tooltip>
                <Tooltip text="CLEAR ALL" />
@@ -340,7 +340,7 @@
          <!-- PRINT -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonPrint" onAction="#onActionPrint" focusTraversable="false"
+         <Button fx:id="buttonPrint" focusTraversable="false" onAction="#onActionPrint"
             styleClass="btn,btn-lg" text="[F8]">
             <tooltip>
                <Tooltip text="PRINTing" />
@@ -358,7 +358,7 @@
          <!-- QTY -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonQty" onAction="#onActionQty" focusTraversable="false"
+         <Button fx:id="buttonQty" focusTraversable="false" onAction="#onActionQty"
             styleClass="btn,btn-lg" text="[F9]">
             <tooltip>
                <Tooltip text="CHANGE QTY" />
@@ -376,7 +376,7 @@
          <!-- CASH -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonCash" onAction="#onActionCash" focusTraversable="false"
+         <Button fx:id="buttonCash" focusTraversable="false" onAction="#onActionCash"
             styleClass="btn,btn-lg" text="[F10]">
             <tooltip>
                <Tooltip text="CASH PAYMENT" />
@@ -394,7 +394,7 @@
          <!-- CREDIT -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonCredit" onAction="#onActionCredit" focusTraversable="false"
+         <Button fx:id="buttonCredit" focusTraversable="false" onAction="#onActionCredit"
             styleClass="btn,btn-lg" text="[F11]">
             <tooltip>
                <Tooltip text="CREDIT PAYMENT" />
@@ -412,7 +412,7 @@
          <!-- CASHOUT -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonCashout" onAction="#onActionCashout" focusTraversable="false"
+         <Button fx:id="buttonCashout" focusTraversable="false" onAction="#onActionCashout"
             styleClass="btn,btn-lg" text="[F12]">
             <tooltip>
                <Tooltip text="CREDIT AND CASHOUT PAYMENT" />
@@ -430,7 +430,7 @@
          <!-- DRAWER -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonDrawer" onAction="#onActionDrawer" focusTraversable="false"
+         <Button fx:id="buttonDrawer" focusTraversable="false" onAction="#onActionDrawer"
             styleClass="btn,btn-lg, button-hidden-cashbox" text="[F1]">
             <tooltip>
                <Tooltip text="OPEN CASHBOX" />
@@ -449,13 +449,27 @@
          <Region HBox.hgrow="ALWAYS" />
 
          <!-- ================================================= -->
+         <!-- SUPPLIER -->
+         <!-- ================================================= -->
+
+         <Button fx:id="buttonOnSupplier" focusTraversable="false" mnemonicParsing="false"
+            onAction="#onSupplier" prefHeight="34" styleClass="btn,btn-sm">
+            <graphic>
+               <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
+                  preserveRatio="true">
+                  <image>
+                     <Image url="@../../images/supply_24px.png" />
+                  </image>
+               </ImageView>
+            </graphic>
+         </Button>
+
+         <!-- ================================================= -->
          <!-- GENERATE barcode -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonOnGenerate" mnemonicParsing="false" onAction="#onGenerate"
-            prefHeight="34"
-            focusTraversable="false"
-            styleClass="btn,btn-sm">
+         <Button fx:id="buttonOnGenerate" focusTraversable="false" mnemonicParsing="false"
+            onAction="#onGenerate" prefHeight="34" styleClass="btn,btn-sm">
             <graphic>
                <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
@@ -469,9 +483,8 @@
          <!-- POS STATUS -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonOnPos" mnemonicParsing="false" onAction="#onPos" prefHeight="34"
-            focusTraversable="false"
-            styleClass="btn,btn-md" text="OFF">
+         <Button fx:id="buttonOnPos" focusTraversable="false" mnemonicParsing="false"
+            onAction="#onPos" prefHeight="34" styleClass="btn,btn-md" text="OFF">
             <graphic>
                <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
@@ -486,8 +499,8 @@
          <!-- PRINT STATUS -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonOnPrint" mnemonicParsing="false" onAction="#onPrint" prefHeight="34"
-            focusTraversable="false" styleClass="btn,btn-md" text="OFF">
+         <Button fx:id="buttonOnPrint" focusTraversable="false" mnemonicParsing="false"
+            onAction="#onPrint" prefHeight="34" styleClass="btn,btn-md" text="OFF">
 
             <graphic>
 
