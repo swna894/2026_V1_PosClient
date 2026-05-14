@@ -1,5 +1,12 @@
 package com.swna.javafx.barcode.viewModel;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
+import com.swna.javafx.admin.supplier.domain.Supplier;
+import com.swna.javafx.admin.supplier.service.SupplierService;
 import com.swna.javafx.barcode.domain.BarcodeLabel;
 import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 import com.swna.javafx.barcode.infrastructre.BarcodeGenerator;
@@ -13,11 +20,6 @@ import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -27,9 +29,13 @@ public class LabelViewModel extends BaseViewModel {
     private final BarcodeLabelPrintService labelPrintService;
     private final BarcodeGenerator barcodeGenerator;
     private final PdfLabelGenerator pdfGenerator;
+    private final SupplierService supplierService;
 
     @Getter
     private final ObservableList<BarcodeLabel> productList = FXCollections.observableArrayList();
+
+    @Getter // 콤보박스 바인딩을 위한 Supplier 리스트
+    private final ObservableList<Supplier> supplierList = FXCollections.observableArrayList();
 
     /**
      * 리액티브 스트림 구독을 통한 데이터 로드
@@ -48,6 +54,55 @@ public class LabelViewModel extends BaseViewModel {
             );
     }
 
+    /**
+     * 특정 업체에 해당하는 라벨 목록을 서버에서 로드
+     */
+    public void loadLabelsBySupplier(String supplierName) {
+        setLoading(true);
+        
+        // 기존 서비스 메서드를 활용하여 서버 요청
+        labelPrintService.getLabelsBySupplier(supplierName)
+            .subscribe(
+                dtos -> {
+                    List<BarcodeLabel> domains = convertToDomainList(dtos);
+                    Platform.runLater(() -> {
+                        productList.setAll(domains); // 서버에서 가져온 데이터로 교체
+                        setLoading(false);
+                        log.info("Loaded {} labels from server for supplier: {}", domains.size(), supplierName);
+                    });
+                },
+                error -> {
+                    log.error("Failed to load labels for supplier: {}", supplierName, error);
+                    Platform.runLater(() -> setLoading(false));
+                }
+            );
+    }
+    
+    /**
+     * 거래처 목록 로드 (Supplier 객체 리스트)
+     */
+    public void loadSuppliers() {
+        supplierService.getAllSuppliers()
+            .subscribe(
+                suppliers -> {
+                    Platform.runLater(() -> {
+                        // "전체" 선택을 위한 더미 객체 생성
+                        Supplier allOption = new Supplier();
+                        allOption.setCompany("전체");
+                        
+                        supplierList.clear();
+                        supplierList.add(allOption);
+                        supplierList.addAll(suppliers);
+                        log.info("Loaded {} suppliers for ComboBox", suppliers.size());
+                    });
+                },
+                error -> log.error("Failed to load suppliers in ViewModel", error)
+            );
+    }
+
+    public ObservableList<Supplier> getSupplierList() {
+        return this.supplierList;
+    }
     /**
      * 선택된 라벨만 PDF로 출력합니다.
      *
@@ -129,6 +184,7 @@ public class LabelViewModel extends BaseViewModel {
      * @param dto 변환할 DTO
      * @return 변환된 도메인 객체
      */
+    @SuppressWarnings("unused")
     private BarcodeLabel convertToDomain(BarcodeLabelDto dto) {
         return BarcodeLabel.fromDto(dto);
     }

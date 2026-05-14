@@ -52,8 +52,8 @@
 
          <Region maxWidth="Infinity" HBox.hgrow="ALWAYS" />
 
-         <TextField fx:id="searchField" prefWidth="200" promptText="Search products..." />
-         <ComboBox fx:id="categoryCombo" prefWidth="150.0" promptText="Category" />
+         <ComboBox fx:id="categoryCombo" prefWidth="250.0" promptText="Category" />
+         <TextField fx:id="searchField" prefWidth="300" promptText="Search products..." />
       </ToolBar>
    </top>
 

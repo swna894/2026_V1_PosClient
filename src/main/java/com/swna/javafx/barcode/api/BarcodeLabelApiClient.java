@@ -56,6 +56,28 @@ public class BarcodeLabelApiClient {
             });
     }
     
+
+    /**
+     * 특정 업체명에 해당하는 라벨 목록 조회 및 리팩토링된 공통 로직 적용
+     * @param name 업체명 (company)
+     */
+    public Mono<List<BarcodeLabelDto>> getLabelsBySupplier(String name) {
+        // URL 생성 (name이 "전체"인 경우 기본 API 호출을 고려할 수 있습니다)
+        String url = "/products/labels/search/supplier?name=" + (name == null ? "" : name);
+        
+        log.debug("[Label API] Fetching labels by supplier: {} from: {}", name, url);
+        
+        return webClientCommon.get(url, LABEL_LIST_TYPE)
+            .timeout(Duration.ofSeconds(API_TIMEOUT_SECONDS)) // 타임아웃 설정
+            .retry(RETRY_COUNT)                              // 실패 시 재시도
+            .subscribeOn(Schedulers.boundedElastic())        // 탄력적 스케줄러 사용
+            .flatMap(this::unwrapResponse)                   // ApiResponse에서 데이터 추출
+            .onErrorResume(e -> {
+                log.error("[Label API] Failed to fetch labels for supplier: {}", name, e);
+                return Mono.just(List.of());                 // 에러 발생 시 빈 리스트 반환
+            });
+    }
+
     /**
      * ApiResponse 언래핑
      */

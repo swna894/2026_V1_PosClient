@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.supplier.domain.Supplier;
 import com.swna.javafx.barcode.domain.BarcodeLabel;
 import com.swna.javafx.barcode.viewModel.LabelViewModel;
 import com.swna.javafx.common.navigation.NavigationService;
@@ -19,16 +20,19 @@ import com.swna.javafx.common.ui.table.TableColumnUtil;
 import com.swna.javafx.pos.PosViewController;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.print.PrinterJob;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
@@ -56,6 +60,7 @@ public class LabelController {
     @FXML private TableView<BarcodeLabel> table;
     
     @FXML private ImageView barcodeImageView;
+    @FXML private ComboBox<Supplier> categoryCombo;
     @FXML private Label previewName;
     @FXML private Label previewBarcodeText;
     @FXML private VBox printArea;
@@ -78,9 +83,11 @@ public class LabelController {
             
         setupTableColumns();   
         setupEventHandlers();
+        setupSupplierComboBox();
 
         table.setItems(viewModel.getProductList());
         viewModel.loadLabels();
+        viewModel.loadSuppliers();
     }
 
     private void setupTableColumns() {
@@ -110,6 +117,51 @@ public class LabelController {
                 updateBarcodePreview(newVal);
             }
         });
+    }
+
+    private void setupSupplierComboBox() {
+        categoryCombo.setItems(viewModel.getSupplierList());
+
+        categoryCombo.setConverter(new StringConverter<Supplier>() {
+            @Override
+            public String toString(Supplier supplier) {
+                return (supplier == null) ? "" : supplier.getCompany();
+            }
+            @Override
+            public Supplier fromString(String string) { return null; }
+        });
+
+        // 콤보박스 선택 변경 시 이벤트
+        categoryCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                // 로컬 필터링이 아닌 서버 조회를 호출
+                fetchDataFromServer(newVal.getCompany());
+            }
+        });
+    }
+
+    /**
+     * 서버에서 데이터를 새로 가져와서 테이블을 갱신
+     */
+    private void fetchDataFromServer(String companyName) {
+        // ViewModel을 통해 서버 데이터 요청
+        viewModel.loadLabelsBySupplier(companyName);
+    }
+
+    // 메서드 정의 수정: 매개변수 타입을 String에서 Supplier로 변경
+    private void filterTableBySupplier(Supplier supplier) {
+        // 객체에서 회사명을 꺼내옴
+        String companyName = supplier.getCompany();
+
+        if (companyName == null || companyName.equals("전체")) {
+            table.setItems(viewModel.getProductList());
+        } else {
+            // 해당 거래처명과 일치하는 항목만 필터링하여 표시
+            ObservableList<BarcodeLabel> filteredList = viewModel.getProductList().filtered(label -> 
+                companyName.equals(label.getCompany()) // BarcodeLabel의 필드명에 맞춰 확인 (getSupplier 또는 getCompany)
+            );
+            table.setItems(filteredList);
+        }
     }
 
     @FXML

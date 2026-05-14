@@ -26,7 +26,7 @@ public class PdfLabelGenerator {
 
     private final BarcodeGenerator barcodeGenerator;
 
-    private static final int COLS = 5; 
+    private static final int COLS = 3; 
     private static final int ROWS = 13;
     private static final String FILE_NAME = "barcode_labels.pdf";
 

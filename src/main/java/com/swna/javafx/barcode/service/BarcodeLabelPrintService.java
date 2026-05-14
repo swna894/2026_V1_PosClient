@@ -60,6 +60,15 @@ public class BarcodeLabelPrintService {
                 .doOnError(e -> log.error("[Label] Label generation failed", e));
     }
     
+    // BarcodeLabelPrintService.java에 추가
+    public Mono<List<BarcodeLabelDto>> getLabelsBySupplier(String supplierName) {
+        if (supplierName == null || supplierName.equals("전체")) {
+            return null; // 전체 조회
+        }
+        // API 클라이언트에 특정 업체 조회를 요청 (해당 API가 서버에 구현되어 있어야 함)
+        return labelApiClient.getLabelsBySupplier(supplierName); 
+    }
+
     /**
      * 특정 상품 리스트로 PDF 생성
      */
