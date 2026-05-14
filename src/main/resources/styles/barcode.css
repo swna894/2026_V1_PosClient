@@ -1,4 +1,7 @@
 /* label.css */
+.root {
+   -fx-font-family: "Malgun Gothic";
+}
 
 .preview-container {
    -fx-background-color: #f8f9fa;
@@ -6,8 +9,16 @@
    -fx-border-width: 0 0 0 1;
 }
 
+/* =========================================================
+   2. TABLE (TableView & Cells)
+   ========================================================= */
 .table-view {
    -fx-selection-bar: #2196f3;
+}
+
+.table-view .column-header .label {
+   -fx-alignment: CENTER;
+   -fx-text-alignment: center;
 }
 
 .table-row-cell:filled:selected {

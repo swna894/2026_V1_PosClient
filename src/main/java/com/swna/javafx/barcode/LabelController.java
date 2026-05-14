@@ -14,7 +14,9 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.barcode.domain.BarcodeLabel;
 import com.swna.javafx.barcode.viewModel.LabelViewModel;
+import com.swna.javafx.common.navigation.NavigationService;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
+import com.swna.javafx.pos.PosViewController;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -44,8 +46,6 @@ public class LabelController {
     private static final int NUMBER_COLUMN_WIDTH = 70;
     private static final int CHECKBOX_COLUMN_WIDTH = 50;
 
-    @FXML private TableView<BarcodeLabel> table;
-
     @FXML private TableColumn<BarcodeLabel, String> colNo;
     @FXML private TableColumn<BarcodeLabel, Boolean> colCheckbox;
     @FXML private TableColumn<BarcodeLabel, String> barcodeColumn;
@@ -53,17 +53,21 @@ public class LabelController {
     @FXML private TableColumn<BarcodeLabel, String> supplierColumn;
     @FXML private TableColumn<BarcodeLabel, String> descriptionColumn;
     @FXML private TableColumn<BarcodeLabel, BigDecimal> priceColumn;
-
+    @FXML private TableView<BarcodeLabel> table;
+    
     @FXML private ImageView barcodeImageView;
     @FXML private Label previewName;
     @FXML private Label previewBarcodeText;
     @FXML private VBox printArea;
- 
+    @FXML private Label lblStatus;
+    
+    @FXML private Button backButton;
     @FXML private Button btnCancel;
     @FXML private Button btnCancel1;
     @FXML private Button btnGenerate;
-
+    
     private final LabelViewModel viewModel;
+    private final NavigationService navigationService;
 
     @FXML
     public void initialize() {
@@ -71,22 +75,18 @@ public class LabelController {
             log.error("FXML Injection failed! Check fx:id in LabelView.fxml");
             return;
         }
-        
-            // ✅ 중요: TableView와 컬럼 모두 편집 가능해야 함
-        table.setEditable(true);  // TableView 편집 가능
+            
         setupTableColumns();   
+        setupEventHandlers();
+
         table.setItems(viewModel.getProductList());
-
-        table.getSelectionModel().selectedItemProperty().addListener((obs, old, newSelection) -> {
-            if (newSelection != null) {
-                updateBarcodePreview(newSelection);
-            }
-        });
-
         viewModel.loadLabels();
     }
 
     private void setupTableColumns() {
+
+        table.setEditable(true);  // TableView 편집 가능
+
         // 번호 컬럼
         TableColumnUtil.createNumberColumn(table, colNo, NUMBER_COLUMN_WIDTH);           
         TableColumnUtil.createCheckBoxHeaderColumn( table, colCheckbox, BarcodeLabel::selectedProperty, "", CHECKBOX_COLUMN_WIDTH );
@@ -98,6 +98,19 @@ public class LabelController {
         TableColumnUtil.makeBigDecimalCurrencyColumn( priceColumn,  BarcodeLabel::priceProperty,  false, TableColumnUtil.RIGHT, null );
     }
     
+    private void setupEventHandlers() {
+        // 뒤로가기 버튼 이벤트
+        if (backButton != null) {
+            backButton.setOnAction(e -> navigationService.navigateStage(PosViewController.class));
+        }
+
+        // 테이블 선택 이벤트
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                updateBarcodePreview(newVal);
+            }
+        });
+    }
 
     @FXML
     private void onCancel() {
