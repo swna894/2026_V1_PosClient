@@ -26,8 +26,8 @@ public class PdfLabelGenerator {
 
     private final BarcodeGenerator barcodeGenerator;
 
-    private static final int COLS = 3; 
-    private static final int ROWS = 13;
+    private static final int DEFAULT_COLS = 3;
+    private static final int DEFAULT_ROWS = 13;
     private static final String FILE_NAME = "barcode_labels.pdf";
 
     private record LabelContext(
@@ -42,10 +42,26 @@ public class PdfLabelGenerator {
         float barcodeHeight
     ) {}
 
+    /**
+     * 기본 레이아웃 (cols=3, rows=13)으로 PDF 생성
+     */
     public void generate(List<BarcodeLabelDto> products) throws Exception {
+        generate(products, DEFAULT_COLS, DEFAULT_ROWS);
+    }
+
+    /**
+     * 사용자 지정 cols, rows로 PDF 생성
+     */
+    public void generate(List<BarcodeLabelDto> products, int cols, int rows) throws Exception {
         if (products == null || products.isEmpty()) {
             log.warn("상품 목록이 비어 있어 PDF 생성을 중단합니다.");
             return;
+        }
+
+        if (cols <= 0 || rows <= 0) {
+            log.warn("잘못된 레이아웃 값 (cols={}, rows={}), 기본값 사용", cols, rows);
+            cols = DEFAULT_COLS;
+            rows = DEFAULT_ROWS;
         }
 
         String finalOutputPath = Paths.get(System.getProperty("user.home"), "Downloads", FILE_NAME).toString();
@@ -58,15 +74,17 @@ public class PdfLabelGenerator {
             float pageWidth = PageSize.A4.getWidth() - (margin * 2);
             float pageHeight = PageSize.A4.getHeight() - (margin * 2);
 
-            float labelWidth = pageWidth / COLS;
-            float labelHeight = pageHeight / ROWS;
+            float labelWidth = pageWidth / cols;
+            float labelHeight = pageHeight / rows;
 
-            // 기본 폰트 크기 계산 (전체 레이아웃의 기준점)
             float fontSize = Math.min(labelHeight * 0.12f, 11f); 
             float barcodeWidth = labelWidth * 0.85f;            
             float barcodeHeight = labelHeight * 0.35f;           
 
-            int labelsPerPage = COLS * ROWS;
+            int labelsPerPage = cols * rows;
+
+            log.info("PDF 생성 시작: {}개 상품, 레이아웃 {}x{} ({} 라벨/페이지)", 
+                     products.size(), cols, rows, labelsPerPage);
 
             for (int i = 0; i < products.size(); i++) {
                 if (i > 0 && i % labelsPerPage == 0) {
@@ -74,8 +92,8 @@ public class PdfLabelGenerator {
                 }
 
                 int indexInPage = i % labelsPerPage;
-                int col = indexInPage % COLS;
-                int row = indexInPage / COLS;
+                int col = indexInPage % cols;
+                int row = indexInPage / cols;
 
                 float x = margin + (col * labelWidth);
                 float y = (PageSize.A4.getHeight() - margin) - ((row + 1) * labelHeight);
@@ -86,6 +104,8 @@ public class PdfLabelGenerator {
                 );
                 renderLabel(ctx);
             }
+            
+            log.info("PDF 생성 완료: {}", finalOutputPath);
         } catch (Exception e) {
             log.error("PDF 생성 오류: {}", e.getMessage());
             throw e;
@@ -93,11 +113,9 @@ public class PdfLabelGenerator {
     }
 
     private void renderLabel(LabelContext ctx) throws Exception {
-        // [수정] 상품명 전용 폰트 크기 (기본값의 85%로 축소)
         float descFontSize = ctx.fontSize() * 0.85f;
         float currentY = ctx.y() + ctx.labelHeight() - descFontSize - 4;
 
-        // [수정] 작아진 폰트에 맞춰 글자 수 제한 다시 계산 (더 많은 글자 수용 가능)
         float avgCharWidth = descFontSize * 0.65f; 
         int dynamicMaxLength = (int) (ctx.labelWidth() / avgCharWidth);
         
@@ -106,21 +124,21 @@ public class PdfLabelGenerator {
             description = description.substring(0, Math.max(0, dynamicMaxLength - 1)) + "..";
         }
 
-        // 1. 상품명 (축소된 폰트 적용)[cite: 7, 11]
+        // 1. 상품명
         ctx.document().add(new Paragraph(description)
                 .setFontSize(descFontSize)
                 .setMultipliedLeading(1.0f) 
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFixedPosition(ctx.x(), currentY, ctx.labelWidth()));
 
-        // 2. 가격 (기본 폰트 크기 유지하여 강조)[cite: 7, 11]
+        // 2. 가격
         currentY -= (ctx.fontSize() + 2);
         ctx.document().add(new Paragraph("$ " + ctx.dto().price())
                 .setFontSize(ctx.fontSize())
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFixedPosition(ctx.x(), currentY, ctx.labelWidth()));
 
-        // 3. 바코드 이미지[cite: 6, 7, 11]
+        // 3. 바코드 이미지
         byte[] imageBytes = barcodeGenerator.generate(ctx.dto().barcode());
         Image image = new Image(ImageDataFactory.create(imageBytes));
         
@@ -132,7 +150,7 @@ public class PdfLabelGenerator {
         image.setHeight(ctx.barcodeHeight());
         ctx.document().add(image);
 
-        // 4. 바코드 번호 (이전 요청대로 큼직하게 유지)[cite: 7, 11]
+        // 4. 바코드 번호
         float barcodeFontSize = ctx.fontSize() * 0.9f; 
         currentY -= (barcodeFontSize + 2f); 
 

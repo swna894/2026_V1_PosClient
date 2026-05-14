@@ -17,6 +17,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import java.lang.Integer?>
+<?import javafx.collections.FXCollections?>
 
 <BorderPane prefHeight="600" prefWidth="1020.0" stylesheets="@../../styles/barcode.css"
    xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
@@ -33,27 +35,49 @@
 
          <Separator orientation="VERTICAL" />
 
-         <Button fx:id="btnGenerate" graphicTextGap="5" onAction="#onGenerate" text="Generate PDF">
+
+         <!-- 레이아웃 설정 -->
+         <HBox alignment="CENTER" spacing="5">
+            <Label text="Cols:" />
+            <ComboBox fx:id="colsCombo" prefWidth="80">
+               <items>
+                  <FXCollections fx:factory="observableArrayList">
+                     <Integer fx:value="3" />
+                     <Integer fx:value="4" />
+                     <Integer fx:value="5" />
+                     <Integer fx:value="6" />
+                  </FXCollections>
+               </items>
+            </ComboBox>
+            <Label text="Rows:" />
+            <ComboBox fx:id="rowsCombo" prefWidth="80">
+               <items>
+                  <FXCollections fx:factory="observableArrayList">
+                     <Integer fx:value="10" />
+                     <Integer fx:value="11" />
+                     <Integer fx:value="12" />
+                     <Integer fx:value="13" />
+                     <Integer fx:value="14" />
+                     <Integer fx:value="15" />
+                  </FXCollections>
+               </items>
+            </ComboBox>
+            <Separator orientation="VERTICAL" />
+            <ComboBox fx:id="categoryCombo" prefWidth="250.0" promptText="Category" />
+            <TextField fx:id="searchField" prefWidth="300" promptText="Search products..." />
+         </HBox>
+         <Region HBox.hgrow="ALWAYS" />
+         <Button fx:id="btnGenerate" onAction="#onGenerate" text="Generate PDF">
             <graphic>
-               <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
-                  preserveRatio="true">
-                  <image>
-                     <Image url="@../../images/20_barcode.png" />
-                  </image>
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                  <Image url="@../../images/20_barcode.png" />
                </ImageView>
             </graphic>
          </Button>
 
-         <Button fx:id="btnPrint" graphicTextGap="5" onAction="#handlePrint" text="Print">
-            <graphic>
-               <Label />
-            </graphic>
-         </Button>
+         <Button fx:id="btnPrint" onAction="#handlePrint" text="Print" />
+         <!-- Separator 추가 -->
 
-         <Region maxWidth="Infinity" HBox.hgrow="ALWAYS" />
-
-         <ComboBox fx:id="categoryCombo" prefWidth="250.0" promptText="Category" />
-         <TextField fx:id="searchField" prefWidth="300" promptText="Search products..." />
       </ToolBar>
    </top>
 
@@ -64,6 +88,7 @@
                <padding>
                   <Insets bottom="10" left="10" right="10" top="10" />
                </padding>
+
                <TableView fx:id="table" styleClass="table-view" VBox.vgrow="ALWAYS">
                   <columns>
                      <TableColumn fx:id="colNo" prefWidth="60" text="ID" />
@@ -82,6 +107,7 @@
                   <Insets top="20" />
                </padding>
                <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Label Preview" />
+
                <VBox fx:id="printArea" alignment="CENTER" spacing="10">
                   <Label fx:id="previewName" style="-fx-font-size: 14px; -fx-font-weight: bold;"
                      text="No Product Selected" />
@@ -90,6 +116,7 @@
                   <Label fx:id="previewBarcodeText" style="-fx-font-family: 'Monospaced';"
                      text="000000000000" />
                </VBox>
+
                <ProgressIndicator fx:id="progressIndicator" visible="false" />
                <Label fx:id="lblStatus" text="Ready" />
             </VBox>

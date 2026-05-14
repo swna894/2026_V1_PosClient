@@ -20,7 +20,6 @@ import com.swna.javafx.common.ui.table.TableColumnUtil;
 import com.swna.javafx.pos.PosViewController;
 
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.print.PrinterJob;
 import javafx.scene.control.Alert;
@@ -29,6 +28,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
@@ -37,9 +37,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
 
-/**
- * 바코드 라벨 생성 및 출력을 관리하는 컨트롤러
- */
 @Slf4j
 @Component
 @Scope("prototype")
@@ -50,6 +47,7 @@ public class LabelController {
     private static final int NUMBER_COLUMN_WIDTH = 70;
     private static final int CHECKBOX_COLUMN_WIDTH = 50;
 
+    // TableView 관련
     @FXML private TableColumn<BarcodeLabel, String> colNo;
     @FXML private TableColumn<BarcodeLabel, Boolean> colCheckbox;
     @FXML private TableColumn<BarcodeLabel, String> barcodeColumn;
@@ -59,17 +57,25 @@ public class LabelController {
     @FXML private TableColumn<BarcodeLabel, BigDecimal> priceColumn;
     @FXML private TableView<BarcodeLabel> table;
     
-    @FXML private ImageView barcodeImageView;
+    // 검색 및 필터 관련
+    @FXML private TextField searchField;
     @FXML private ComboBox<Supplier> categoryCombo;
+    
+    // 레이아웃 관련
+    @FXML private ComboBox<Integer> colsCombo;
+    @FXML private ComboBox<Integer> rowsCombo;
+    
+    // 미리보기 관련
+    @FXML private ImageView barcodeImageView;
     @FXML private Label previewName;
     @FXML private Label previewBarcodeText;
     @FXML private VBox printArea;
     @FXML private Label lblStatus;
     
+    // 버튼
     @FXML private Button backButton;
-    @FXML private Button btnCancel;
-    @FXML private Button btnCancel1;
     @FXML private Button btnGenerate;
+    @FXML private Button btnPrint;
     
     private final LabelViewModel viewModel;
     private final NavigationService navigationService;
@@ -84,39 +90,55 @@ public class LabelController {
         setupTableColumns();   
         setupEventHandlers();
         setupSupplierComboBox();
+        setupSearchFilter();
+        setupLayoutComboBoxes();
 
+        // ViewModel의 SortedList를 테이블에 바인딩
         table.setItems(viewModel.getProductList());
+        
+        // *** 중요: TableView의 정렬과 SortedList 연결 ***
+        viewModel.bindSortedListComparator(table);
+        
+        // 데이터 로드
         viewModel.loadLabels();
         viewModel.loadSuppliers();
     }
 
     private void setupTableColumns() {
+        table.setEditable(true);
 
-        table.setEditable(true);  // TableView 편집 가능
-
-        // 번호 컬럼
         TableColumnUtil.createNumberColumn(table, colNo, NUMBER_COLUMN_WIDTH);           
-        TableColumnUtil.createCheckBoxHeaderColumn( table, colCheckbox, BarcodeLabel::selectedProperty, "", CHECKBOX_COLUMN_WIDTH );
+        TableColumnUtil.createCheckBoxHeaderColumn(table, colCheckbox, BarcodeLabel::selectedProperty, "", CHECKBOX_COLUMN_WIDTH);
      
-        TableColumnUtil.makeStringColumn(  barcodeColumn, BarcodeLabel::barcodeProperty, BarcodeLabel::setBarcode, false, TableColumnUtil.CENTER, null  );
-        TableColumnUtil.makeStringColumn(  codeColumn, BarcodeLabel::codeProperty, BarcodeLabel::setCode, false, TableColumnUtil.CENTER, null  );
-        TableColumnUtil.makeStringColumn(  supplierColumn, BarcodeLabel::companyProperty, BarcodeLabel::setCompany, false, TableColumnUtil.CENTER, null  );
-        TableColumnUtil.makeStringColumn( descriptionColumn, BarcodeLabel::descriptionProperty, BarcodeLabel::setDescription, false, TableColumnUtil.LEFT, null );
-        TableColumnUtil.makeBigDecimalCurrencyColumn( priceColumn,  BarcodeLabel::priceProperty,  false, TableColumnUtil.RIGHT, null );
+        TableColumnUtil.makeStringColumn(barcodeColumn, BarcodeLabel::barcodeProperty, BarcodeLabel::setBarcode, false, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeStringColumn(codeColumn, BarcodeLabel::codeProperty, BarcodeLabel::setCode, false, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeStringColumn(supplierColumn, BarcodeLabel::companyProperty, BarcodeLabel::setCompany, false, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeStringColumn(descriptionColumn, BarcodeLabel::descriptionProperty, BarcodeLabel::setDescription, false, TableColumnUtil.LEFT, null);
+        TableColumnUtil.makeBigDecimalCurrencyColumn(priceColumn, BarcodeLabel::priceProperty, false, TableColumnUtil.RIGHT, null);
     }
     
     private void setupEventHandlers() {
-        // 뒤로가기 버튼 이벤트
         if (backButton != null) {
             backButton.setOnAction(e -> navigationService.navigateStage(PosViewController.class));
         }
 
-        // 테이블 선택 이벤트
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 updateBarcodePreview(newVal);
             }
         });
+    }
+    
+    /**
+     * 실시간 검색 필터 설정
+     */
+    private void setupSearchFilter() {
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+                viewModel.setSearchKeyword(newVal);
+                updateStatusMessage();
+            });
+        }
     }
 
     private void setupSupplierComboBox() {
@@ -131,37 +153,60 @@ public class LabelController {
             public Supplier fromString(String string) { return null; }
         });
 
-        // 콤보박스 선택 변경 시 이벤트
         categoryCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                // 로컬 필터링이 아닌 서버 조회를 호출
-                fetchDataFromServer(newVal.getCompany());
+                String companyName = "전체".equals(newVal.getCompany()) ? null : newVal.getCompany();
+                
+                if (companyName == null) {
+                    viewModel.loadLabels();
+                } else {
+                    viewModel.loadLabelsBySupplier(companyName);
+                }
+                
+                if (searchField != null) {
+                    searchField.clear();
+                }
             }
         });
     }
 
-    /**
-     * 서버에서 데이터를 새로 가져와서 테이블을 갱신
-     */
-    private void fetchDataFromServer(String companyName) {
-        // ViewModel을 통해 서버 데이터 요청
-        viewModel.loadLabelsBySupplier(companyName);
+    private void setupLayoutComboBoxes() {
+        colsCombo.setValue(3);
+        rowsCombo.setValue(13);
+        
+        colsCombo.valueProperty().addListener((obs, oldVal, newVal) -> updateStatusMessage());
+        rowsCombo.valueProperty().addListener((obs, oldVal, newVal) -> updateStatusMessage());
+        
+        updateStatusMessage();
     }
-
-    // 메서드 정의 수정: 매개변수 타입을 String에서 Supplier로 변경
-    private void filterTableBySupplier(Supplier supplier) {
-        // 객체에서 회사명을 꺼내옴
-        String companyName = supplier.getCompany();
-
-        if (companyName == null || companyName.equals("전체")) {
-            table.setItems(viewModel.getProductList());
+    
+    /**
+     * 상태 메시지 업데이트 (필터 정보 포함)
+     */
+    private void updateStatusMessage() {
+        int cols = colsCombo.getValue() != null ? colsCombo.getValue() : 3;
+        int rows = rowsCombo.getValue() != null ? rowsCombo.getValue() : 13;
+        int labelsPerPage = cols * rows;
+        
+        int totalCount = viewModel.getTotalCount();
+        int filteredCount = viewModel.getFilteredCount();
+        String searchKeyword = viewModel.getSearchKeyword().get();
+        
+        if (searchKeyword != null && !searchKeyword.isEmpty()) {
+            lblStatus.setText(String.format("🔍 '%s' 검색 결과: %d/%d건 | 레이아웃: %dx%d = %d장/page", 
+                            searchKeyword, filteredCount, totalCount, cols, rows, labelsPerPage));
         } else {
-            // 해당 거래처명과 일치하는 항목만 필터링하여 표시
-            ObservableList<BarcodeLabel> filteredList = viewModel.getProductList().filtered(label -> 
-                companyName.equals(label.getCompany()) // BarcodeLabel의 필드명에 맞춰 확인 (getSupplier 또는 getCompany)
-            );
-            table.setItems(filteredList);
+            lblStatus.setText(String.format("📋 전체 %d건 | 레이아웃: %dx%d = %d장/page", 
+                            totalCount, cols, rows, labelsPerPage));
         }
+    }
+    
+    private int getSelectedCols() {
+        return colsCombo.getValue() != null ? colsCombo.getValue() : 3;
+    }
+    
+    private int getSelectedRows() {
+        return rowsCombo.getValue() != null ? rowsCombo.getValue() : 13;
     }
 
     @FXML
@@ -171,26 +216,30 @@ public class LabelController {
         barcodeImageView.setImage(null);
         previewName.setText("선택된 상품 없음");
         previewBarcodeText.setText("");
+        
+        if (searchField != null) {
+            searchField.clear();
+        }
     }
 
     @FXML
     private void onGenerate() {
         try {
-            viewModel.exportToPdf();
-            //showInfo("Success", "PDF has been generated successfully.");
+            int cols = getSelectedCols();
+            int rows = getSelectedRows();
+            
+            viewModel.exportToPdf(cols, rows);
 
-            // 파일 경로를 직접 생성
             Path generatedFilePath = Paths.get(System.getProperty("user.home"), 
                                               "Downloads", 
                                               "barcode_labels.pdf");
-
             
             if (generatedFilePath != null) {
                 openPdfFile(generatedFilePath);
             }
         } catch (Exception e) {
             log.error("PDF Export Error", e);
-            showError("Error", "PDF generation failed: " + e.getMessage());
+            showError("오류", "PDF 생성 실패: " + e.getMessage());
         }
     }
 
@@ -213,10 +262,10 @@ public class LabelController {
             } catch (IOException e) {
                 log.error("Failed to open PDF: {}", e.getMessage());
                 Platform.runLater(() -> 
-                    showInfo("PDF Location", "PDF saved at: " + pdfPath.toAbsolutePath())
+                    showInfo("PDF 위치", "PDF 저장 위치: " + pdfPath.toAbsolutePath())
                 );
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();  // 복원
+                Thread.currentThread().interrupt();
                 log.error("Interrupted while opening PDF");
             }
         });
@@ -229,7 +278,11 @@ public class LabelController {
                 showInfo("알림", "선택된 상품이 없습니다.");
                 return;
             }
-            viewModel.exportSelectedToPdf(viewModel.getSelectedLabels());
+            
+            int cols = getSelectedCols();
+            int rows = getSelectedRows();
+            
+            viewModel.exportSelectedToPdf(viewModel.getSelectedLabels(), cols, rows);
             showInfo("성공", "선택된 상품의 PDF가 생성되었습니다.");
         } catch (Exception e) {
             log.error("PDF Export Error for selected items", e);

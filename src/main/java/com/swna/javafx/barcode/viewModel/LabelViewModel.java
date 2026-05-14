@@ -15,15 +15,17 @@ import com.swna.javafx.barcode.service.BarcodeLabelPrintService;
 import com.swna.javafx.common.viewmodel.BaseViewModel;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class LabelViewModel extends BaseViewModel {
 
     private final BarcodeLabelPrintService labelPrintService;
@@ -31,25 +33,134 @@ public class LabelViewModel extends BaseViewModel {
     private final PdfLabelGenerator pdfGenerator;
     private final SupplierService supplierService;
 
+    // 마스터 데이터 (전체 목록)
+    private final ObservableList<BarcodeLabel> masterProductList = FXCollections.observableArrayList();
+    
+    // 필터링된 데이터
+    private final FilteredList<BarcodeLabel> filteredProductList;
+    
+    // 정렬된 데이터 (UI에 바인딩될 최종 리스트)
+    private final SortedList<BarcodeLabel> sortedProductList;
+    
+    // 검색어 프로퍼티
     @Getter
-    private final ObservableList<BarcodeLabel> productList = FXCollections.observableArrayList();
-
-    @Getter // 콤보박스 바인딩을 위한 Supplier 리스트
+    private final StringProperty searchKeyword = new SimpleStringProperty("");
+    
+    // 현재 선택된 업체명 (null이면 전체)
+    private String currentSupplierName = null;
+    
+    @Getter
     private final ObservableList<Supplier> supplierList = FXCollections.observableArrayList();
 
+    // 명시적 생성자 추가
+    public LabelViewModel(BarcodeLabelPrintService labelPrintService,
+                          BarcodeGenerator barcodeGenerator,
+                          PdfLabelGenerator pdfGenerator,
+                          SupplierService supplierService) {
+        this.labelPrintService = labelPrintService;
+        this.barcodeGenerator = barcodeGenerator;
+        this.pdfGenerator = pdfGenerator;
+        this.supplierService = supplierService;
+        
+        // FilteredList 초기화 (초기에는 모든 항목 표시)
+        this.filteredProductList = new FilteredList<>(this.masterProductList, p -> true);
+        
+        // SortedList 초기화 (FilteredList를 감쌈)
+        this.sortedProductList = new SortedList<>(this.filteredProductList);
+        
+        // 검색어 변경 리스너
+        this.searchKeyword.addListener((obs, oldVal, newVal) -> applyFilter());
+    }
+    
+    /**
+     * 전체 필터 적용 (업체 + 검색어)
+     */
+    private void applyFilter() {
+        String keyword = searchKeyword.get();
+        
+        filteredProductList.setPredicate(label -> {
+            // 1. 업체 필터링
+            if (currentSupplierName != null && !currentSupplierName.isEmpty()) {
+                if (!currentSupplierName.equals(label.getCompany())) {
+                    return false;
+                }
+            }
+            
+            // 2. 검색어 필터링
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String lowerKeyword = keyword.toLowerCase();
+                return (label.getBarcode() != null && label.getBarcode().toLowerCase().contains(lowerKeyword)) ||
+                       (label.getCode() != null && label.getCode().toLowerCase().contains(lowerKeyword)) ||
+                       (label.getDescription() != null && label.getDescription().toLowerCase().contains(lowerKeyword)) ||
+                       (label.getCompany() != null && label.getCompany().toLowerCase().contains(lowerKeyword));
+            }
+            
+            return true;
+        });
+        
+        log.debug("Filter applied - Keyword: {}, Supplier: {}, Result size: {}", 
+                  keyword, currentSupplierName, filteredProductList.size());
+    }
+    
+    /**
+     * 검색어 설정
+     */
+    public void setSearchKeyword(String keyword) {
+        Platform.runLater(() -> searchKeyword.set(keyword == null ? "" : keyword));
+    }
+    
+    /**
+     * 업체 필터 설정 (null이면 전체)
+     */
+    public void setSupplierFilter(String supplierName) {
+        this.currentSupplierName = supplierName;
+        applyFilter();
+    }
+    
+    /**
+     * UI에 바인딩할 정렬/필터링된 상품 목록 반환
+     */
+    public SortedList<BarcodeLabel> getProductList() {
+        return sortedProductList;
+    }
+    
+    /**
+     * TableView의 comparator와 SortedList 연결
+     */
+    public void bindSortedListComparator(javafx.scene.control.TableView<BarcodeLabel> tableView) {
+        sortedProductList.comparatorProperty().bind(tableView.comparatorProperty());
+    }
+    
+    /**
+     * 전체 상품 개수 (필터 전)
+     */
+    public int getTotalCount() {
+        return masterProductList.size();
+    }
+    
+    /**
+     * 필터링된 상품 개수
+     */
+    public int getFilteredCount() {
+        return filteredProductList.size();
+    }
+    
     /**
      * 리액티브 스트림 구독을 통한 데이터 로드
-     * DTO를 도메인 객체로 변환하여 저장합니다.
      */
     public void loadLabels() {
         setLoading(true);
         clearError();
+        setSupplierFilter(null); // 전체 조회 시 업체 필터 초기화
 
         labelPrintService.getLabelDataList()
             .doOnTerminate(() -> Platform.runLater(() -> setLoading(false)))
             .map(this::convertToDomainList)
             .subscribe(
-                items -> Platform.runLater(() -> productList.setAll(items)),
+                items -> Platform.runLater(() -> {
+                    masterProductList.setAll(items);
+                    log.info("Loaded {} labels from server", items.size());
+                }),
                 error -> Platform.runLater(() -> handleError(error))
             );
     }
@@ -59,14 +170,14 @@ public class LabelViewModel extends BaseViewModel {
      */
     public void loadLabelsBySupplier(String supplierName) {
         setLoading(true);
+        setSupplierFilter(supplierName);
         
-        // 기존 서비스 메서드를 활용하여 서버 요청
         labelPrintService.getLabelsBySupplier(supplierName)
             .subscribe(
                 dtos -> {
                     List<BarcodeLabel> domains = convertToDomainList(dtos);
                     Platform.runLater(() -> {
-                        productList.setAll(domains); // 서버에서 가져온 데이터로 교체
+                        masterProductList.setAll(domains);
                         setLoading(false);
                         log.info("Loaded {} labels from server for supplier: {}", domains.size(), supplierName);
                     });
@@ -79,14 +190,13 @@ public class LabelViewModel extends BaseViewModel {
     }
     
     /**
-     * 거래처 목록 로드 (Supplier 객체 리스트)
+     * 거래처 목록 로드
      */
     public void loadSuppliers() {
         supplierService.getAllSuppliers()
             .subscribe(
                 suppliers -> {
                     Platform.runLater(() -> {
-                        // "전체" 선택을 위한 더미 객체 생성
                         Supplier allOption = new Supplier();
                         allOption.setCompany("전체");
                         
@@ -100,15 +210,17 @@ public class LabelViewModel extends BaseViewModel {
             );
     }
 
-    public ObservableList<Supplier> getSupplierList() {
-        return this.supplierList;
-    }
-    /**
-     * 선택된 라벨만 PDF로 출력합니다.
-     *
-     * @param selectedLabels 선택된 라벨 목록
-     */
+    // ==================== PDF 생성 메서드 ====================
+
     public void exportSelectedToPdf(List<BarcodeLabel> selectedLabels) throws Exception {
+        exportSelectedToPdf(selectedLabels, 3, 13);
+    }
+
+    public void exportToPdf() throws Exception {
+        exportToPdf(3, 13);
+    }
+
+    public void exportSelectedToPdf(List<BarcodeLabel> selectedLabels, int cols, int rows) throws Exception {
         if (selectedLabels == null || selectedLabels.isEmpty()) {
             log.warn("No labels selected for PDF export");
             return;
@@ -118,28 +230,24 @@ public class LabelViewModel extends BaseViewModel {
             .map(BarcodeLabel::toDto)
             .toList();
         
-        pdfGenerator.generate(selectedDtos);
+        pdfGenerator.generate(selectedDtos, cols, rows);
     }
 
-    /**
-     * 현재 전체 리스트 PDF 출력
-     */
-    public void exportToPdf() throws Exception {
-        if (productList.isEmpty()) return;
+    public void exportToPdf(int cols, int rows) throws Exception {
+        if (sortedProductList.isEmpty()) {
+            log.warn("Product list is empty, cannot export PDF");
+            return;
+        }
         
-        List<BarcodeLabelDto> dtos = productList.stream()
+        List<BarcodeLabelDto> dtos = sortedProductList.stream()
             .map(BarcodeLabel::toDto)
             .toList();
         
-        pdfGenerator.generate(dtos);
+        pdfGenerator.generate(dtos, cols, rows);
     }
 
-    /**
-     * 바코드 생성 (안정성을 위해 null 대신 빈 배열 또는 체크 로직 지원)
-     *
-     * @param barcode 생성할 바코드 문자열
-     * @return 바코드 이미지 바이트 배열
-     */
+    // ==================== 바코드 생성 메서드 ====================
+
     public byte[] generateBarcodeImage(String barcode) {
         try {
             return barcodeGenerator.generate(barcode);
@@ -149,12 +257,6 @@ public class LabelViewModel extends BaseViewModel {
         }
     }
 
-    /**
-     * 특정 라벨의 바코드 이미지를 생성합니다.
-     *
-     * @param label 바코드를 생성할 라벨 객체
-     * @return 바코드 이미지 바이트 배열
-     */
     public byte[] generateBarcodeImage(BarcodeLabel label) {
         if (label == null || label.getBarcode() == null) {
             log.warn("Cannot generate barcode for null label or barcode");
@@ -163,12 +265,8 @@ public class LabelViewModel extends BaseViewModel {
         return generateBarcodeImage(label.getBarcode());
     }
 
-    /**
-     * DTO 리스트를 도메인 객체 리스트로 변환합니다.
-     *
-     * @param dtoList 변환할 DTO 리스트
-     * @return 변환된 도메인 객체 리스트
-     */
+    // ==================== 변환 메서드 ====================
+
     private List<BarcodeLabel> convertToDomainList(List<BarcodeLabelDto> dtoList) {
         if (dtoList == null) {
             return new ArrayList<>();
@@ -178,62 +276,30 @@ public class LabelViewModel extends BaseViewModel {
             .toList();
     }
 
-    /**
-     * 단일 DTO를 도메인 객체로 변환합니다.
-     *
-     * @param dto 변환할 DTO
-     * @return 변환된 도메인 객체
-     */
-    @SuppressWarnings("unused")
-    private BarcodeLabel convertToDomain(BarcodeLabelDto dto) {
-        return BarcodeLabel.fromDto(dto);
-    }
+    // ==================== 선택 관련 메서드 ====================
 
-    /**
-     * 선택된 모든 항목의 선택 상태를 일괄 변경합니다.
-     *
-     * @param selected 선택 여부
-     */
     public void selectAll(boolean selected) {
         Platform.runLater(() -> {
-            for (BarcodeLabel label : productList) {
+            for (BarcodeLabel label : sortedProductList) {
                 label.setSelected(selected);
             }
         });
     }
 
-    /**
-     * 선택된 항목 목록을 반환합니다.
-     *
-     * @return 선택된 라벨 목록
-     */
     public List<BarcodeLabel> getSelectedLabels() {
-        return productList.stream()
+        return sortedProductList.stream()
             .filter(BarcodeLabel::isSelected)
             .toList();
     }
 
-    /**
-     * 선택된 항목이 있는지 확인합니다.
-     *
-     * @return 선택된 항목 존재 여부
-     */
     public boolean hasSelectedLabels() {
-        return productList.stream().anyMatch(BarcodeLabel::isSelected);
+        return sortedProductList.stream().anyMatch(BarcodeLabel::isSelected);
     }
 
-    /**
-     * 선택된 항목의 개수를 반환합니다.
-     *
-     * @return 선택된 항목 개수
-     */
     public int getSelectedCount() {
-        return (int) productList.stream().filter(BarcodeLabel::isSelected).count();
+        return (int) sortedProductList.stream().filter(BarcodeLabel::isSelected).count();
     }
 
-    /**
-     * 모든 항목의 선택 상태를 해제합니다.
-     */
     public void clearAllSelections() {
         selectAll(false);
     }
