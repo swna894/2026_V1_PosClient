@@ -6,7 +6,7 @@ import java.util.function.UnaryOperator;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.model.PosItem;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;

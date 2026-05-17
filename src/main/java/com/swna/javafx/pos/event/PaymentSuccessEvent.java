@@ -5,10 +5,9 @@ import java.util.List;
 
 import org.springframework.context.ApplicationEvent;
 
-
-import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.PaymentResult;
+import com.swna.javafx.pos.model.PosItem;
 
 import lombok.Getter;
 

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+   hgap="10" vgap="5" style="-fx-background-color: white; -fx-padding: 10; -fx-border-color: #ddd;">
+   <Label text="Date:" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;" />
+   <Label GridPane.rowIndex="0" GridPane.columnIndex="1" text="2026-05-13" />
+
+   <Label text="AMOUNT:" GridPane.rowIndex="0" GridPane.columnIndex="2"
+      style="-fx-font-weight: bold;" />
+   <Label GridPane.rowIndex="0" GridPane.columnIndex="3" text="\$0.0" />
+
+   <Label text="COST:" GridPane.rowIndex="0" GridPane.columnIndex="4" style="-fx-font-weight: bold;" />
+   <Label GridPane.rowIndex="0" GridPane.columnIndex="5" text="" />
+
+   <Label text="D/C:" GridPane.rowIndex="0" GridPane.columnIndex="7" style="-fx-font-weight: bold;" />
+   <Label GridPane.rowIndex="0" GridPane.columnIndex="8" text="\$0.0" />
+
+   <Label text="CASH:" GridPane.rowIndex="0" GridPane.columnIndex="9" style="-fx-font-weight: bold;" />
+   <Label GridPane.rowIndex="0" GridPane.columnIndex="10" text="\$0.0" />
+
+   <Label text="Eftpos:" GridPane.rowIndex="0" GridPane.columnIndex="11"
+      style="-fx-font-weight: bold;" />
+   <Label GridPane.rowIndex="0" GridPane.columnIndex="12" text="\$0.0" />
+
+   <Label text="CASH OUT:" GridPane.rowIndex="0" GridPane.columnIndex="13"
+      style="-fx-font-weight: bold;" />
+   <Label GridPane.rowIndex="0" GridPane.columnIndex="14" text="\$0.0" />
+
+</GridPane>

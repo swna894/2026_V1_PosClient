@@ -2,7 +2,7 @@ package com.swna.javafx.pos.manager;
 
 import com.swna.javafx.common.constant.IconPaths;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
-import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;

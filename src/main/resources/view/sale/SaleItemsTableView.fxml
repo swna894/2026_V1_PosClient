@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.admin.sale.SaleItemsTableController" spacing="5">
+
+   <Label text="Sale Items Details" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+
+   <TableView fx:id="saleItemsTableView" VBox.vgrow="ALWAYS">
+      <columns>
+         <TableColumn fx:id="barcodeColumn" text="BARCODE" prefWidth="120" />
+         <TableColumn fx:id="amountColumn" text="AMOUNT" prefWidth="80" />
+         <TableColumn fx:id="priceColumn" text="PRICE" prefWidth="80" />
+         <TableColumn fx:id="qtyColumn" text="Qty" prefWidth="60" />
+         <TableColumn fx:id="discountColumn" text="D/C" prefWidth="60" />
+         <TableColumn fx:id="codeColumn" text="CODE" prefWidth="80" />
+         <TableColumn fx:id="supplierColumn" text="SUPPLIER" prefWidth="100" />
+      </columns>
+   </TableView>
+
+</VBox>

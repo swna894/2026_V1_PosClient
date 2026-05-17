@@ -2,7 +2,7 @@ package com.swna.javafx.pos.viewmodel.handler;
 
 import java.util.Optional;
 
-import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.service.ScanService;
 import com.swna.javafx.pos.viewmodel.manager.CartManager;
 

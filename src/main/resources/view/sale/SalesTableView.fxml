@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.admin.sale.SalesTableController" spacing="5">
+
+   <Label text="Sales List" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+
+   <TableView fx:id="salesTableView" VBox.vgrow="ALWAYS">
+      <columns>
+         <TableColumn fx:id="noColumn" text="NO" prefWidth="50" />
+         <TableColumn fx:id="receiptColumn" text="RECEIPT" prefWidth="200" />
+         <TableColumn fx:id="saleAmountColumn" text="TOTAL" prefWidth="100" />
+         <TableColumn fx:id="cashColumn" text="CASH" prefWidth="100" />
+         <TableColumn fx:id="creditColumn" text="CREDIT" prefWidth="100" />
+         <TableColumn fx:id="cashoutColumn" text="CASHOUT" prefWidth="100" />
+         <TableColumn fx:id="balanceColumn" text="BALANCE" prefWidth="100" />
+         <TableColumn fx:id="originalAmountColumn" text="ORIGINAL TOTAL" prefWidth="100" />
+         <TableColumn fx:id="discountColumn" text="D/C" prefWidth="100" />
+         <TableColumn fx:id="acceptColumn" text="ACCEPT" prefWidth="100" />
+         <TableColumn fx:id="dateColumn" text="DATE" prefWidth="90" />
+      </columns>
+   </TableView>
+
+</VBox>

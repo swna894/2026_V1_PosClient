@@ -198,7 +198,7 @@ public class LabelViewModel extends BaseViewModel {
                 suppliers -> {
                     Platform.runLater(() -> {
                         Supplier allOption = new Supplier();
-                        allOption.setCompany("전체");
+                        allOption.setCompany("Select All");
                         
                         supplierList.clear();
                         supplierList.add(allOption);

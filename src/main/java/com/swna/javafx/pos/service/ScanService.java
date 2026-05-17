@@ -8,8 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 
 import com.swna.javafx.pos.api.ProductApiService;
-import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.response.ProductResponse;
+import com.swna.javafx.pos.model.PosItem;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

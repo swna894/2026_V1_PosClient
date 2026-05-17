@@ -1,13 +1,13 @@
 package com.swna.javafx.pos.viewmodel;
 
 import com.swna.javafx.pos.api.PaymentApiService;
-import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.request.DiscountRequest;
 import com.swna.javafx.pos.dto.request.DiscountType;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
 import com.swna.javafx.pos.dto.request.SaleItemRequest;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.PaymentResult;
+import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.viewmodel.manager.CartManager;
 import javafx.collections.ObservableList;
 import lombok.RequiredArgsConstructor;

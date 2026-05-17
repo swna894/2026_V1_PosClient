@@ -36,8 +36,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.collections.ListChangeListener;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -365,6 +363,8 @@ public class TableColumnUtil {
             super.updateItem(price, empty);
             if (empty || price == null) {
                 setText(null);
+            } else if (price.compareTo(BigDecimal.ZERO) == 0) {
+                setText("-"); 
             } else {
                 setText(currencyFormat.format(price));
             }

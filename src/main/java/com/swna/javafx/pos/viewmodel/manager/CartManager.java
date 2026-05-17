@@ -1,6 +1,6 @@
 package com.swna.javafx.pos.viewmodel.manager;
 
-import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.viewmodel.handler.ScanHandler;
 
 import javafx.beans.binding.Bindings;

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.admin.sale.SalesController"
+   spacing="10" style="-fx-background-color: #f0f0f0;">
+
+   <padding>
+      <Insets top="10" right="10" bottom="10" left="10" />
+   </padding>
+
+   <!-- Title -->
+   <Label text="Daily Sales"
+      style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
+
+   <!-- Daily Summary Component -->
+   <fx:include source="DailySummaryView.fxml" fx:id="dailySummary" />
+
+   <!-- SplitPane with Tables -->
+   <SplitPane dividerPositions="0.4" VBox.vgrow="ALWAYS">
+
+      <!-- Left: Sales Table Component -->
+      <fx:include source="SalesTableView.fxml" fx:id="salesTable" />
+
+      <!-- Right: Sale Items Table Component -->
+      <fx:include source="SaleItemsTableView.fxml" fx:id="saleItemsTable" />
+
+   </SplitPane>
+
+   <!-- 하단 패널: 날짜 필터 + 버튼들을 오른쪽 끝에 배치 -->
+   <HBox spacing="10" alignment="CENTER_LEFT">
+
+      <!-- 빈 공간을 채워서 오른쪽으로 밀어냄 -->
+      <Region HBox.hgrow="ALWAYS" />
+
+      <!-- 날짜 필터 패널 -->
+      <HBox spacing="8" alignment="CENTER_RIGHT">
+         <Label text="날짜 검색:" style="-fx-font-weight: bold;" />
+         <DatePicker fx:id="startDatePicker" promptText="시작일" prefWidth="130" />
+         <Label text="~" />
+         <DatePicker fx:id="endDatePicker" promptText="종료일" prefWidth="130" />
+         <Button text="조회" fx:id="searchButton"
+            style="-fx-background-color: #3498db; -fx-text-fill: white;" />
+         <Button text="초기화" fx:id="resetButton"
+            style="-fx-background-color: #95a5a6; -fx-text-fill: white;" />
+      </HBox>
+
+      <!-- 구분선 (선택사항) -->
+      <Separator orientation="VERTICAL" prefHeight="30" />
+
+      <!-- Button Panel 버튼들 -->
+      <Button text="IMPORT" fx:id="importButton"
+         style="-fx-background-color: #3498db; -fx-text-fill: white;" />
+      <Button text="Excel" fx:id="excelButton"
+         style="-fx-background-color: #27ae60; -fx-text-fill: white;" />
+      <Button text="Reload" fx:id="reloadButton"
+         style="-fx-background-color: #f39c12; -fx-text-fill: white;" />
+      <Button text="Delete" fx:id="deleteButton"
+         style="-fx-background-color: #e74c3c; -fx-text-fill: white;" />
+
+   </HBox>
+
+</VBox>

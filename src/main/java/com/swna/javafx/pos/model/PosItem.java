@@ -1,4 +1,4 @@
-package com.swna.javafx.pos.domain;
+package com.swna.javafx.pos.model;
 
 import java.time.LocalDateTime;
 

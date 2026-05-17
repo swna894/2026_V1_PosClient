@@ -1,6 +1,7 @@
 package com.swna.javafx.pos.viewmodel.manager;
 
-import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.model.PosItem;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

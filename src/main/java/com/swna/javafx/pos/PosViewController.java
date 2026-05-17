@@ -3,19 +3,20 @@ package com.swna.javafx.pos;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.SettingViewController;
 import com.swna.javafx.admin.supplier.SupplierController;
 import com.swna.javafx.barcode.LabelController;
 import com.swna.javafx.common.navigation.NavigationService;
 import com.swna.javafx.common.util.StatusLabel;
 import com.swna.javafx.common.util.StatusLabelManager;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
-import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.manager.BarcodeScannerManager;
 import com.swna.javafx.pos.manager.CartButtonManager;
 import com.swna.javafx.pos.manager.ClockManager;
 import com.swna.javafx.pos.manager.PaymentDialogManager;
 import com.swna.javafx.pos.manager.PosTableSetup;
 import com.swna.javafx.pos.manager.UiNotifier;
+import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.service.config.PosToggleService;
 import com.swna.javafx.pos.service.config.PrintToggleService;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
@@ -41,7 +42,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
-@FxmlView("/view/pos/PosView.fxml")
+@FxmlView("/view/pos/pos-view.fxml")
 public class PosViewController {
 
     // 스타일 클래스 상수 정의
@@ -106,6 +107,7 @@ public class PosViewController {
     @FXML private Button buttonOnGenerate;
     @FXML private Button buttonOnPos;
     @FXML private Button buttonOnPrint;
+    @FXML private Button buttonSettings;
     @FXML private Button buttonSupplier;
     
     // Image Views
@@ -322,6 +324,14 @@ public class PosViewController {
         }
     }
     
+    @FXML void  onSettings(ActionEvent e) {
+       // 새로운 창(Stage)으로 띄우고 싶을 때
+        navigationService.navigateStage(SettingViewController.class);
+        
+        // 또는 현재 창의 씬(Scene)만 교체하고 싶을 때
+        // navigationService.navigate(SupplierController.class)
+    }
+
     @FXML 
     private void onSupplier(ActionEvent e) {
        // 새로운 창(Stage)으로 띄우고 싶을 때

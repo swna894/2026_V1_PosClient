@@ -16,7 +16,7 @@ public class LoggingWebClientFilter {
     public ExchangeFilterFunction logRequest() {
         return (request, next) -> {
        
-            log.info("➡️ REQUEST: = {}", request.method() + " " + request.url());
+            log.info("REQUEST: = {}", request.method() + " " + request.url());
             request.headers().forEach((name, values) -> values.forEach(v -> log.info("{} : {}", name , v)));
             return next.exchange(request);
         };
@@ -27,7 +27,7 @@ public class LoggingWebClientFilter {
     // =========================
     public ExchangeFilterFunction logResponse() {
         return ExchangeFilterFunction.ofResponseProcessor(response -> {
-            log.info("⬅️ RESPONSE: = {}", response.statusCode());
+            log.info("RESPONSE: = {}", response.statusCode());
             return Mono.just(response);
         });
     }

@@ -10,8 +10,8 @@ import com.swna.javafx.pos.dialog.CashoutDialogController;
 import com.swna.javafx.pos.dialog.CreditDialogController;
 import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
-import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.functional.TriConsumer;
+import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
 
 import javafx.scene.Parent;

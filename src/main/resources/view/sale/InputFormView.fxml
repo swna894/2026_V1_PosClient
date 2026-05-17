@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+   hgap="5" vgap="5" style="-fx-background-color: white; -fx-padding: 10; -fx-border-color: #ddd;">
+
+   <Label text="RECEIPT:" GridPane.rowIndex="0" GridPane.columnIndex="0"
+      style="-fx-font-weight: bold;" />
+   <TextField fx:id="receiptField" GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="100" />
+
+   <Label text="BARCODE" GridPane.rowIndex="0" GridPane.columnIndex="2"
+      style="-fx-font-weight: bold;" />
+   <TextField fx:id="barcodeField" GridPane.rowIndex="0" GridPane.columnIndex="3" prefWidth="150" />
+
+   <Label text="AMOUNT" GridPane.rowIndex="0" GridPane.columnIndex="4"
+      style="-fx-font-weight: bold;" />
+   <TextField fx:id="amountField" GridPane.rowIndex="0" GridPane.columnIndex="5" prefWidth="80" />
+
+   <Label text="PRICE" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold;" />
+   <TextField fx:id="priceField" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="80" />
+
+   <Label text="Qty" GridPane.rowIndex="1" GridPane.columnIndex="2" style="-fx-font-weight: bold;" />
+   <TextField fx:id="qtyField" GridPane.rowIndex="1" GridPane.columnIndex="3" prefWidth="60" />
+
+   <Label text="D/C" GridPane.rowIndex="1" GridPane.columnIndex="4" style="-fx-font-weight: bold;" />
+   <TextField fx:id="dcField" GridPane.rowIndex="1" GridPane.columnIndex="5" prefWidth="60" />
+
+   <Label text="CODE" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-weight: bold;" />
+   <TextField fx:id="codeField" GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="80" />
+
+   <Label text="SUPPLIER" GridPane.rowIndex="2" GridPane.columnIndex="2"
+      style="-fx-font-weight: bold;" />
+   <TextField fx:id="supplierField" GridPane.rowIndex="2" GridPane.columnIndex="3" prefWidth="120" />
+
+   <Button text="Add Item" GridPane.rowIndex="2" GridPane.columnIndex="5"
+      style="-fx-background-color: #3498db; -fx-text-fill: white;" />
+
+</GridPane>

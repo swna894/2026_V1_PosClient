@@ -14,7 +14,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.pos.domain.PosItem;
+import com.swna.javafx.pos.model.PosItem;
 
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;

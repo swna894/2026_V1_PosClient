@@ -2,11 +2,11 @@ package com.swna.javafx.pos.listener;
 
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.admin.shop.viewmodel.ShopViewModel;
-import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.PaymentResult;
 import com.swna.javafx.pos.event.PaymentSuccessEvent;
 import com.swna.javafx.pos.event.PrintFailureEvent;
+import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.print.ReceiptPrinter;
 import com.swna.javafx.pos.print.ReceiptStyle;
 import com.swna.javafx.pos.service.config.PrintToggleService;

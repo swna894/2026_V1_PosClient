@@ -9,11 +9,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.shop.Shop;
-import com.swna.javafx.pos.domain.PosItem;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.PaymentResult;
 import com.swna.javafx.pos.dto.response.SaleResponse;
+import com.swna.javafx.pos.model.PosItem;
 
 import lombok.extern.slf4j.Slf4j;
 

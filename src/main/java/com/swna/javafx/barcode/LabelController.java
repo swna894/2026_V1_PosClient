@@ -26,6 +26,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -77,6 +78,8 @@ public class LabelController {
     @FXML private Button btnGenerate;
     @FXML private Button btnPrint;
     
+    @FXML private SplitPane splitPane;
+
     private final LabelViewModel viewModel;
     private final NavigationService navigationService;
 
@@ -92,6 +95,7 @@ public class LabelController {
         setupSupplierComboBox();
         setupSearchFilter();
         setupLayoutComboBoxes();
+        setupSplitPane();
 
         // ViewModel의 SortedList를 테이블에 바인딩
         table.setItems(viewModel.getProductList());
@@ -129,6 +133,15 @@ public class LabelController {
         });
     }
     
+    private void setupSplitPane() {
+        // 또는 지연 설정
+        Platform.runLater(() -> {
+            splitPane.prefHeightProperty().bind(splitPane.getScene().heightProperty());
+            splitPane.prefWidthProperty().bind(splitPane.getScene().widthProperty());
+            splitPane.setDividerPosition(0, 0.7);
+        });
+    }
+
     /**
      * 실시간 검색 필터 설정
      */
@@ -155,7 +168,7 @@ public class LabelController {
 
         categoryCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                String companyName = "전체".equals(newVal.getCompany()) ? null : newVal.getCompany();
+                String companyName = "Select All".equals(newVal.getCompany()) ? null : newVal.getCompany();
                 
                 if (companyName == null) {
                     viewModel.loadLabels();
@@ -214,7 +227,7 @@ public class LabelController {
         log.info("Cancel button clicked. Resetting selection.");
         table.getSelectionModel().clearSelection();
         barcodeImageView.setImage(null);
-        previewName.setText("선택된 상품 없음");
+        previewName.setText("Please select an item");
         previewBarcodeText.setText("");
         
         if (searchField != null) {
@@ -239,7 +252,7 @@ public class LabelController {
             }
         } catch (Exception e) {
             log.error("PDF Export Error", e);
-            showError("오류", "PDF 생성 실패: " + e.getMessage());
+            showError("Error", "PDF generation failed: " + e.getMessage());
         }
     }
 
@@ -262,7 +275,7 @@ public class LabelController {
             } catch (IOException e) {
                 log.error("Failed to open PDF: {}", e.getMessage());
                 Platform.runLater(() -> 
-                    showInfo("PDF 위치", "PDF 저장 위치: " + pdfPath.toAbsolutePath())
+                    showInfo("PDF Path", "PDF Save Location: " + pdfPath.toAbsolutePath())
                 );
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -275,7 +288,7 @@ public class LabelController {
     private void onGenerateSelected() {
         try {
             if (!viewModel.hasSelectedLabels()) {
-                showInfo("알림", "선택된 상품이 없습니다.");
+                showInfo("Information", "No items selected.");
                 return;
             }
             
@@ -283,10 +296,10 @@ public class LabelController {
             int rows = getSelectedRows();
             
             viewModel.exportSelectedToPdf(viewModel.getSelectedLabels(), cols, rows);
-            showInfo("성공", "선택된 상품의 PDF가 생성되었습니다.");
+            showInfo("Success", "The PDF for the selected item has been generated.");
         } catch (Exception e) {
             log.error("PDF Export Error for selected items", e);
-            showError("오류", "PDF 생성 실패: " + e.getMessage());
+            showError("Error", "Failed to generate PDF: " + e.getMessage());
         }
     }
 
