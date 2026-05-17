@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -284,6 +285,62 @@ public class TableColumnUtil {
         }
     }
 
+    // ========== Public API - DateTime Column with Format ==========
+
+    /**
+     * 날짜/시간(LocalDateTime) 값을 지정된 형식으로 표시하는 컬럼을 생성합니다.
+     *
+     * @param <T>       테이블 뷰의 모델 타입
+     * @param column    설정할 TableColumn (LocalDateTime 타입)
+     * @param getter    모델에서 LocalDateTime 값을 가져오는 함수
+     * @param setter    편집 시 값을 저장하는 함수 (row, newValue)
+     * @param editable  편집 가능 여부
+     * @param alignment 텍스트 정렬 (CENTER, RIGHT, LEFT)
+     * @param formatter 날짜/시간 포맷터 (예: DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+     * @param dirtyConsumer 변경 사항 발생 시 호출될 콜백 (nullable)
+     */
+    public static <T> void makeDateTimeColumn(
+            TableColumn<T, LocalDateTime> column,
+            Function<T, LocalDateTime> getter,
+            BiConsumer<T, LocalDateTime> setter,
+            boolean editable,
+            String alignment,
+            DateTimeFormatter formatter,
+            DirtyConsumer<T> dirtyConsumer
+    ) {
+        column.setCellValueFactory(cell -> new SimpleObjectProperty<>(getter.apply(cell.getValue())));
+        column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+        column.setCellFactory(col -> new FormattedDateTimeCell<>(formatter));
+
+        if (editable) {
+            column.setOnEditCommit(event -> {
+                T row = event.getRowValue();
+                setter.accept(row, event.getNewValue());
+                if (dirtyConsumer != null) dirtyConsumer.accept(row);
+            });
+        }
+    }
+
+    /**
+     * 형식화된 날짜/시간 표시 셀 내부 클래스
+     */
+    private static class FormattedDateTimeCell<T> extends TableCell<T, LocalDateTime> {
+        private final DateTimeFormatter formatter;
+        
+        public FormattedDateTimeCell(DateTimeFormatter formatter) {
+            this.formatter = formatter;
+        }
+        
+        @Override
+        protected void updateItem(LocalDateTime item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setText(null);
+            } else {
+                setText(item.format(formatter));
+            }
+        }
+    }
     
     // ========== Public API - DatePicker Column ==========
     

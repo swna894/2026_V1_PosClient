@@ -157,7 +157,7 @@ public class SalesViewModel {
         model.setId(parseId(dto.getId()));
         model.setReceiptNo(dto.getReceiptNo());
         //model.setCashier(dto.getCashier());
-        //model.setPaymentDateTime(dto.getPaymentDateTime());
+        model.setPaymentDateTime(dto.getPaymentDateTime());
         
         // 2. 금액 정보 설정 (Null 방어 코드를 추가하면 더욱 안전합니다)
         model.setOriginalAmount(dto.getOriginalAmount() != null ? dto.getOriginalAmount() : BigDecimal.ZERO);

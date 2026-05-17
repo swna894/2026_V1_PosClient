@@ -1,6 +1,7 @@
 package com.swna.javafx.admin.sale.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import lombok.Data;
 
@@ -21,5 +22,5 @@ public class SaleDto {
     private String paymentType;
     private String cardNumber;
     private String cashier;
-    private String paymentDateTime;
+    private LocalDateTime paymentDateTime;
 }

@@ -3,6 +3,7 @@ package com.swna.javafx.admin.sale;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 
 import org.springframework.stereotype.Component;
@@ -22,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class SalesTableController implements Initializable {
+    
+    private static final DateTimeFormatter DATE_TIME_FORMATTER =  DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     
     private final SalesViewModel viewModel;
     
@@ -85,7 +88,7 @@ public class SalesTableController implements Initializable {
         
         // 10. 날짜
         TableColumnUtil.makeDateTimeColumn(dateColumn, SaleModel::getPaymentDateTime,
-            null, false, TableColumnUtil.CENTER, null);
+            null, false, TableColumnUtil.CENTER, DATE_TIME_FORMATTER, null);
     }
     
     private void setupTableBindings() {

@@ -19,8 +19,8 @@
          <TableColumn fx:id="balanceColumn" text="BALANCE" prefWidth="100" />
          <TableColumn fx:id="originalAmountColumn" text="ORIGINAL TOTAL" prefWidth="100" />
          <TableColumn fx:id="discountColumn" text="D/C" prefWidth="100" />
-         <TableColumn fx:id="acceptColumn" text="ACCEPT" prefWidth="100" />
-         <TableColumn fx:id="dateColumn" text="DATE" prefWidth="90" />
+         <TableColumn fx:id="acceptColumn" text="ACCEPT" prefWidth="120" />
+         <TableColumn fx:id="dateColumn" text="DATE" prefWidth="120" />
       </columns>
    </TableView>
 
