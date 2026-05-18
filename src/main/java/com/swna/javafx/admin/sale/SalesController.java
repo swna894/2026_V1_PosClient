@@ -83,11 +83,11 @@ public class SalesController implements Initializable {
     }
     
     private void fixSplitPaneDivider() {
-    Platform.runLater(() -> splitPane.setDividerPositions(0.63));
+    Platform.runLater(() -> splitPane.setDividerPositions(0.60));
     
     splitPane.sceneProperty().addListener((obs, old, newScene) -> {
         if (newScene != null) {
-            Platform.runLater(() -> splitPane.setDividerPositions(0.63));
+            Platform.runLater(() -> splitPane.setDividerPositions(0.60));
         }
     });
 }

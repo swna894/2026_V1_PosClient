@@ -101,12 +101,15 @@ public class TableColumnUtil {
             Function<T, StringProperty> propertyGetter,
             BiConsumer<T, String> setter,
             boolean editable,
+            boolean isVisible,
             String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()));
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
         column.setSortable(false);
+
+        column.setVisible(isVisible);
 
         if (editable) {
             column.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -137,12 +140,15 @@ public class TableColumnUtil {
             TableColumn<T, Double> column,
             Function<T, DoubleProperty> propertyGetter,
             boolean editable,
+            boolean isVisible,
             String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
         column.setCellFactory(tc -> new CurrencyCell<>());
+
+        column.setVisible(isVisible);
 
         if (editable) {
             column.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverter()));
@@ -176,11 +182,14 @@ public class TableColumnUtil {
             Function<T, IntegerProperty> propertyGetter,
             ObjIntConsumer<T> setter,
             boolean editable,
+            boolean isVisible,
             String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+
+        column.setVisible(isVisible);
 
         if (editable) {
             column.setCellFactory(col -> new IntegerEditingCell<>(alignment));
@@ -232,11 +241,14 @@ public class TableColumnUtil {
             Function<T, DoubleProperty> propertyGetter,
             ObjDoubleConsumer<T> setter,
             boolean editable,
+            boolean isVisible,
             String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+
+        column.setVisible(isVisible);
 
         if (editable) {
             column.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverter()));
@@ -269,12 +281,15 @@ public class TableColumnUtil {
             Function<T, LocalDateTime> getter,
             BiConsumer<T, LocalDateTime> setter,
             boolean editable,
+            boolean isVisible,
             String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cell -> new SimpleObjectProperty<>(getter.apply(cell.getValue())));
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
         column.setCellFactory(col -> new DateTimeCell<>());
+
+        column.setVisible(isVisible);
 
         if (editable) {
             column.setOnEditCommit(event -> {
@@ -304,6 +319,7 @@ public class TableColumnUtil {
             Function<T, LocalDateTime> getter,
             BiConsumer<T, LocalDateTime> setter,
             boolean editable,
+            boolean isVisible,
             String alignment,
             DateTimeFormatter formatter,
             DirtyConsumer<T> dirtyConsumer
@@ -311,6 +327,8 @@ public class TableColumnUtil {
         column.setCellValueFactory(cell -> new SimpleObjectProperty<>(getter.apply(cell.getValue())));
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
         column.setCellFactory(col -> new FormattedDateTimeCell<>(formatter));
+
+        column.setVisible(isVisible);
 
         if (editable) {
             column.setOnEditCommit(event -> {
@@ -383,12 +401,15 @@ public class TableColumnUtil {
             TableColumn<T, BigDecimal> column,
             Function<T, ObjectProperty<BigDecimal>> propertyGetter,
             boolean editable,
+            boolean isVisible,
             String alignment,
             DirtyConsumer<T> dirtyConsumer
     ) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()));
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
         column.setCellFactory(tc -> new BigDecimalCurrencyCell<>());
+
+        column.setVisible(isVisible);
 
         if (editable) {
             column.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalStringConverter()));
@@ -476,11 +497,13 @@ public class TableColumnUtil {
      */
     public static <T> void makeButtonColumn(
             TableColumn<T, Void> column,
+            boolean isVisible,
             String title,
             String iconPath,
             Integer width,
             Consumer<T> action
     ) {
+        column.setVisible(isVisible);
         setupStaticColumnProps(column, title, iconPath, width);
         column.setCellFactory(param -> new ButtonCell<>(iconPath, action));
     }

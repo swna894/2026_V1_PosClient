@@ -53,42 +53,42 @@ public class SalesTableController implements Initializable {
         TableColumnUtil.createNumberColumn(salesTableView, noColumn, 50);
         // 2. 영수증 번호
         TableColumnUtil.makeStringColumn(receiptColumn, SaleModel::receiptNoProperty,
-            null, false, TableColumnUtil.LEFT, null);
+            null, false, true, TableColumnUtil.CENTER, null);
         
         // 3. 총액
         TableColumnUtil.makeBigDecimalCurrencyColumn(saleAmountColumn, SaleModel::saleAmountProperty,
-            false, TableColumnUtil.RIGHT, null);
+            false, true,TableColumnUtil.RIGHT, null);
 
         TableColumnUtil.makeBigDecimalCurrencyColumn(originalAmountColumn, SaleModel::originalAmountProperty,
-            false, TableColumnUtil.RIGHT, null);
+            false, true,TableColumnUtil.RIGHT, null);
         
         // 4. 할인액
         TableColumnUtil.makeBigDecimalCurrencyColumn(discountColumn, SaleModel::discountAmountProperty,
-            false, TableColumnUtil.RIGHT, null);
+            false, true,TableColumnUtil.RIGHT, null);
         
         // 5. 현금 (receivedAmount - cashoutAmount)
         TableColumnUtil.makeBigDecimalCurrencyColumn(cashColumn, SaleModel::cashAmountProperty,
-            false, TableColumnUtil.RIGHT, null);
+            false, true,TableColumnUtil.RIGHT, null);
         
         // 6. EFTPOS (CARD 결제 금액)
         TableColumnUtil.makeBigDecimalCurrencyColumn(creditColumn, SaleModel::creditAmountProperty,
-            false, TableColumnUtil.RIGHT, null);
+            false, true,TableColumnUtil.RIGHT, null);
         
         // 7. 현금인출
         TableColumnUtil.makeBigDecimalCurrencyColumn(cashoutColumn, SaleModel::cashoutAmountProperty,
-            false, TableColumnUtil.RIGHT, null);
+            false, true,TableColumnUtil.RIGHT, null);
         
         // 8. 잔액
         TableColumnUtil.makeBigDecimalCurrencyColumn(balanceColumn, SaleModel::changeAmountProperty,
-            false, TableColumnUtil.RIGHT, null);
+            false, false,TableColumnUtil.RIGHT, null);
         
         // 9. 결제 방식
         TableColumnUtil.makeStringColumn(acceptColumn, SaleModel::paymentTypeProperty,
-            null, false, TableColumnUtil.CENTER, null);
+            null, false, true,TableColumnUtil.CENTER, null);
         
         // 10. 날짜
         TableColumnUtil.makeDateTimeColumn(dateColumn, SaleModel::getPaymentDateTime,
-            null, false, TableColumnUtil.CENTER, DATE_TIME_FORMATTER, null);
+            null, false, true,TableColumnUtil.CENTER, DATE_TIME_FORMATTER, null);
     }
     
     private void setupTableBindings() {

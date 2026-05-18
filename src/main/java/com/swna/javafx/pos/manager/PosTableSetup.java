@@ -183,11 +183,11 @@ public class PosTableSetup {
      * 액션 버튼 컬럼 설정
      */
     private void setupActionButtons(TableColumns columns, PosViewModel viewModel, Callbacks callbacks) {
-        TableColumnUtil.makeButtonColumn(columns.colDelete, null, IconPaths.DELETE, BUTTON_COLUMN_WIDTH, viewModel::removeItem);
-        TableColumnUtil.makeButtonColumn(columns.colMinus, null, IconPaths.MINUS, BUTTON_COLUMN_WIDTH, viewModel::decreaseQty);
-        TableColumnUtil.makeButtonColumn(columns.colPlus, null, IconPaths.PLUS, BUTTON_COLUMN_WIDTH, viewModel::increaseQty);
-        TableColumnUtil.makeButtonColumn(columns.colDiscountPrice, null, IconPaths.DISCOUNT, BUTTON_COLUMN_WIDTH, callbacks.onDiscount);
-        TableColumnUtil.makeButtonColumn(columns.colChangePrice, null, IconPaths.PRICE_22, BUTTON_COLUMN_WIDTH, callbacks.onChangePrice);
+        TableColumnUtil.makeButtonColumn(columns.colDelete, true,null, IconPaths.DELETE, BUTTON_COLUMN_WIDTH, viewModel::removeItem);
+        TableColumnUtil.makeButtonColumn(columns.colMinus, true,null, IconPaths.MINUS, BUTTON_COLUMN_WIDTH, viewModel::decreaseQty);
+        TableColumnUtil.makeButtonColumn(columns.colPlus, true,null, IconPaths.PLUS, BUTTON_COLUMN_WIDTH, viewModel::increaseQty);
+        TableColumnUtil.makeButtonColumn(columns.colDiscountPrice, true,null, IconPaths.DISCOUNT, BUTTON_COLUMN_WIDTH, callbacks.onDiscount);
+        TableColumnUtil.makeButtonColumn(columns.colChangePrice, true,null, IconPaths.PRICE_22, BUTTON_COLUMN_WIDTH, callbacks.onChangePrice);
     }
     
     /**
@@ -195,31 +195,28 @@ public class PosTableSetup {
      */
     private void setupDataColumns(TableColumns columns) {
         // 바코드 - 중앙 정렬, 읽기 전용
-        TableColumnUtil.makeStringColumn(columns.colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, READ_ONLY, ALIGN_CENTER, null);
+        TableColumnUtil.makeStringColumn(columns.colBarcode, PosItem::barcodeProperty, PosItem::setBarcode, READ_ONLY, true,ALIGN_CENTER, null);
         
         // 상품명 - 왼쪽 정렬, 읽기 전용
-        TableColumnUtil.makeStringColumn(columns.colDesc, PosItem::descriptionProperty, PosItem::setDescription, READ_ONLY, ALIGN_LEFT, null);
+        TableColumnUtil.makeStringColumn(columns.colDesc, PosItem::descriptionProperty, PosItem::setDescription, READ_ONLY, true,ALIGN_LEFT, null);
         
         // 코멘트 - 왼쪽 정렬, 읽기 전용
-        TableColumnUtil.makeStringColumn(columns.colComment, PosItem::commentProperty, PosItem::setComment, READ_ONLY, ALIGN_LEFT, null);
+        TableColumnUtil.makeStringColumn(columns.colComment, PosItem::commentProperty, PosItem::setComment, READ_ONLY, true, ALIGN_LEFT, null);
         
         // 수량 - 중앙 정렬, 편집 가능
-        TableColumnUtil.makeIntegerColumn(columns.colQty,  PosItem::qtyProperty, PosItem::setQty, EDITABLE, ALIGN_CENTER, null);
+        TableColumnUtil.makeIntegerColumn(columns.colQty,  PosItem::qtyProperty, PosItem::setQty, EDITABLE,true, ALIGN_CENTER, null);
         
         // 재고 - 중앙 정렬, 읽기 전용
-        TableColumnUtil.makeIntegerColumn(columns.colStock, PosItem::stockProperty, PosItem::setStock, READ_ONLY, ALIGN_CENTER, null);
+        TableColumnUtil.makeIntegerColumn(columns.colStock, PosItem::stockProperty, PosItem::setStock, READ_ONLY, true,ALIGN_CENTER, null);
         
         // 단가 - 오른쪽 정렬, 읽기 전용
-        TableColumnUtil.makeCurrencyColumn(columns.colPrice, 
-            PosItem::sellingPriceProperty, READ_ONLY, ALIGN_RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(columns.colPrice,  PosItem::sellingPriceProperty, READ_ONLY, true,ALIGN_RIGHT, null);
         
         // 총액 - 오른쪽 정렬, 읽기 전용
-        TableColumnUtil.makeCurrencyColumn(columns.colTotal, 
-            PosItem::finalAmountProperty, READ_ONLY, ALIGN_RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(columns.colTotal,  PosItem::finalAmountProperty, READ_ONLY, true,ALIGN_RIGHT, null);
         
         // 할인 - 오른쪽 정렬, 읽기 전용
-        TableColumnUtil.makeCurrencyColumn(columns.colDiscount, 
-            PosItem::discountTotalProperty, READ_ONLY, ALIGN_RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(columns.colDiscount,  PosItem::discountTotalProperty, READ_ONLY, true,ALIGN_RIGHT, null);
     }
     
     /**

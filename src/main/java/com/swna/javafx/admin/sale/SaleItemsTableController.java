@@ -51,6 +51,7 @@ public class SaleItemsTableController implements Initializable {
             SaleItemModel::barcodeProperty,
             null,
             false,  // 읽기 전용
+            true,
             TableColumnUtil.CENTER,
             null
         );
@@ -60,6 +61,7 @@ public class SaleItemsTableController implements Initializable {
             amountColumn,
             SaleItemModel::subtotalProperty,
             false,  // 읽기 전용
+            true,
             TableColumnUtil.RIGHT,
             null
         );
@@ -69,6 +71,7 @@ public class SaleItemsTableController implements Initializable {
             priceColumn,
             SaleItemModel::priceProperty,
             false,  // 읽기 전용
+            true,
             TableColumnUtil.RIGHT,
             null
         );
@@ -78,6 +81,7 @@ public class SaleItemsTableController implements Initializable {
             qtyColumn,
             SaleItemModel::quantityProperty,
             null,  // 읽기 전용
+            true,
             false,
             TableColumnUtil.CENTER,
             null
@@ -88,6 +92,7 @@ public class SaleItemsTableController implements Initializable {
             discountColumn,
             SaleItemModel::discountProperty,
             false,  // 읽기 전용
+            true,
             TableColumnUtil.RIGHT,
             null
         );
@@ -98,6 +103,7 @@ public class SaleItemsTableController implements Initializable {
             SaleItemModel::productNameProperty,
             null,
             false,
+            true,
             TableColumnUtil.LEFT,
             null
         );
@@ -108,6 +114,7 @@ public class SaleItemsTableController implements Initializable {
             SaleItemModel::supplierProperty,
             null,
             false,
+            true,
             TableColumnUtil.LEFT,
             null
         );

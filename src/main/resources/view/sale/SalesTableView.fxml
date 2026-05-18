@@ -13,15 +13,15 @@
       <columns>
          <TableColumn fx:id="noColumn" text="NO" prefWidth="50" />
          <TableColumn fx:id="receiptColumn" text="RECEIPT" prefWidth="190" />
-         <TableColumn fx:id="saleAmountColumn" text="TOTAL" prefWidth="100" />
+         <TableColumn fx:id="saleAmountColumn" text="Final Amt" prefWidth="100" />
          <TableColumn fx:id="cashColumn" text="CASH" prefWidth="100" />
          <TableColumn fx:id="creditColumn" text="CREDIT" prefWidth="100" />
          <TableColumn fx:id="cashoutColumn" text="CASHOUT" prefWidth="100" />
          <TableColumn fx:id="balanceColumn" text="BALANCE" prefWidth="100" />
-         <TableColumn fx:id="originalAmountColumn" text="ORIGINAL TOTAL" prefWidth="100" />
-         <TableColumn fx:id="discountColumn" text="D/C" prefWidth="100" />
+         <TableColumn fx:id="discountColumn" text="Disc. Amt" prefWidth="100" />
+         <TableColumn fx:id="originalAmountColumn" text="Orig. Amt" prefWidth="100" />
          <TableColumn fx:id="acceptColumn" text="ACCEPT" prefWidth="120" />
-         <TableColumn fx:id="dateColumn" text="DATE" prefWidth="120" />
+         <TableColumn fx:id="dateColumn" text="DATE" prefWidth="125" />
       </columns>
    </TableView>
 

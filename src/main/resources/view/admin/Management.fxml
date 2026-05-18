@@ -4,16 +4,15 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="600.0" prefWidth="800.0" stylesheets="@../../styles/management.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1">
-
+<BorderPane prefHeight="600.0" prefWidth="800.0" stylesheets="@../../styles/app.css"
+   xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.admin.MenuController">
    <top>
       <fx:include source="AppMenuBar.fxml" />
    </top>
 
    <center>
-      <VBox alignment="CENTER">
-         <Label text="메인 화면입니다." />
-      </VBox>
+      <fx:include source="/view/sale/MainSalesView.fxml" />
    </center>
 
 </BorderPane>

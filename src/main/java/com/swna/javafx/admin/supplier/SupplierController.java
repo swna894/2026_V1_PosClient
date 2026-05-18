@@ -93,22 +93,22 @@ public class SupplierController implements Initializable {
         TableColumnUtil.createNumberColumn(supplierTable, noColumn, 50);
     
         // 3. 약어 컬럼
-        TableColumnUtil.makeStringColumn( abbrColumn, Supplier::abbrProperty, null, false,TableColumnUtil.CENTER, null );
+        TableColumnUtil.makeStringColumn( abbrColumn, Supplier::abbrProperty, null, false,true,TableColumnUtil.CENTER, null );
         
         // 4. 담당자명 컬럼
-        TableColumnUtil.makeStringColumn( nameColumn, Supplier::nameProperty, Supplier::setName, true, TableColumnUtil.LEFT, viewModel::markAsDirty );
+        TableColumnUtil.makeStringColumn( nameColumn, Supplier::nameProperty, Supplier::setName, true, true,TableColumnUtil.LEFT, viewModel::markAsDirty );
         
         // 5. 회사명 컬럼
-        TableColumnUtil.makeStringColumn( companyColumn, Supplier::companyProperty, Supplier::setCompany, true, TableColumnUtil.LEFT, viewModel::markAsDirty );
+        TableColumnUtil.makeStringColumn( companyColumn, Supplier::companyProperty, Supplier::setCompany, true, true,TableColumnUtil.LEFT, viewModel::markAsDirty );
         
         // 6. 전화번호 컬럼
-        TableColumnUtil.makeStringColumn( phoneColumn, Supplier::phoneProperty, Supplier::setPhone, true, TableColumnUtil.CENTER, viewModel::markAsDirty );
+        TableColumnUtil.makeStringColumn( phoneColumn, Supplier::phoneProperty, Supplier::setPhone, true, true,TableColumnUtil.CENTER, viewModel::markAsDirty );
         
         // 7. 이메일 컬럼
-        TableColumnUtil.makeStringColumn( emailColumn, Supplier::emailProperty, Supplier::setEmail, true, TableColumnUtil.LEFT, viewModel::markAsDirty );
+        TableColumnUtil.makeStringColumn( emailColumn, Supplier::emailProperty, Supplier::setEmail, true, true,TableColumnUtil.LEFT, viewModel::markAsDirty );
         
         // 8. 주소 컬럼
-        TableColumnUtil.makeStringColumn( addressColumn, Supplier::addressProperty, Supplier::setAddress, true, TableColumnUtil.LEFT, viewModel::markAsDirty );
+        TableColumnUtil.makeStringColumn( addressColumn, Supplier::addressProperty, Supplier::setAddress, true, true,TableColumnUtil.LEFT, viewModel::markAsDirty );
 
         
         // 9. 상태 컬럼

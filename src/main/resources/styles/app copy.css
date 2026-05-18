@@ -1,0 +1,502 @@
+/* ========================================================================= */
+/* 1. GLOBAL SETTINGS & TYPOGRAPHY (최상위 루트에서만 폰트 지정)              */
+/* ========================================================================= */
+.root {
+   /* 요청하신 글꼴 체계를 이곳 한 곳에서만 정의합니다 */
+   -fx-font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+   -fx-font-size: 14px;
+   -fx-background-color: #ffffff;
+}
+
+.root-boardpane {
+   -fx-background-color: #cccccc;
+}
+
+.label,
+.button,
+.text-field,
+.date-picker,
+.date-picker .text-input {
+   -fx-font-family: inherit;
+}
+
+/* ========================================================================= */
+/* 2. COMMON COMPONENTS - BUTTONS (공통 버튼 스타일)                          */
+/* ========================================================================= */
+.btn {
+   -fx-font-size: 14px;
+   -fx-font-weight: bold;
+   -fx-pref-height: 32px;
+   -fx-background-color: #f1f5f9;
+   -fx-border-color: #cbd5e1;
+   -fx-border-width: 1px;
+   -fx-border-radius: 4px;
+   -fx-background-radius: 4px;
+   -fx-text-fill: #334155;
+}
+
+.btn:hover {
+   -fx-background-color: #6F4CBB;
+   -fx-border-color: #5A3E99;
+   -fx-text-fill: #ffffff;
+   -fx-cursor: hand;
+}
+
+.btn:pressed {
+   -fx-background-color: #2F2B43;
+   -fx-border-color: #2F2B43;
+   -fx-text-fill: #ffffff;
+}
+
+/* 버튼 사이즈 규격 */
+.btn-xlg {
+   -fx-pref-width: 160px;
+   -fx-padding: 3 30 3 30;
+}
+
+.btn-lg {
+   -fx-pref-width: 140px;
+   -fx-padding: 3 30 3 30;
+}
+
+.btn-md {
+   -fx-pref-width: 100px;
+   -fx-padding: 3 20 3 20;
+}
+
+.btn-sm {
+   -fx-pref-width: 70px;
+   -fx-padding: 3 10 3 10;
+}
+
+.btn-xs {
+   -fx-pref-width: 50px;
+   -fx-padding: 3 5 3 5;
+}
+
+.btn.cart-held {
+   -fx-background-color: #10b981;
+   -fx-text-fill: white;
+   -fx-font-weight: bold;
+}
+
+.print-on {
+   -fx-text-fill: #10b981;
+   -fx-font-weight: bold;
+}
+
+.print-off {
+   -fx-text-fill: #ef4444;
+   -fx-font-weight: bold;
+}
+
+.grid-button {
+   -fx-font-weight: bold;
+   -fx-font-size: 25px;
+   -fx-padding: 8px 5px;
+   -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 8, 0, 0, 4);
+   -fx-min-width: 120px;
+   -fx-pref-height: 80px;
+}
+
+.grid-button:hover {
+   -fx-text-fill: white;
+   -fx-background-color: #6F4CBB;
+}
+
+.button-hidden-cashbox {
+   -fx-opacity: 0;
+   -fx-background-color: transparent;
+}
+
+.button-hidden-cashbox:hover {
+   -fx-opacity: 1;
+}
+
+.tool-bar .button:hover {
+   -fx-cursor: hand;
+   -fx-opacity: 0.8;
+}
+
+
+/* ========================================================================= */
+/* 3. COMMON COMPONENTS - TABLES (공통 테이블 및 셀 뷰 스타일)                */
+/* ========================================================================= */
+.table-view {
+   -fx-selection-bar: #6F4CBB;
+   -fx-font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+}
+
+.table-view .column-header {
+   -fx-background-color: #f3f0f7;
+   -fx-border-color: #e2ddec;
+   -fx-border-width: 0 0 1px 0;
+   -fx-font-weight: bold;
+}
+
+
+.table-view .table-cell {
+   -fx-font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+   -fx-border-color: #e2e8f0;
+   -fx-border-width: 0 0.5px 0 0;
+}
+
+.table-view .table-row-cell {
+   -fx-border-color: #f1f5f9;
+   -fx-border-width: 0 0 0.5px 0;
+}
+
+.table-row-cell:filled:selected,
+.table-center-header .table-row-cell:selected {
+   -fx-background-color: #6F4CBB;
+}
+
+.table-row-cell:filled:selected .text,
+.table-center-header .table-row-cell:selected .table-cell {
+   -fx-fill: white;
+   -fx-text-fill: white;
+   -fx-font-weight: bold;
+}
+
+.table-center-header {
+   -fx-background-color: #f3f0f7;
+   -fx-font-size: 18px;
+   -fx-fixed-cell-size: 40px;
+}
+
+.table-center-header .table-row-cell:fifth-row {
+   -fx-background-color: #fef08a;
+}
+
+.table-center-header .table-row-cell:hover {
+   -fx-background-color: #f1f5f9;
+}
+
+.table-center-header .table-cell {
+   -fx-text-fill: #1e293b;
+}
+
+.table-center-header .column-header .label {
+   -fx-font-weight: bold;
+   -fx-font-size: 16px;
+}
+
+.table-row-cell .text,
+.table-view .table-row-cell:filled .text {
+   -fx-font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* ========================================================================= */
+/* 4. LOGIN SCREEN (로그인 화면 전용 컴포넌트)                                   */
+/* ========================================================================= */
+.btn-primary {
+   -fx-background-color: #6F4CBB;
+   -fx-text-fill: #FFFFFF;
+   -fx-background-radius: 4px;
+}
+
+.btn-primary:hover {
+   -fx-background-color: #5A3E99;
+}
+
+.btn-primary:pressed {
+   -fx-background-color: #2F2B43;
+   -fx-background-radius: 4px;
+}
+
+.btn-secondary {
+   -fx-background-color: #D5CBEB;
+   -fx-background-radius: 4px;
+   -fx-text-fill: #3a2270;
+}
+
+.btn-secondary:hover {
+   -fx-background-color: #524A7B;
+   -fx-text-fill: white;
+}
+
+.btn-secondary:pressed {
+   -fx-background-color: #2F2B43;
+   -fx-text-fill: white;
+   -fx-background-radius: 4px;
+}
+
+
+/* ========================================================================= */
+/* 5. MANAGEMENT SCREEN (메인 메뉴바 및 컨텍스트 메뉴)                         */
+/* ========================================================================= */
+.menu-bar {
+   -fx-background-color: #f3f0f7;
+   -fx-padding: 6px 12px;
+   -fx-border-color: #e2ddec;
+   -fx-border-width: 0 0 1px 0;
+}
+
+.menu-bar .menu {
+   -fx-background-color: transparent;
+   -fx-padding: 6px 14px;
+   -fx-background-radius: 4px;
+}
+
+.menu-bar .menu>.label {
+   -fx-text-fill: #2d2d2d;
+   -fx-font-weight: 600;
+}
+
+.menu-bar .menu:hover,
+.menu-bar .menu:showing {
+   -fx-background-color: #6F4CBB;
+   -fx-background-radius: 4px;
+}
+
+.menu-bar .menu:hover>.label,
+.menu-bar .menu:showing>.label {
+   -fx-text-fill: white;
+}
+
+.context-menu {
+   -fx-background-color: #ffffff;
+   -fx-background-radius: 6px;
+   -fx-border-radius: 6px;
+   -fx-padding: 6px;
+   -fx-border-color: #e2e8f0;
+   -fx-border-width: 1px;
+   -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 12, 0.0, 0, 4);
+}
+
+.menu-item {
+   -fx-padding: 8px 24px 8px 16px;
+   -fx-background-color: transparent;
+   -fx-background-radius: 4px;
+}
+
+.menu-item>.label {
+   -fx-text-fill: #334155;
+   -fx-font-weight: 500;
+}
+
+.menu-item:hover,
+.menu-item:focused {
+   -fx-background-color: #6F4CBB;
+   -fx-background-radius: 4px;
+}
+
+.menu-item:hover>.label,
+.menu-item:focused>.label {
+   -fx-text-fill: white;
+}
+
+.separator-menu-item .separator .line {
+   -fx-border-color: #f1f5f9;
+   -fx-border-width: 1px 0 0 0;
+}
+
+.menu-item:disabled {
+   -fx-opacity: 1.0;
+   -fx-background-color: #f8fafc;
+}
+
+.menu-item:disabled>.label {
+   -fx-text-fill: #64748b;
+   -fx-font-size: 13px;
+}
+
+
+/* ========================================================================= */
+/* 6. POS DIALOG SCREEN (화이트&모던 테마 팝업)                               */
+/* ========================================================================= */
+.dialog-container {
+   -fx-background-color: #ffffff;
+   -fx-border-color: #cbd5e1;
+   -fx-border-width: 1px;
+   -fx-border-radius: 8px;
+   -fx-background-radius: 8px;
+   -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.15), 15, 0, 0, 5);
+}
+
+.title-label {
+   -fx-font-size: 22px;
+   -fx-font-weight: bold;
+   -fx-text-fill: #1e293b;
+   -fx-effect: none;
+}
+
+.field-label {
+   -fx-font-size: 15px;
+   -fx-font-weight: bold;
+   -fx-text-fill: #475569;
+}
+
+.info-header {
+   -fx-text-fill: #64748b;
+   -fx-font-size: 13px;
+}
+
+.info-value {
+   -fx-text-fill: #6F4CBB;
+   -fx-font-weight: bold;
+   -fx-font-size: 24px;
+}
+
+.text-field {
+   -fx-background-color: #f8fafc;
+   -fx-background-radius: 6px;
+   -fx-border-radius: 6px;
+   -fx-alignment: center;
+   -fx-padding: 6px 0;
+   -fx-font-size: 18px;
+   -fx-font-weight: bold;
+   -fx-border-color: #cbd5e1;
+   -fx-border-width: 1px;
+   -fx-text-fill: #1e293b;
+}
+
+.text-field:focused {
+   -fx-background-color: #ffffff;
+   -fx-border-color: #6F4CBB;
+   -fx-border-width: 1.5px;
+   -fx-effect: dropshadow(three-pass-box, rgba(111, 76, 187, 0.2), 6, 0, 0, 0);
+}
+
+.radio-button .radio {
+   -fx-background-radius: 50% !important;
+   -fx-border-radius: 50% !important;
+   -fx-background-color: white;
+   -fx-border-color: #cbd5e1;
+   -fx-border-width: 1px;
+   -fx-padding: 3px;
+}
+
+.radio-button:selected .dot {
+   -fx-background-radius: 50% !important;
+   -fx-background-color: #6F4CBB;
+   -fx-background-insets: 0;
+}
+
+.radio-button {
+   -fx-background-color: transparent;
+   -fx-text-fill: #334155;
+}
+
+.btn-confirm {
+   -fx-background-color: #6F4CBB;
+   -fx-text-fill: white;
+   -fx-background-radius: 4px;
+   -fx-pref-width: 180px;
+}
+
+.btn-confirm:hover {
+   -fx-background-color: #5A3E99;
+}
+
+.btn-cancel {
+   -fx-background-color: #e2e8f0;
+   -fx-text-fill: #475569;
+   -fx-background-radius: 4px;
+   -fx-pref-width: 180px;
+}
+
+.btn-cancel:hover {
+   -fx-background-color: #cbd5e1;
+}
+
+
+/* ========================================================================= */
+/* 7. SUPPLIER SCREEN & SPECIFIC PANELS (공급처 및 요약 영역 특수 컴포넌트)    */
+/* ========================================================================= */
+.supplier-row {
+   -fx-background-color: transparent;
+}
+
+.supplier-row:hover {
+   -fx-background-color: #f8fafc;
+}
+
+.supplier-active {
+   -fx-background-color: #f0fdf4;
+}
+
+.supplier-active:hover {
+   -fx-background-color: #dcfce7;
+}
+
+.supplier-inactive {
+   -fx-background-color: #fef2f2;
+}
+
+.supplier-inactive:hover {
+   -fx-background-color: #fee2e2;
+}
+
+.preview-container {
+   -fx-background-color: #f8fafc;
+   -fx-background-radius: 8px;
+   -fx-border-color: #e2e8f0;
+   -fx-border-width: 1px;
+   -fx-padding: 12px;
+   -fx-margin: 10px;
+   -fx-border-insets: 10px;
+   -fx-background-insets: 10px;
+}
+
+.progress-indicator {
+   -fx-progress-color: #6F4CBB;
+}
+
+.tooltip {
+   -fx-background-color: #1e293b;
+   -fx-background-radius: 5px;
+   -fx-padding: 6px 12px;
+   -fx-text-fill: #ffffff;
+   -fx-font-size: 12px;
+   -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 8, 0, 0, 2);
+}
+
+.tooltip .label {
+   -fx-font-weight: bold;
+}
+
+.right-panel-quick {
+   -fx-background-color: #cbd5e1;
+}
+
+.top-panel-hBox {
+   -fx-background-color: #cbd5e1;
+   -fx-padding: 0 10px 0 0;
+}
+
+/* 주의: 아래 특수 요약 패널 컴포넌트들은 Bookman Old Style 고유 서체를 유지하기 위해 
+   기존 파일(sale.css 등)에서 지정되었던 font-family를 제외하고 
+   크기와 굵기 등의 기하학적 요소만 유지시켰습니다.
+*/
+.top-label-total {
+   -fx-font-size: 80px;
+   -fx-font-weight: bold;
+   -fx-text-fill: #1e293b;
+}
+
+.top-label-coununt {
+   -fx-font-size: 24px;
+   -fx-font-weight: bold;
+   -fx-text-fill: #334155;
+}
+
+.top-label-status {
+   -fx-font-size: 22px;
+   -fx-text-fill: #16a34a;
+   -fx-font-style: italic;
+}
+
+.time-container {
+   -fx-spacing: 0;
+}
+
+.top-label-clock-time {
+   -fx-font-size: 18px;
+   -fx-font-weight: bold;
+}
+
+.top-label-clock-date {
+   -fx-font-size: 13px;
+   -fx-font-weight: bold;
+}

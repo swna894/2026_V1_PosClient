@@ -114,11 +114,11 @@ public class LabelController {
         TableColumnUtil.createNumberColumn(table, colNo, NUMBER_COLUMN_WIDTH);           
         TableColumnUtil.createCheckBoxHeaderColumn(table, colCheckbox, BarcodeLabel::selectedProperty, "", CHECKBOX_COLUMN_WIDTH);
      
-        TableColumnUtil.makeStringColumn(barcodeColumn, BarcodeLabel::barcodeProperty, BarcodeLabel::setBarcode, false, TableColumnUtil.CENTER, null);
-        TableColumnUtil.makeStringColumn(codeColumn, BarcodeLabel::codeProperty, BarcodeLabel::setCode, false, TableColumnUtil.CENTER, null);
-        TableColumnUtil.makeStringColumn(supplierColumn, BarcodeLabel::companyProperty, BarcodeLabel::setCompany, false, TableColumnUtil.CENTER, null);
-        TableColumnUtil.makeStringColumn(descriptionColumn, BarcodeLabel::descriptionProperty, BarcodeLabel::setDescription, false, TableColumnUtil.LEFT, null);
-        TableColumnUtil.makeBigDecimalCurrencyColumn(priceColumn, BarcodeLabel::priceProperty, false, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeStringColumn(barcodeColumn, BarcodeLabel::barcodeProperty, BarcodeLabel::setBarcode, false, true,TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeStringColumn(codeColumn, BarcodeLabel::codeProperty, BarcodeLabel::setCode, false, true,TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeStringColumn(supplierColumn, BarcodeLabel::companyProperty, BarcodeLabel::setCompany, false, true,TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeStringColumn(descriptionColumn, BarcodeLabel::descriptionProperty, BarcodeLabel::setDescription, false, true,TableColumnUtil.LEFT, null);
+        TableColumnUtil.makeBigDecimalCurrencyColumn(priceColumn, BarcodeLabel::priceProperty, false, true,TableColumnUtil.RIGHT, null);
     }
     
     private void setupEventHandlers() {

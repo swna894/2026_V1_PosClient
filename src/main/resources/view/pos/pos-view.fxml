@@ -525,10 +525,22 @@
             prefHeight="34"
             onAction="#onSettings" styleClass="btn,btn-sm">
             <graphic>
-               <ImageView fx:id="posImageView" fitHeight="20" fitWidth="20" pickOnBounds="true"
+               <ImageView fitHeight="20" fitWidth="20" pickOnBounds="true"
                   preserveRatio="true">
                   <image>
                      <Image url="@../../images/settings_24px.png" />
+                  </image>
+               </ImageView>
+            </graphic>
+         </Button>
+         <Button fx:id="buttonMenu" focusTraversable="false" mnemonicParsing="false"
+            prefHeight="34"
+            onAction="#onMenu" styleClass="btn,btn-sm">
+            <graphic>
+               <ImageView fitHeight="26" fitWidth="26" pickOnBounds="true"
+                  preserveRatio="true">
+                  <image>
+                     <Image url="@../../images/more_24px.png" />
                   </image>
                </ImageView>
             </graphic>

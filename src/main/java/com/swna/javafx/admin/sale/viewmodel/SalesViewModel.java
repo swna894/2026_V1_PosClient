@@ -152,7 +152,6 @@ public class SalesViewModel {
      */
     private SaleModel convertToModel(SaleDto dto) {
         SaleModel model = new SaleModel();
-        System.out.println("convertToModel(dto) = " + dto);
         // 1. 기본 정보 설정
         model.setId(parseId(dto.getId()));
         model.setReceiptNo(dto.getReceiptNo());

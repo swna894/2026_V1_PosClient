@@ -50,10 +50,10 @@ public class OrderController extends BaseController {
         TableColumnUtil.makeReadOnlyLongColumn(colId, Order::idProperty, TableColumnUtil.CENTER);
 
         // 2. 고객명 컬럼 (문자열, 편집 가능, 왼쪽 정렬)
-        TableColumnUtil.makeStringColumn(colCustomer, Order::customerNameProperty, Order::setCustomerName, true, TableColumnUtil.LEFT, viewModel::markDirty);
+        TableColumnUtil.makeStringColumn(colCustomer, Order::customerNameProperty, Order::setCustomerName, true, true,TableColumnUtil.LEFT, viewModel::markDirty);
 
         // 3. 주문 날짜 컬럼 (표시 전용 LocalDateTime, 중앙 정렬)
-        TableColumnUtil.makeDateTimeColumn(colDate, Order::getOrderDate, Order::setOrderDate, false, TableColumnUtil.CENTER, viewModel::markDirty);
+        TableColumnUtil.makeDateTimeColumn(colDate, Order::getOrderDate, Order::setOrderDate, false,true, TableColumnUtil.CENTER, viewModel::markDirty);
 
         // 4. 주문 날짜 선택 컬럼 (DatePicker 사용, 중앙 정렬)
         TableColumnUtil.makeDatePickerColumn(colDate, Order::orderDateProperty, Order::setOrderDate, TableColumnUtil.CENTER, viewModel::markDirty);

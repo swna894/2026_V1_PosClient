@@ -3,6 +3,7 @@ package com.swna.javafx.pos;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.MenuController;
 import com.swna.javafx.admin.SettingViewController;
 import com.swna.javafx.admin.supplier.SupplierController;
 import com.swna.javafx.barcode.LabelController;
@@ -104,6 +105,7 @@ public class PosViewController {
     @FXML private Button buttonCredit;
     @FXML private Button buttonCashout;
     @FXML private Button buttonDrawer;
+    @FXML private Button buttonMenu;
     @FXML private Button buttonOnGenerate;
     @FXML private Button buttonOnPos;
     @FXML private Button buttonOnPrint;
@@ -276,6 +278,10 @@ public class PosViewController {
     @FXML private void onActionPrint(ActionEvent e) { log.info("onActionPrint"); }
     @FXML private void onActionDrawer(ActionEvent e) { log.info("onActionDrawer"); }
     @FXML private void onGenerate(ActionEvent e) { navigationService.navigateStage(LabelController.class); }
+    @FXML
+    private void onMenu(ActionEvent e) {
+        navigationService.navigateStage(MenuController.class);
+    }
     @FXML
     private void onPos(ActionEvent e) {
         posToggleService.toggle();
