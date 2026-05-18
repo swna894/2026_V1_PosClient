@@ -1,32 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 
-<GridPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-   hgap="10" vgap="5" style="-fx-background-color: white; -fx-padding: 10; -fx-border-color: #ddd;">
-   <Label text="Date:" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;" />
-   <Label GridPane.rowIndex="0" GridPane.columnIndex="1" text="2026-05-13" />
+<GridPane hgap="10" prefHeight="36.0" prefWidth="582.0" style="-fx-background-color: white; -fx-padding: 10; -fx-border-color: #ddd;" vgap="5" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1">
 
-   <Label text="AMOUNT:" GridPane.rowIndex="0" GridPane.columnIndex="2"
-      style="-fx-font-weight: bold;" />
-   <Label GridPane.rowIndex="0" GridPane.columnIndex="3" text="\$0.0" />
+   <Label style="-fx-font-weight: bold;" text="AMOUNT:" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+   <Label text="\$0.0" GridPane.columnIndex="3" GridPane.rowIndex="0" />
 
-   <Label text="COST:" GridPane.rowIndex="0" GridPane.columnIndex="4" style="-fx-font-weight: bold;" />
-   <Label GridPane.rowIndex="0" GridPane.columnIndex="5" text="" />
+   <Label style="-fx-font-weight: bold;" text="COST:" GridPane.columnIndex="4" GridPane.rowIndex="0" />
+   <Label text="" GridPane.columnIndex="5" GridPane.rowIndex="0" />
 
-   <Label text="D/C:" GridPane.rowIndex="0" GridPane.columnIndex="7" style="-fx-font-weight: bold;" />
-   <Label GridPane.rowIndex="0" GridPane.columnIndex="8" text="\$0.0" />
+   <Label style="-fx-font-weight: bold;" text="D/C:" GridPane.columnIndex="7" GridPane.rowIndex="0" />
+   <Label text="\$0.0" GridPane.columnIndex="8" GridPane.rowIndex="0" />
 
-   <Label text="CASH:" GridPane.rowIndex="0" GridPane.columnIndex="9" style="-fx-font-weight: bold;" />
-   <Label GridPane.rowIndex="0" GridPane.columnIndex="10" text="\$0.0" />
+   <Label style="-fx-font-weight: bold;" text="CASH:" GridPane.columnIndex="9" GridPane.rowIndex="0" />
+   <Label text="\$0.0" GridPane.columnIndex="10" GridPane.rowIndex="0" />
 
-   <Label text="Eftpos:" GridPane.rowIndex="0" GridPane.columnIndex="11"
-      style="-fx-font-weight: bold;" />
-   <Label GridPane.rowIndex="0" GridPane.columnIndex="12" text="\$0.0" />
+   <Label style="-fx-font-weight: bold;" text="Eftpos:" GridPane.columnIndex="11" GridPane.rowIndex="0" />
+   <Label text="\$0.0" GridPane.columnIndex="12" GridPane.rowIndex="0" />
 
-   <Label text="CASH OUT:" GridPane.rowIndex="0" GridPane.columnIndex="13"
-      style="-fx-font-weight: bold;" />
-   <Label GridPane.rowIndex="0" GridPane.columnIndex="14" text="\$0.0" />
+   <Label style="-fx-font-weight: bold;" text="CASH OUT:" GridPane.columnIndex="13" GridPane.rowIndex="0" />
+   <Label text="\$0.0" GridPane.columnIndex="14" GridPane.rowIndex="0" />
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+   </rowConstraints>
 
 </GridPane>

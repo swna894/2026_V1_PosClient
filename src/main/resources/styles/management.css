@@ -1,0 +1,119 @@
+/* ========================================================================= */
+/* 전체 기본 설정                                                            */
+/* ========================================================================= */
+.root {
+   -fx-font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+   -fx-font-size: 14px;
+   -fx-background-color: #ffffff;
+}
+
+/* ========================================================================= */
+/* 1. MenuBar                                                                */
+/* ========================================================================= */
+.menu-bar {
+   -fx-background-color: #f3f0f7;
+   -fx-padding: 6px 12px;
+
+   -fx-border-color: #e2ddec;
+   -fx-border-width: 0 0 1px 0;
+}
+
+/* ========================================================================= */
+/* 2. 최상위 Menu                                                            */
+/* ========================================================================= */
+.menu-bar .menu {
+   -fx-background-color: transparent;
+   -fx-padding: 6px 14px;
+   -fx-background-radius: 4px;
+}
+
+/* 기본 상태 → 검은색 */
+.menu-bar .menu>.label {
+   -fx-text-fill: #2d2d2d;
+   -fx-font-weight: 600;
+}
+
+/* Hover / 펼쳐짐 상태 */
+.menu-bar .menu:hover,
+.menu-bar .menu:showing {
+   -fx-background-color: #4f46e5;
+   -fx-background-radius: 4px;
+}
+
+/* Hover 시만 흰색 */
+.menu-bar .menu:hover>.label,
+.menu-bar .menu:showing>.label {
+   -fx-text-fill: white;
+}
+
+/* ========================================================================= */
+/* 3. ContextMenu                                                            */
+/* ========================================================================= */
+.context-menu {
+   -fx-background-color: #ffffff;
+
+   -fx-background-radius: 6px;
+   -fx-border-radius: 6px;
+
+   -fx-padding: 6px;
+
+   -fx-border-color: #e2e8f0;
+   -fx-border-width: 1px;
+
+   -fx-effect: dropshadow(three-pass-box,
+         rgba(0, 0, 0, 0.08),
+         12,
+         0.0,
+         0,
+         4);
+}
+
+/* ========================================================================= */
+/* 4. 하위 MenuItem                                                          */
+/* ========================================================================= */
+.menu-item {
+   -fx-padding: 8px 24px 8px 16px;
+
+   -fx-background-color: transparent;
+   -fx-background-radius: 4px;
+}
+
+/* 기본 상태 → 검은색 */
+.menu-item>.label {
+   -fx-text-fill: #334155;
+   -fx-font-weight: 500;
+}
+
+/* Hover 상태 */
+.menu-item:hover,
+.menu-item:focused {
+   -fx-background-color: #4f46e5;
+   -fx-background-radius: 4px;
+}
+
+/* Hover 시만 흰색 */
+.menu-item:hover>.label,
+.menu-item:focused>.label {
+   -fx-text-fill: white;
+}
+
+/* ========================================================================= */
+/* 5. Separator                                                              */
+/* ========================================================================= */
+.separator-menu-item .separator .line {
+   -fx-border-color: #f1f5f9;
+   -fx-border-width: 1px 0 0 0;
+}
+
+/* ========================================================================= */
+/* 6. Disabled MenuItem                                                      */
+/* ========================================================================= */
+.menu-item:disabled {
+   -fx-opacity: 1.0;
+   -fx-background-color: #f8fafc;
+}
+
+.menu-item:disabled>.label {
+   -fx-text-fill: #64748b;
+   -fx-font-size: 13px;
+}

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+
+<MenuBar xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <menus>
+
+      <Menu text="Reports">
+         <items>
+            <MenuItem text="Daily Sales" />
+            <MenuItem text="Statistics" />
+            <MenuItem text="Annual report" />
+            <MenuItem text="Sales Rank" />
+            <MenuItem text="Stock by suppliers" />
+            <MenuItem text="Deleted items" />
+            <MenuItem text="Daily Cash up" />
+            <MenuItem text="Login inform" />
+         </items>
+      </Menu>
+
+      <Menu text="Ordering">
+         <items>
+            <MenuItem text="Ordering" />
+            <MenuItem text="Unpacking" />
+         </items>
+      </Menu>
+
+      <Menu text="Management">
+         <items>
+            <MenuItem text="Staff" />
+            <MenuItem text="Supplier" />
+            <MenuItem text="Shop" />
+            <MenuItem text="Inventory" />
+            <MenuItem text="Stock Control" />
+            <MenuItem text="Quick Button" />
+            <MenuItem text="Sales" />
+            <MenuItem text="Excel Sample" />
+         </items>
+      </Menu>
+
+      <Menu text="Setting">
+         <items>
+            <Menu text="Print" />
+
+            <Menu text="Eftpos">
+               <items>
+                  <MenuItem text="Use Vault" />
+                  <MenuItem text="Use VxLink" />
+                  <MenuItem text="Disconnect" />
+                  <MenuItem text="Reset Network" />
+               </items>
+            </Menu>
+
+            <Menu text="Screen Color" />
+
+            <Menu text="Backup Cycle">
+               <items>
+                  <MenuItem text="Daily" />
+                  <MenuItem text="Weekly" />
+                  <MenuItem text="Monthly" />
+               </items>
+            </Menu>
+
+            <Menu text="Mailing" />
+            <Menu text="Stock Control" />
+            <Menu text="Sales" />
+            <MenuItem text="Backup Path" />
+            <MenuItem text="Terminal IP" />
+            <MenuItem text="Receipt Message" />
+         </items>
+      </Menu>
+
+      <Menu text="System">
+         <items>
+            <MenuItem text="Backup DB" />
+            <Menu text="License">
+               <items>
+                  <MenuItem disable="true" text="-. Expiration Date : 2026-06-02" />
+                  <MenuItem disable="true" text="-. Name : Temporary License" />
+               </items>
+            </Menu>
+            <MenuItem text="Change Password" />
+            <SeparatorMenuItem />
+            <MenuItem text="Exit" />
+         </items>
+      </Menu>
+
+      <Menu text="Help">
+         <items>
+            <MenuItem text="Davdi Na (027-652-1111)" />
+         </items>
+      </Menu>
+
+   </menus>
+</MenuBar>

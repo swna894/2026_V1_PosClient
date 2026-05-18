@@ -87,83 +87,29 @@ public class SupplierController implements Initializable {
         navigationService.navigateStage(PosViewController.class)
         ;
     }
-    @SuppressWarnings("unchecked")
+
     private void setupTableColumns() {
         // 1. 번호 컬럼
         TableColumnUtil.createNumberColumn(supplierTable, noColumn, 50);
     
-        
         // 3. 약어 컬럼
-        TableColumnUtil.makeStringColumn(
-            abbrColumn,
-            Supplier::abbrProperty,
-            null,
-            false,
-            TableColumnUtil.CENTER,
-            null
-        );
-        abbrColumn.setText("Abbr");
-        abbrColumn.setPrefWidth(80);
+        TableColumnUtil.makeStringColumn( abbrColumn, Supplier::abbrProperty, null, false,TableColumnUtil.CENTER, null );
         
         // 4. 담당자명 컬럼
-        TableColumnUtil.makeStringColumn(
-            nameColumn,
-            Supplier::nameProperty,
-            (supplier, newValue) -> supplier.setName(newValue),
-            true,
-            TableColumnUtil.LEFT,
-            supplier -> viewModel.markAsDirty(supplier)
-        );
-        nameColumn.setText("Name");
-        nameColumn.setPrefWidth(150);
+        TableColumnUtil.makeStringColumn( nameColumn, Supplier::nameProperty, Supplier::setName, true, TableColumnUtil.LEFT, viewModel::markAsDirty );
         
         // 5. 회사명 컬럼
-        TableColumnUtil.makeStringColumn(
-            companyColumn,
-            Supplier::companyProperty,
-            Supplier::setCompany,
-            true,
-            TableColumnUtil.LEFT,
-            viewModel::markAsDirty
-        );
-        companyColumn.setText("Company");
-        companyColumn.setPrefWidth(150);
+        TableColumnUtil.makeStringColumn( companyColumn, Supplier::companyProperty, Supplier::setCompany, true, TableColumnUtil.LEFT, viewModel::markAsDirty );
         
         // 6. 전화번호 컬럼
-        TableColumnUtil.makeStringColumn(
-            phoneColumn,
-            Supplier::phoneProperty,
-            Supplier::setPhone,
-            true,
-            TableColumnUtil.CENTER,
-            viewModel::markAsDirty
-        );
-        phoneColumn.setText("Phone");
-        phoneColumn.setPrefWidth(120);
+        TableColumnUtil.makeStringColumn( phoneColumn, Supplier::phoneProperty, Supplier::setPhone, true, TableColumnUtil.CENTER, viewModel::markAsDirty );
         
         // 7. 이메일 컬럼
-        TableColumnUtil.makeStringColumn(
-            emailColumn,
-            Supplier::emailProperty,
-            (supplier, newValue) -> supplier.setEmail(newValue),
-            true,
-            TableColumnUtil.LEFT,
-            supplier -> viewModel.markAsDirty(supplier)
-        );
-        emailColumn.setText("Email");
-        emailColumn.setPrefWidth(180);
+        TableColumnUtil.makeStringColumn( emailColumn, Supplier::emailProperty, Supplier::setEmail, true, TableColumnUtil.LEFT, viewModel::markAsDirty );
         
         // 8. 주소 컬럼
-        TableColumnUtil.makeStringColumn(
-            addressColumn,
-            Supplier::addressProperty,
-            (supplier, newValue) -> supplier.setAddress(newValue),
-            true,
-            TableColumnUtil.LEFT,
-            supplier -> viewModel.markAsDirty(supplier)
-        );
-        addressColumn.setText("Address");
-        addressColumn.setPrefWidth(200);
+        TableColumnUtil.makeStringColumn( addressColumn, Supplier::addressProperty, Supplier::setAddress, true, TableColumnUtil.LEFT, viewModel::markAsDirty );
+
         
         // 9. 상태 컬럼
         TableColumnUtil.makeBooleanColumn(
@@ -176,8 +122,6 @@ public class SupplierController implements Initializable {
             true,
             viewModel::markAsDirty
         );
-        activeColumn.setText("Status");
-        activeColumn.setPrefWidth(70);
         
         // 10. 액션 버튼 컬럼
         setupActionColumn();

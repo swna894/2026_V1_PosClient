@@ -6,12 +6,13 @@
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
    fx:controller="com.swna.javafx.admin.sale.SalesTableController" spacing="5">
 
-   <Label text="Sales List" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+   <!-- Daily Summary Component -->
+   <fx:include source="DailySummaryView.fxml" fx:id="dailySummary" />
 
    <TableView fx:id="salesTableView" VBox.vgrow="ALWAYS">
       <columns>
          <TableColumn fx:id="noColumn" text="NO" prefWidth="50" />
-         <TableColumn fx:id="receiptColumn" text="RECEIPT" prefWidth="200" />
+         <TableColumn fx:id="receiptColumn" text="RECEIPT" prefWidth="190" />
          <TableColumn fx:id="saleAmountColumn" text="TOTAL" prefWidth="100" />
          <TableColumn fx:id="cashColumn" text="CASH" prefWidth="100" />
          <TableColumn fx:id="creditColumn" text="CREDIT" prefWidth="100" />

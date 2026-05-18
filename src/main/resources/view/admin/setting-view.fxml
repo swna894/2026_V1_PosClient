@@ -23,7 +23,7 @@
             </Tab>
             <Tab text="Products">
                <content>
-
+                  <fx:include source="/view/barcode/LabelView.fxml" />
                </content>
             </Tab>
             <Tab text="Suppliers">
@@ -39,11 +39,7 @@
                <content>
                </content>
             </Tab>
-            <Tab text="Barcode">
-               <content>
-                  <fx:include source="/view/barcode/LabelView.fxml" />
-               </content>
-            </Tab>
+
             <Tab text="Settings">
                <content>
                </content>

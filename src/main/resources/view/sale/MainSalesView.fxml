@@ -1,66 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.swna.javafx.admin.sale.SalesController"
-   spacing="10" style="-fx-background-color: #f0f0f0;">
+<BorderPane prefHeight="700" prefWidth="1200.0" style="-fx-background-color: #f0f0f0;"
+   xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.admin.sale.SalesController">
 
-   <padding>
-      <Insets top="10" right="10" bottom="10" left="10" />
-   </padding>
+   <top>
+      <ToolBar>
+         <!-- Back Button -->
+         <Button fx:id="backButton" graphicTextGap="5"
+            style="-fx-background-color: #607D8B; -fx-text-fill: white;" text="Back to POS">
+            <graphic>
+               <Label style="-fx-text-fill: white;" text="⬅" />
+            </graphic>
+         </Button>
 
-   <!-- Title -->
-   <Label text="Daily Sales"
-      style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
+         <Separator orientation="VERTICAL" />
 
-   <!-- Daily Summary Component -->
-   <fx:include source="DailySummaryView.fxml" fx:id="dailySummary" />
+         <!-- 날짜 필터 -->
+         <HBox alignment="CENTER" spacing="5">
+            <DatePicker fx:id="startDatePicker" prefWidth="130" promptText="Start Date" />
+            <Label text="~" />
+            <DatePicker fx:id="endDatePicker" prefWidth="130" promptText="End Date" />
+         </HBox>
 
-   <!-- SplitPane with Tables -->
-   <SplitPane dividerPositions="0.4" VBox.vgrow="ALWAYS">
+         <Separator orientation="VERTICAL" />
 
-      <!-- Left: Sales Table Component -->
-      <fx:include source="SalesTableView.fxml" fx:id="salesTable" />
+         <!-- 빠른 필터 버튼 -->
+         <Button fx:id="todayBtn" style="-fx-background-color: #3498db; -fx-text-fill: white;"
+            text="Today" />
+         <Button fx:id="weekBtn" text="This Week" />
+         <Button fx:id="monthBtn" text="This Month" />
 
-      <!-- Right: Sale Items Table Component -->
-      <fx:include source="SaleItemsTableView.fxml" fx:id="saleItemsTable" />
+         <Separator orientation="VERTICAL" />
 
-   </SplitPane>
+         <Region HBox.hgrow="ALWAYS" />
 
-   <!-- 하단 패널: 날짜 필터 + 버튼들을 오른쪽 끝에 배치 -->
-   <HBox spacing="10" alignment="CENTER_LEFT">
+         <!-- 액션 버튼 -->
+         <Button fx:id="searchButton" text="Search">
+            <graphic>
+               <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
+                  <Image url="@../../images/search.png" />
+               </ImageView>
+            </graphic>
+         </Button>
 
-      <!-- 빈 공간을 채워서 오른쪽으로 밀어냄 -->
-      <Region HBox.hgrow="ALWAYS" />
+         <Button fx:id="excelButton" text="Excel">
+            <graphic>
+               <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
+                  <Image url="@../../images/excel.png" />
+               </ImageView>
+            </graphic>
+         </Button>
 
-      <!-- 날짜 필터 패널 -->
-      <HBox spacing="8" alignment="CENTER_RIGHT">
-         <Label text="날짜 검색:" style="-fx-font-weight: bold;" />
-         <DatePicker fx:id="startDatePicker" promptText="시작일" prefWidth="130" />
-         <Label text="~" />
-         <DatePicker fx:id="endDatePicker" promptText="종료일" prefWidth="130" />
-         <Button text="조회" fx:id="searchButton"
-            style="-fx-background-color: #3498db; -fx-text-fill: white;" />
-         <Button text="초기화" fx:id="resetButton"
-            style="-fx-background-color: #95a5a6; -fx-text-fill: white;" />
-      </HBox>
+         <Button fx:id="reloadButton" text="Reload">
+            <graphic>
+               <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
+                  <Image url="@../../images/refresh.png" />
+               </ImageView>
+            </graphic>
+         </Button>
 
-      <!-- 구분선 (선택사항) -->
-      <Separator orientation="VERTICAL" prefHeight="30" />
+         <Button fx:id="deleteButton" style="-fx-background-color: #e74c3c; -fx-text-fill: white;"
+            text="Delete" />
+      </ToolBar>
+   </top>
 
-      <!-- Button Panel 버튼들 -->
-      <Button text="IMPORT" fx:id="importButton"
-         style="-fx-background-color: #3498db; -fx-text-fill: white;" />
-      <Button text="Excel" fx:id="excelButton"
-         style="-fx-background-color: #27ae60; -fx-text-fill: white;" />
-      <Button text="Reload" fx:id="reloadButton"
-         style="-fx-background-color: #f39c12; -fx-text-fill: white;" />
-      <Button text="Delete" fx:id="deleteButton"
-         style="-fx-background-color: #e74c3c; -fx-text-fill: white;" />
+   <center>
+      <SplitPane fx:id="splitPane" dividerPositions="0.63" style="-fx-background-color: #f0f0f0;">
+         <items>
+            <!-- 왼쪽: Sales Table Component (기존 구성 유지) -->
+            <fx:include fx:id="salesTable" source="SalesTableView.fxml" />
 
-   </HBox>
+            <!-- 오른쪽: Sale Items Table Component (기존 구성 유지) -->
+            <fx:include fx:id="saleItemsTable" source="SaleItemsTableView.fxml" />
+         </items>
+         <BorderPane.margin>
+            <Insets bottom="7.0" left="7.0" right="7.0" top="7.0" />
+         </BorderPane.margin>
+      </SplitPane>
+   </center>
 
-</VBox>
+</BorderPane>

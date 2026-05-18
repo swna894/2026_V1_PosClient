@@ -6,7 +6,7 @@
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
    fx:controller="com.swna.javafx.admin.sale.SaleItemsTableController" spacing="5">
 
-   <Label text="Sale Items Details" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+   <fx:include source="TableItemSummaryView.fxml" fx:id="tableItemSummary" />
 
    <TableView fx:id="saleItemsTableView" VBox.vgrow="ALWAYS">
       <columns>
