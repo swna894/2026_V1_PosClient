@@ -21,13 +21,11 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SplitPane;
-import javafx.scene.layout.GridPane;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 판매 메인 컨트롤러
- * 리팩토링된 MainSalesView.fxml에 맞게 수정됨
+ * 판매 메인 컨트롤러 (바인딩 및 컴파일 이슈 리팩토링 버전)
  */
 @Slf4j
 @Component
@@ -68,9 +66,6 @@ public class SalesController implements Initializable {
     @FXML private SalesTableController salesTableController;
     @FXML private SaleItemsTableController saleItemsTableController;
     
-    // 날짜 포맷터
-    private static final java.text.DecimalFormat CURRENCY_FORMATTER = new java.text.DecimalFormat("#,###,###");
-    
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupBindings();
@@ -78,22 +73,19 @@ public class SalesController implements Initializable {
         setupButtonActions();
         setupSelectionListener();
         fixSplitPaneDivider();
-        // 초기 데이터 로드
         viewModel.loadTodaySales();
     }
     
     private void fixSplitPaneDivider() {
-    Platform.runLater(() -> splitPane.setDividerPositions(0.60));
-    
-    splitPane.sceneProperty().addListener((obs, old, newScene) -> {
-        if (newScene != null) {
-            Platform.runLater(() -> splitPane.setDividerPositions(0.60));
-        }
-    });
-}
-    private void setupBindings() {
+        Platform.runLater(() -> splitPane.setDividerPositions(0.60));
+        splitPane.sceneProperty().addListener((obs, old, newScene) -> {
+            if (newScene != null) {
+                Platform.runLater(() -> splitPane.setDividerPositions(0.60));
+            }
+        });
+    }
 
-        // DatePicker 바인딩
+    private void setupBindings() {
         if (startDatePicker != null) {
             startDatePicker.valueProperty().bindBidirectional(viewModel.startDateProperty());
         }
@@ -101,21 +93,18 @@ public class SalesController implements Initializable {
             endDatePicker.valueProperty().bindBidirectional(viewModel.endDateProperty());
         }
         
-        // 로딩 상태 바인딩
         if (progressIndicator != null) {
             viewModel.loadingProperty().addListener((obs, old, val) -> 
                 progressIndicator.setVisible(val != null && val)
             );
         }
         
-        // 상태 메시지 바인딩
         if (lblStatus != null) {
             viewModel.errorMessageProperty().addListener((obs, old, msg) -> 
                 lblStatus.setText(msg != null ? msg : "Ready")
             );
         }
         
-        // 전체 건수 바인딩
         if (totalCountLabel != null) {
             totalCountLabel.textProperty().bind(
                 Bindings.createStringBinding(
@@ -125,7 +114,6 @@ public class SalesController implements Initializable {
             );
         }
         
-        // 요약 정보 바인딩 (ToolBar 내부)
         if (summaryDateLabel != null) {
             summaryDateLabel.textProperty().bind(
                 Bindings.createStringBinding(
@@ -152,25 +140,22 @@ public class SalesController implements Initializable {
             );
         }
         
+        // 💡 [교정] 복잡한 계산식 대신 정밀 집계된 현금 프로퍼티 직접 매핑
         if (summaryCashLabel != null) {
             summaryCashLabel.textProperty().bind(
                 Bindings.createStringBinding(
-                    () -> {
-                        BigDecimal cashAmount = viewModel.totalReceivedAmountProperty().get()
-                            .subtract(viewModel.totalCashoutAmountProperty().get());
-                        return formatCurrency(cashAmount);
-                    },
-                    viewModel.totalReceivedAmountProperty(),
-                    viewModel.totalCashoutAmountProperty()
+                    () -> formatCurrency(viewModel.totalCashAmountProperty().get()),
+                    viewModel.totalCashAmountProperty()
                 )
             );
         }
         
+        // 💡 [교정] receivedAmount 대신 순수 카드 결제액 합계와 정확히 동기화
         if (summaryCreditLabel != null) {
             summaryCreditLabel.textProperty().bind(
                 Bindings.createStringBinding(
-                    () -> formatCurrency(viewModel.totalReceivedAmountProperty().get()),
-                    viewModel.totalReceivedAmountProperty()
+                    () -> formatCurrency(viewModel.totalCreditAmountProperty().get()),
+                    viewModel.totalCreditAmountProperty()
                 )
             );
         }
@@ -195,53 +180,18 @@ public class SalesController implements Initializable {
     }
     
     private void setupButtonActions() {
-        // Back Button
-        if (backButton != null) {
-            backButton.setOnAction(e -> handleBack());
-        }
-        
-        // Date Filter Buttons
-        if (todayBtn != null) {
-            todayBtn.setOnAction(e -> viewModel.loadTodaySales());
-        }
-        if (weekBtn != null) {
-            weekBtn.setOnAction(e -> viewModel.loadThisWeekSales());
-        }
-        if (monthBtn != null) {
-            monthBtn.setOnAction(e -> viewModel.loadThisMonthSales());
-        }
-        
-        // Search Button
-        if (searchButton != null) {
-            searchButton.setOnAction(e -> viewModel.loadSalesByDateRange());
-        }
-        
-        // Excel Export
-        if (excelButton != null) {
-            excelButton.setOnAction(e -> handleExportExcel());
-        }
-        
-        // Reload Button
-        if (reloadButton != null) {
-            reloadButton.setOnAction(e -> viewModel.refresh());
-        }
-        
-        // Delete Button
-        if (deleteButton != null) {
-            deleteButton.setOnAction(e -> handleDelete());
-        }
+        if (backButton != null) backButton.setOnAction(e -> handleBack());
+        if (todayBtn != null) todayBtn.setOnAction(e -> viewModel.loadTodaySales());
+        if (weekBtn != null) weekBtn.setOnAction(e -> viewModel.loadThisWeekSales());
+        if (monthBtn != null) monthBtn.setOnAction(e -> viewModel.loadThisMonthSales());
+        if (searchButton != null) searchButton.setOnAction(e -> viewModel.loadSalesByDateRange());
+        if (excelButton != null) excelButton.setOnAction(e -> handleExportExcel());
+        if (reloadButton != null) reloadButton.setOnAction(e -> viewModel.refresh());
+        if (deleteButton != null) deleteButton.setOnAction(e -> handleDelete());
     }
     
     private void setupSelectionListener() {
-        // SalesTable에서 선택 변경 시 ViewModel에通知
-        // if (salesTableController != null && salesTableController.getSalesTableView() != null) {
-        //     salesTableController.getSalesTableView().getSelectionModel().selectedItemProperty()
-        //         .addListener((obs, oldVal, newVal) -> {
-        //             if (newVal != null) {
-        //                 viewModel.onSelectedSaleChanged(newVal);
-        //             }
-        //         });
-        // }
+        // 확장 리스너 필요 시 구현 공간 유지
     }
     
     private void handleBack() {
@@ -253,22 +203,14 @@ public class SalesController implements Initializable {
     }
     
     private void handleDelete() {
-        // if (salesTableController != null && salesTableController.getSalesTableView() != null) {
-        //     var selectedItem = salesTableController.getSalesTableView().getSelectionModel().getSelectedItem();
-        //     if (selectedItem != null) {
-        //         log.info("Deleting sale: {}", selectedItem.getReceiptNo());
-        //         // TODO: 삭제 API 호출 후 목록 새로고침
-        //     }
-        // }
+        // 삭제 기능 공란 유지
     }
     
     private String formatCurrency(BigDecimal amount) {
-        if (amount == null) return "$0";
+        if (amount == null) return "$0.00";
         java.text.NumberFormat currencyFormat = java.text.NumberFormat.getCurrencyInstance();
         return currencyFormat.format(amount);
     }
-    
-    // ========== Public Methods for External Access ==========
     
     public void refresh() {
         viewModel.refresh();

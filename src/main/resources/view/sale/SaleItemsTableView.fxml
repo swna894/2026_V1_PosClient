@@ -1,28 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.swna.javafx.admin.sale.SaleItemsTableController" spacing="5">
+<VBox spacing="10.0" style="-fx-padding: 10;" xmlns="http://javafx.com/javafx/22"
+   xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.admin.sale.SaleItemsTableController">
 
-   <fx:include source="TableItemSummaryView.fxml" fx:id="tableItemSummary" />
+   <GridPane hgap="15.0" prefHeight="40.0"
+      style="-fx-background-color: white; -fx-padding: 10; -fx-border-color: #ddd; -fx-border-radius: 4; -fx-background-radius: 4;"
+      vgap="5">
+      <columnConstraints>
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+      </columnConstraints>
+      <rowConstraints>
+         <RowConstraints minHeight="25.0" prefHeight="25.0" />
+      </rowConstraints>
+
+      <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="AMOUNT:"
+         GridPane.columnIndex="0" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalAmountLabel" style="-fx-font-weight: bold;" text="$0.00"
+         GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d;" text="ORIGINAL:"
+         GridPane.columnIndex="2" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalOriginalLabel" text="$0.00" GridPane.columnIndex="3"
+         GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;" text="D/C:"
+         GridPane.columnIndex="4" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalDiscountLabel" style="-fx-text-fill: #e74c3c;" text="$0.00"
+         GridPane.columnIndex="5" GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold; -fx-text-fill: #16a085;" text="COST:"
+         GridPane.columnIndex="6" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalCostLabel" text="$0.00" GridPane.columnIndex="7" GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold; -fx-text-fill: #2980b9;" text="MARGIN:"
+         GridPane.columnIndex="8" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalMarginLabel" style="-fx-font-weight: bold; -fx-text-fill: #2980b9;"
+         text="$0.00" GridPane.columnIndex="9" GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="TOTAL QTY:"
+         GridPane.columnIndex="10" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalQtyLabel" text="0" GridPane.columnIndex="11" GridPane.rowIndex="0" />
+   </GridPane>
 
    <TableView fx:id="saleItemsTableView" VBox.vgrow="ALWAYS">
       <columns>
-         <TableColumn fx:id="barcodeColumn" text="BARCODE" prefWidth="120" />
-
-         <TableColumn fx:id="salePriceColumn" text="Sale Price" prefWidth="90" />
-         <TableColumn fx:id="qtyColumn" text="QTY" prefWidth="50" />
-         <TableColumn fx:id="saleAmountColumn" text="Sale Amt" prefWidth="100" />
-         <TableColumn fx:id="originalPriceColumn" text="ORIG. Price" prefWidth="100" />
-         <TableColumn fx:id="discountPriceColumn" text="DC Price" prefWidth="80" />
-         <TableColumn fx:id="discountAmountColumn" text="DC Amt" prefWidth="90" />
-         <TableColumn fx:id="costColumn" text="COST" prefWidth="80" />
-
-         <TableColumn fx:id="codeColumn" text="ITEM ID" prefWidth="100" />
-         <TableColumn fx:id="commentColumn" text="COMMENT" prefWidth="200" />
+         <TableColumn fx:id="barcodeColumn" prefWidth="120" text="BARCODE" />
+         <TableColumn fx:id="salePriceColumn" prefWidth="90" text="Sale Price" />
+         <TableColumn fx:id="qtyColumn" prefWidth="50" text="QTY" />
+         <TableColumn fx:id="saleAmountColumn" prefWidth="100" text="Sale Amt" />
+         <TableColumn fx:id="originalPriceColumn" prefWidth="100" text="ORIG. Price" />
+         <TableColumn fx:id="discountPriceColumn" prefWidth="80" text="DC Price" />
+         <TableColumn fx:id="discountAmountColumn" prefWidth="90" text="DC Amt" />
+         <TableColumn fx:id="costColumn" prefWidth="80" text="COST" />
+         <TableColumn fx:id="codeColumn" prefWidth="100" text="ITEM ID" />
+         <TableColumn fx:id="commentColumn" prefWidth="150" text="COMMENT" />
       </columns>
    </TableView>
-
 </VBox>

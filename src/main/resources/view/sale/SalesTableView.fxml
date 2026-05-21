@@ -1,28 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.swna.javafx.admin.sale.SalesTableController" spacing="5">
+<VBox spacing="10.0" style="-fx-padding: 10;" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.admin.sale.SalesTableController">
 
-   <!-- Daily Summary Component -->
-   <fx:include source="DailySummaryView.fxml" fx:id="dailySummary" />
+   <GridPane hgap="15.0" prefHeight="40.0" style="-fx-background-color: white; -fx-padding: 10; -fx-border-color: #ddd; -fx-border-radius: 4; -fx-background-radius: 4;" vgap="5">
+      <columnConstraints>
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+      </columnConstraints>
+      <rowConstraints>
+         <RowConstraints minHeight="25.0" prefHeight="25.0" />
+      </rowConstraints>
+
+      <Label style="-fx-font-weight: bold;" text="AMOUNT:" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+      <Label fx:id="totalAmountLabel" text="-" GridPane.columnIndex="3" GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold;" text="COST:" GridPane.columnIndex="4" GridPane.rowIndex="0" />
+      <Label fx:id="totalCostLabel" text="-" GridPane.columnIndex="5" GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold;" text="D/C:" GridPane.columnIndex="7" GridPane.rowIndex="0" />
+      <Label fx:id="totalDiscountLabel" text="-" GridPane.columnIndex="8" GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold;" text="CASH:" GridPane.columnIndex="9" GridPane.rowIndex="0" />
+      <Label fx:id="totalCashLabel" text="-" GridPane.columnIndex="10" GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold;" text="Eftpos:" GridPane.columnIndex="11" GridPane.rowIndex="0" />
+      <Label fx:id="totalEftposLabel" text="-" GridPane.columnIndex="12" GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold;" text="CASH OUT:" GridPane.columnIndex="13" GridPane.rowIndex="0" />
+      <Label fx:id="totalCashoutLabel" text="-" GridPane.columnIndex="14" GridPane.rowIndex="0" />
+   </GridPane>
 
    <TableView fx:id="salesTableView" VBox.vgrow="ALWAYS">
       <columns>
-         <TableColumn fx:id="noColumn" text="NO" prefWidth="50" />
-         <TableColumn fx:id="receiptColumn" text="RECEIPT" prefWidth="190" />
-         <TableColumn fx:id="saleAmountColumn" text="Final Amt" prefWidth="100" />
-         <TableColumn fx:id="cashColumn" text="CASH" prefWidth="100" />
-         <TableColumn fx:id="creditColumn" text="CREDIT" prefWidth="100" />
-         <TableColumn fx:id="cashoutColumn" text="CASHOUT" prefWidth="100" />
-         <TableColumn fx:id="balanceColumn" text="BALANCE" prefWidth="100" />
-         <TableColumn fx:id="discountColumn" text="Disc. Amt" prefWidth="100" />
-         <TableColumn fx:id="costColumn" text="Cost. Amt" prefWidth="100" />
-         <TableColumn fx:id="originalAmountColumn" text="Orig. Amt" prefWidth="100" />
-         <TableColumn fx:id="acceptColumn" text="ACCEPT" prefWidth="120" />
-         <TableColumn fx:id="dateColumn" text="DATE" prefWidth="125" />
+         <TableColumn fx:id="noColumn" prefWidth="50" text="NO" />
+         <TableColumn fx:id="receiptColumn" prefWidth="190" text="RECEIPT" />
+         <TableColumn fx:id="saleAmountColumn" prefWidth="100" text="Final Amt" />
+         <TableColumn fx:id="cashColumn" prefWidth="100" text="CASH" />
+         <TableColumn fx:id="creditColumn" prefWidth="100" text="CREDIT" />
+         <TableColumn fx:id="cashoutColumn" prefWidth="100" text="CASHOUT" />
+         <TableColumn fx:id="balanceColumn" prefWidth="100" text="BALANCE" />
+         <TableColumn fx:id="discountColumn" prefWidth="100" text="Disc. Amt" />
+         <TableColumn fx:id="costColumn" prefWidth="100" text="Cost. Amt" />
+         <TableColumn fx:id="originalAmountColumn" prefWidth="100" text="Orig. Amt" />
+         <TableColumn fx:id="acceptColumn" prefWidth="120" text="ACCEPT" />
+         <TableColumn fx:id="dateColumn" prefWidth="125" text="DATE" />
       </columns>
    </TableView>
 
