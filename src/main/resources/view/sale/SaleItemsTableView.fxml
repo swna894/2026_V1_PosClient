@@ -11,12 +11,17 @@
    <TableView fx:id="saleItemsTableView" VBox.vgrow="ALWAYS">
       <columns>
          <TableColumn fx:id="barcodeColumn" text="BARCODE" prefWidth="120" />
-         <TableColumn fx:id="amountColumn" text="AMOUNT" prefWidth="80" />
-         <TableColumn fx:id="priceColumn" text="PRICE" prefWidth="80" />
-         <TableColumn fx:id="qtyColumn" text="Qty" prefWidth="60" />
-         <TableColumn fx:id="discountColumn" text="D/C" prefWidth="60" />
-         <TableColumn fx:id="codeColumn" text="CODE" prefWidth="80" />
-         <TableColumn fx:id="supplierColumn" text="SUPPLIER" prefWidth="100" />
+
+         <TableColumn fx:id="salePriceColumn" text="Sale Price" prefWidth="90" />
+         <TableColumn fx:id="qtyColumn" text="QTY" prefWidth="50" />
+         <TableColumn fx:id="saleAmountColumn" text="Sale Amt" prefWidth="100" />
+         <TableColumn fx:id="originalPriceColumn" text="ORIG. Price" prefWidth="100" />
+         <TableColumn fx:id="discountPriceColumn" text="DC Price" prefWidth="80" />
+         <TableColumn fx:id="discountAmountColumn" text="DC Amt" prefWidth="90" />
+         <TableColumn fx:id="costColumn" text="COST" prefWidth="80" />
+
+         <TableColumn fx:id="codeColumn" text="ITEM ID" prefWidth="100" />
+         <TableColumn fx:id="commentColumn" text="COMMENT" prefWidth="200" />
       </columns>
    </TableView>
 

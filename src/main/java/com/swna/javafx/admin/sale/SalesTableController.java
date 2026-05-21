@@ -12,6 +12,7 @@ import com.swna.javafx.admin.sale.model.SaleModel;
 import com.swna.javafx.admin.sale.viewmodel.SalesViewModel;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
@@ -110,12 +111,36 @@ public class SalesTableController implements Initializable {
         });
     }
     
+    /**
+     * 테이블 선택 상태 양방향 동기화 및 연쇄 조회 리스너
+     */
     private void setupSelectionListener() {
+        // [A] 사용자가 테이블 행을 마우스나 키보드로 선택했을 때 -> ViewModel 상태 변경 및 상세 아이템 조회 요청
         salesTableView.getSelectionModel().selectedItemProperty()
             .addListener((obs, oldVal, newVal) -> {
-                if (newVal != null) {
-                    viewModel.onSelectedSaleChanged(newVal);
+                if (newVal != null && viewModel.selectedSaleProperty().get() != newVal) {
+                    viewModel.selectedSaleProperty().set(newVal);
+                    viewModel.onSelectedSaleChanged(newVal); 
                 }
             });
+            
+        // [B] 오늘/이번주/이번달 버튼 클릭 등으로 ViewModel 측에서 첫 행을 강제 선택했을 때 -> UI 테이블 뷰 파란색 하이라이트 동기화
+        viewModel.selectedSaleProperty().addListener((obs, oldVal, newVal) -> {
+            Platform.runLater(() -> {
+                if (newVal != null) {
+                    var selectionModel = salesTableView.getSelectionModel();
+                    if (selectionModel.getSelectedItem() != newVal) {
+                        selectionModel.select(newVal);
+                        salesTableView.scrollTo(newVal);
+                    }
+                } else {
+                    salesTableView.getSelectionModel().clearSelection();
+                }
+            });
+        });
+    }
+    
+    public TableView<SaleModel> getSalesTableView() {
+        return salesTableView;
     }
 }
