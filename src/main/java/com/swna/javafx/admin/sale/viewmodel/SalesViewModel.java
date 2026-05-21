@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 /**
- * 판매 화면 ViewModel (정산 및 합계 데이터 정밀화 리팩토링 버전)
+ * 판매 화면 ViewModel (메인 전표 통계 + 선택 전표 상세 아이템 통계 완성 버전)
  */
 @Slf4j
 @Component
@@ -31,40 +31,39 @@ public class SalesViewModel {
     
     private final SaleApiClient saleApiClient;
     
-    // 판매 목록 (JavaFX Property를 위한 Model)
+    // 리스트 관련 데이터 구조
     private final ObservableList<SaleModel> salesList = FXCollections.observableArrayList();
     private final ObjectProperty<SaleModel> selectedSale = new SimpleObjectProperty<>();
-    
-    // 판매 아이템 목록
     private final ObservableList<SaleItemModel> saleItemsList = FXCollections.observableArrayList();
     
-    // 검색 조건 (날짜)
+    // 조건 및 상태 제어 프로퍼티
     private final ObjectProperty<LocalDate> startDate = new SimpleObjectProperty<>(LocalDate.now());
     private final ObjectProperty<LocalDate> endDate = new SimpleObjectProperty<>(LocalDate.now());
-    
-    // 상태 표현 프로퍼티
     private final BooleanProperty loading = new SimpleBooleanProperty(false);
     private final StringProperty errorMessage = new SimpleStringProperty("");
     
-    // =========================================================================
-    // 💡 [리팩토링] 상단 통계/집계 내역의 정합성을 위한 프로퍼티 완성
-    // =========================================================================
+    // 1️⃣ [메인 판매 목록] 전체 요약 바 프로퍼티
     private final ObjectProperty<BigDecimal> totalSalesAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> totalCostAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> totalDiscountAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
-    private final ObjectProperty<BigDecimal> totalReceivedAmount = new SimpleObjectProperty<>(BigDecimal.ZERO); // 컴파일 에러 해결용 유지
+    private final ObjectProperty<BigDecimal> totalReceivedAmount = new SimpleObjectProperty<>(BigDecimal.ZERO); 
     private final ObjectProperty<BigDecimal> totalCashAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> totalCreditAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> totalCashoutAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final IntegerProperty totalCount = new SimpleIntegerProperty(0);
     
+    // 2️⃣ [💡 신설 - 상세 아이템 목록] 우측 상단 전표 상세 요약 바용 실시간 집계 프로퍼티
+    private final ObjectProperty<BigDecimal> itemTotalAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> itemTotalOriginal = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> itemTotalDiscount = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> itemTotalCost = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> itemTotalMargin = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final IntegerProperty itemTotalQty = new SimpleIntegerProperty(0);
+
     public void refresh() {
         loadSalesByDateRange();
     }
     
-    /**
-     * 기본 검색창 조회 (시작 날짜 ~ 종료 날짜 범위 검색)
-     */
     public void loadSalesByDateRange() {
         if (startDate.get() == null || endDate.get() == null) {
             errorMessage.set("시작 날짜와 종료 날짜를 선택해주세요.");
@@ -72,50 +71,31 @@ public class SalesViewModel {
         }
         LocalDateTime startDateTime = startDate.get().atStartOfDay();
         LocalDateTime endDateTime = endDate.get().atTime(java.time.LocalTime.MAX);
-        
-        log.info("[ViewModel] Loading sales for range: {} ~ {}", startDateTime, endDateTime);
         executeSalesLoad(saleApiClient.getSalesByDateRange(startDateTime, endDateTime));
     }
     
-    /**
-     * 오늘 판매 목록 조회 (오늘 버튼 연동)
-     */
     public void loadTodaySales() {
-        log.info("[ViewModel] Loading today's sales");
         startDate.set(LocalDate.now());
         endDate.set(LocalDate.now());
         executeSalesLoad(saleApiClient.getTodaySales());
     }
     
-    /**
-     * 이번주 판매 목록 조회 (이번주 버튼 연동)
-     */
     public void loadThisWeekSales() {
-        log.info("[ViewModel] Loading this week's sales");
         LocalDate now = LocalDate.now();
         LocalDate startOfWeek = now.minusDays(now.getDayOfWeek().getValue() - 1);
         LocalDate endOfWeek = startOfWeek.plusDays(6);
         startDate.set(startOfWeek);
         endDate.set(endOfWeek);
-        
         executeSalesLoad(saleApiClient.getThisWeekSales());
     }
     
-    /**
-     * 이번달 판매 목록 조회 (이번달 버튼 연동)
-     */
     public void loadThisMonthSales() {
-        log.info("[ViewModel] Loading this month's sales");
         LocalDate now = LocalDate.now();
         startDate.set(now.withDayOfMonth(1));
         endDate.set(now.withDayOfMonth(now.lengthOfMonth()));
-        
         executeSalesLoad(saleApiClient.getThisMonthSales());
     }
     
-    /**
-     * [공통 메서드] 판매 API 비동기 처리 파이프라인 통합 관리 공통 함수
-     */
     private void executeSalesLoad(Mono<List<SaleDto>> salesMono) {
         loading.set(true);
         errorMessage.set("");
@@ -124,9 +104,7 @@ public class SalesViewModel {
             .subscribeOn(Schedulers.boundedElastic())
             .subscribe(
                 sales -> Platform.runLater(() -> {
-                    List<SaleModel> models = sales.stream()
-                        .map(this::convertToModel)
-                        .toList();
+                    List<SaleModel> models = sales.stream().map(this::convertToModel).toList();
                     salesList.setAll(models);
                     
                     if (!salesList.isEmpty()) {
@@ -136,76 +114,137 @@ public class SalesViewModel {
                     } else {
                         selectedSale.set(null);
                         saleItemsList.clear();
+                        clearItemTotals(); // 💡 초기화 안전장치
                     }
                     
                     calculateTotals(); 
                     loading.set(false);
-                    log.info("[ViewModel] Sales load finished. Total count: {}", models.size());
                 }),
                 error -> Platform.runLater(() -> {
-                    log.error("[ViewModel] Failed to execute sales load", error);
+                    log.error("Failed to execute sales load", error);
                     errorMessage.set("서버로부터 판매 내역을 불러오지 못했습니다.");
                     salesList.clear();
                     selectedSale.set(null);
                     saleItemsList.clear();
+                    clearItemTotals();
                     calculateTotals();
                     loading.set(false);
                 })
             );
     }
     
-    /**
-     * 특정 saleId의 아이템 상세 목록을 서버에서 조회하여 바인딩
-     */
     public void loadSaleItems(Long saleId) {
         if (saleId == null) {
             saleItemsList.clear();
+            clearItemTotals();
             return;
         }
-        
-        log.debug("[ViewModel] Requesting items for saleId: {}", saleId);
         
         saleApiClient.getSaleItemsBySaleId(saleId)
             .subscribeOn(Schedulers.boundedElastic())
             .subscribe(
                 items -> Platform.runLater(() -> {
-                    List<SaleItemModel> itemModels = items.stream()
-                        .map(this::convertToItemModel)
-                        .toList();
+                    List<SaleItemModel> itemModels = items.stream().map(this::convertToItemModel).toList();
                     saleItemsList.setAll(itemModels);
-                    log.debug("[ViewModel] Loaded {} items for saleId: {}", itemModels.size(), saleId);
+                    
+                    calculateItemsTotals(); // 💡 데이터 적재 직후 실시간 집계 연산 가동
                 }),
                 error -> Platform.runLater(() -> {
-                    log.error("[ViewModel] Failed to load sale items for saleId: {}", saleId, error);
+                    log.error("Failed to load sale items", error);
                     errorMessage.set("상품 상세 목록을 가져오는데 실패했습니다.");
                     saleItemsList.clear();
+                    clearItemTotals();
                 })
             );
     }
     
-    /**
-     * 사용자가 UI에서 직접 테이블 행을 클릭하거나 변경했을 때 호출되는 트리거 메서드
-     */
     public void onSelectedSaleChanged(SaleModel newSale) {
         if (newSale != null) {
-            log.debug("[ViewModel] Selection changed to Sale ID: {}", newSale.getId());
             loadSaleItems(newSale.getId());
         } else {
             saleItemsList.clear();
+            clearItemTotals();
         }
+    }
+    
+    /**
+     * 💡 [신설 리팩토링] 선택된 전표의 품목 데이터 스트림 실시간 집계 공식 구현
+     */
+    private void calculateItemsTotals() {
+        BigDecimal totalAmount = saleItemsList.stream()
+            .map(SaleItemModel::getSaleAmount)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalOriginal = saleItemsList.stream()
+            .map(SaleItemModel::getOriginalAmount)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalDiscount = saleItemsList.stream()
+            .map(SaleItemModel::getDiscountAmount)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 원가 정합성 계산: 각 행의 (원가 단가 * 수량) 총합 계산
+        BigDecimal totalCost = saleItemsList.stream()
+            .map(item -> {
+                BigDecimal unitCost = item.costProperty().get();
+                BigDecimal qty = BigDecimal.valueOf(item.quantityProperty().get());
+                return (unitCost != null && qty != null) ? unitCost.multiply(qty) : BigDecimal.ZERO;
+            })
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 마진 공식 = 실 판매액 합계 - 매입 원가 합계
+        BigDecimal totalMargin = totalAmount.subtract(totalCost);
+
+        // 총 상품 수량 합산
+        int totalQty = saleItemsList.stream()
+            .mapToInt(item -> item.quantityProperty().get())
+            .sum();
+
+        // 프로퍼티 세팅 및 동기화 공급
+        itemTotalAmount.set(totalAmount);
+        itemTotalOriginal.set(totalOriginal);
+        itemTotalDiscount.set(totalDiscount);
+        itemTotalCost.set(totalCost);
+        itemTotalMargin.set(totalMargin);
+        itemTotalQty.set(totalQty);
+    }
+
+    private void clearItemTotals() {
+        itemTotalAmount.set(BigDecimal.ZERO);
+        itemTotalOriginal.set(BigDecimal.ZERO);
+        itemTotalDiscount.set(BigDecimal.ZERO);
+        itemTotalCost.set(BigDecimal.ZERO);
+        itemTotalMargin.set(BigDecimal.ZERO);
+        itemTotalQty.set(0);
+    }
+    
+    private void calculateTotals() {
+        BigDecimal totalSales = salesList.stream().map(SaleModel::getSaleAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCost = salesList.stream().map(SaleModel::getCostAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalDiscount = salesList.stream().map(SaleModel::getDiscountAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalReceived = salesList.stream().map(SaleModel::getReceivedAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCash = salesList.stream().map(SaleModel::getCashAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCredit = salesList.stream().map(SaleModel::getCreditAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCashout = salesList.stream().map(SaleModel::getCashoutAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        totalSalesAmount.set(totalSales);
+        totalCostAmount.set(totalCost);
+        totalDiscountAmount.set(totalDiscount);
+        totalReceivedAmount.set(totalReceived);
+        totalCashAmount.set(totalCash);
+        totalCreditAmount.set(totalCredit);
+        totalCashoutAmount.set(totalCashout);
+        totalCount.set(salesList.size());
     }
     
     private SaleModel convertToModel(SaleDto dto) {
         SaleModel model = new SaleModel();
-        
         if (dto.getId() != null && !dto.getId().isBlank()) {
-            try {
-                model.setId(Long.parseLong(dto.getId()));
-            } catch (NumberFormatException e) {
-                log.error("Failed to parse sale id to Long: {}", dto.getId());
-            }
+            try { model.setId(Long.parseLong(dto.getId())); } catch (NumberFormatException e) { log.error("ID parse error", e); }
         }
-        
         model.setReceiptNo(dto.getReceiptNo());
         model.setPaymentDateTime(dto.getPaymentDateTime());
         model.setOriginalAmount(dto.getOriginalAmount());
@@ -224,7 +263,6 @@ public class SalesViewModel {
     
     private SaleItemModel convertToItemModel(SaleItemResponse response) {
         SaleItemModel model = new SaleItemModel();
-        
         model.idProperty().set(response.id() != null ? response.id() : "");
         model.barcodeProperty().set(response.barcode() != null ? response.barcode() : "");
         model.quantityProperty().set(response.quantity());
@@ -247,58 +285,7 @@ public class SalesViewModel {
         return model;
     }
     
-    /**
-     * 💡 [핵심 리팩토링] 모든 정산 항목이 테이블 리스트 총합과 정확히 일치하도록 집계식 정밀화
-     */
-    private void calculateTotals() {
-        BigDecimal totalSales = salesList.stream()
-            .map(SaleModel::getSaleAmount)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalCost = salesList.stream()
-            .map(SaleModel::getCostAmount)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-        BigDecimal totalDiscount = salesList.stream()
-            .map(SaleModel::getDiscountAmount)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalReceived = salesList.stream()
-            .map(SaleModel::getReceivedAmount)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-        BigDecimal totalCash = salesList.stream()
-            .map(SaleModel::getCashAmount)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalCredit = salesList.stream()
-            .map(SaleModel::getCreditAmount)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-        BigDecimal totalCashout = salesList.stream()
-            .map(SaleModel::getCashoutAmount)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
-        totalSalesAmount.set(totalSales);
-        totalCostAmount.set(totalCost);
-        totalDiscountAmount.set(totalDiscount);
-        totalReceivedAmount.set(totalReceived);
-        totalCashAmount.set(totalCash);
-        totalCreditAmount.set(totalCredit);
-        totalCashoutAmount.set(totalCashout);
-        totalCount.set(salesList.size());
-    }
-    
-    // ==========================================
-    // JavaFX UI 바인딩용 Getters
-    // ==========================================
+    // Getters
     public ObservableList<SaleModel> getSalesList() { return salesList; }
     public ObservableList<SaleItemModel> getSaleItemsList() { return saleItemsList; }
     public ObjectProperty<SaleModel> selectedSaleProperty() { return selectedSale; }
@@ -309,11 +296,18 @@ public class SalesViewModel {
     public ObjectProperty<BigDecimal> totalSalesAmountProperty() { return totalSalesAmount; }
     public ObjectProperty<BigDecimal> totalCostAmountProperty() { return totalCostAmount; }         
     public ObjectProperty<BigDecimal> totalDiscountAmountProperty() { return totalDiscountAmount; }
-    public ObjectProperty<BigDecimal> totalReceivedAmountProperty() { return totalReceivedAmount; } // 복구완료
+    public ObjectProperty<BigDecimal> totalReceivedAmountProperty() { return totalReceivedAmount; } 
     public ObjectProperty<BigDecimal> totalCashAmountProperty() { return totalCashAmount; }         
     public ObjectProperty<BigDecimal> totalCreditAmountProperty() { return totalCreditAmount; }     
     public ObjectProperty<BigDecimal> totalCashoutAmountProperty() { return totalCashoutAmount; }
-    
     public IntegerProperty totalCountProperty() { return totalCount; }
     public StringProperty errorMessageProperty() { return errorMessage; }
+
+    // 💡 우측 아이템 전용 Getters 추가 공급
+    public ObjectProperty<BigDecimal> itemTotalAmountProperty() { return itemTotalAmount; }
+    public ObjectProperty<BigDecimal> itemTotalOriginalProperty() { return itemTotalOriginal; }
+    public ObjectProperty<BigDecimal> itemTotalDiscountProperty() { return itemTotalDiscount; }
+    public ObjectProperty<BigDecimal> itemTotalCostProperty() { return itemTotalCost; }
+    public ObjectProperty<BigDecimal> itemTotalMarginProperty() { return itemTotalMargin; }
+    public IntegerProperty itemTotalQtyProperty() { return itemTotalQty; }
 }

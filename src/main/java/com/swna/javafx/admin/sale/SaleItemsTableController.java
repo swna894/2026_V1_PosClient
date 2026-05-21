@@ -3,8 +3,10 @@ package com.swna.javafx.admin.sale;
 import com.swna.javafx.admin.sale.model.SaleItemModel;
 import com.swna.javafx.admin.sale.viewmodel.SalesViewModel;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import lombok.RequiredArgsConstructor;
@@ -15,31 +17,34 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-/**
- * 판매 아이템 목록 테이블 컨트롤러
- * SaleItemModel의 단가/총액 자동 연산 구조에 맞춰 컬럼 바인딩 리팩토링 완료
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class SaleItemsTableController implements Initializable {
     
+    // 중복 리터럴 방지를 위한 통화 포맷 선언
+    private static final String CURRENCY_FORMAT = "$%,.2f";
+    
     private final SalesViewModel viewModel;
+    
+    // 💡 추가된 선택 전표 영수증 라벨 매핑
+    @FXML private Label itemSelectedReceiptLabel;
+    
+    @FXML private Label itemTotalAmountLabel;
+    @FXML private Label itemTotalOriginalLabel;
+    @FXML private Label itemTotalDiscountLabel;
+    @FXML private Label itemTotalCostLabel;
+    @FXML private Label itemTotalMarginLabel;
+    @FXML private Label itemTotalQtyLabel;
     
     @FXML private TableView<SaleItemModel> saleItemsTableView;
     @FXML private TableColumn<SaleItemModel, String> barcodeColumn;
     @FXML private TableColumn<SaleItemModel, Integer> qtyColumn;
-    
-    // 단가 관련 컬럼
     @FXML private TableColumn<SaleItemModel, BigDecimal> originalPriceColumn;
     @FXML private TableColumn<SaleItemModel, BigDecimal> discountPriceColumn;
     @FXML private TableColumn<SaleItemModel, BigDecimal> salePriceColumn;
-    
-    // 총액 관련 컬럼
     @FXML private TableColumn<SaleItemModel, BigDecimal> discountAmountColumn;
     @FXML private TableColumn<SaleItemModel, BigDecimal> saleAmountColumn;
-    
-    // 기타 컬럼
     @FXML private TableColumn<SaleItemModel, BigDecimal> costColumn;
     @FXML private TableColumn<SaleItemModel, String> codeColumn;
     @FXML private TableColumn<SaleItemModel, String> commentColumn;
@@ -48,36 +53,24 @@ public class SaleItemsTableController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupTableColumns();
         setupTableBindings();
+        setupSummaryBindings(); 
     }
     
-    /**
-     * 모델의 속성과 FXML 컬럼 간의 바인딩 설정
-     */
     private void setupTableColumns() {
-        // 1. 기본 정보
         TableColumnUtil.makeStringColumn(barcodeColumn, SaleItemModel::barcodeProperty, null, false, true, TableColumnUtil.CENTER, null);
-        TableColumnUtil.makeIntegerColumn(qtyColumn, SaleItemModel::quantityProperty, null, true, true, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeIntegerColumn(qtyColumn, SaleItemModel::quantityProperty, null, false, true, TableColumnUtil.CENTER, null);
         
-        // 2. 판매 총액 (가장 중요)
-        TableColumnUtil.makeBigDecimalCurrencyColumn(saleAmountColumn, SaleItemModel::saleAmountProperty, false, true, TableColumnUtil.RIGHT, null);
-        
-        // 3. 단가 정보 (판매단가, 할인단가, 정상단가)
         TableColumnUtil.makeBigDecimalCurrencyColumn(salePriceColumn, SaleItemModel::salePriceProperty, false, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeBigDecimalCurrencyColumn(saleAmountColumn, SaleItemModel::saleAmountProperty, false, true, TableColumnUtil.RIGHT, null);
         TableColumnUtil.makeBigDecimalCurrencyColumn(discountPriceColumn, SaleItemModel::discountPriceProperty, false, true, TableColumnUtil.RIGHT, null);
         TableColumnUtil.makeBigDecimalCurrencyColumn(originalPriceColumn, SaleItemModel::originalPriceProperty, false, true, TableColumnUtil.RIGHT, null);
-        
-        // 4. 할인 총액
         TableColumnUtil.makeBigDecimalCurrencyColumn(discountAmountColumn, SaleItemModel::discountAmountProperty, false, true, TableColumnUtil.RIGHT, null);
-        
-        // 5. 관리 정보 (원가, ID, 메모)
         TableColumnUtil.makeBigDecimalCurrencyColumn(costColumn, SaleItemModel::costProperty, false, true, TableColumnUtil.RIGHT, null);
+        
         TableColumnUtil.makeStringColumn(codeColumn, SaleItemModel::idProperty, null, false, true, TableColumnUtil.LEFT, null);
         TableColumnUtil.makeStringColumn(commentColumn, SaleItemModel::commentProperty, null, false, true, TableColumnUtil.LEFT, null);
     }
     
-    /**
-     * 데이터 리스트 바인딩 및 새로고침 로직
-     */
     private void setupTableBindings() {
         saleItemsTableView.setItems(viewModel.getSaleItemsList());
         
@@ -88,5 +81,24 @@ public class SaleItemsTableController implements Initializable {
                 }
             }
         });
+    }
+
+    private void setupSummaryBindings() {
+        // 💡 핵심 추가: 메인 테이블에서 선택된 SaleModel의 receiptNo 속성을 안전하게 추적 및 바인딩
+        itemSelectedReceiptLabel.textProperty().bind(
+            Bindings.selectString(viewModel.selectedSaleProperty(), "receiptNo")
+        );
+
+        // 기존 요약 통계 속성 바인딩
+        itemTotalAmountLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.itemTotalAmountProperty()));
+        itemTotalOriginalLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.itemTotalOriginalProperty()));
+        itemTotalDiscountLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.itemTotalDiscountProperty()));
+        itemTotalCostLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.itemTotalCostProperty()));
+        itemTotalMarginLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.itemTotalMarginProperty()));
+        itemTotalQtyLabel.textProperty().bind(viewModel.itemTotalQtyProperty().asString());
+    }
+    
+    public TableView<SaleItemModel> getSaleItemsTableView() {
+        return saleItemsTableView;
     }
 }

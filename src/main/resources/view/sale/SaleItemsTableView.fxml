@@ -8,14 +8,16 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="10.0" style="-fx-padding: 10;" xmlns="http://javafx.com/javafx/22"
-   xmlns:fx="http://javafx.com/fxml/1"
+<VBox spacing="5" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
    fx:controller="com.swna.javafx.admin.sale.SaleItemsTableController">
 
    <GridPane hgap="15.0" prefHeight="40.0"
-      style="-fx-background-color: white; -fx-padding: 10; -fx-border-color: #ddd; -fx-border-radius: 4; -fx-background-radius: 4;"
+      style="-fx-background-color: white; -fx-padding: 10; -fx-border-color: #ddd; 
+      -fx-border-radius: 4; -fx-background-radius: 4;"
       vgap="5">
       <columnConstraints>
+         <ColumnConstraints />
+         <ColumnConstraints />
          <ColumnConstraints />
          <ColumnConstraints />
          <ColumnConstraints />
@@ -33,33 +35,38 @@
          <RowConstraints minHeight="25.0" prefHeight="25.0" />
       </rowConstraints>
 
-      <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="AMOUNT:"
+      <Label style="-fx-font-weight: bold; -fx-text-fill: #2980b9;" text="[RECEIPT]"
          GridPane.columnIndex="0" GridPane.rowIndex="0" />
-      <Label fx:id="itemTotalAmountLabel" style="-fx-font-weight: bold;" text="$0.00"
-         GridPane.columnIndex="1" GridPane.rowIndex="0" />
+      <Label fx:id="itemSelectedReceiptLabel" style="-fx-font-weight: bold; -fx-text-fill: #2980b9;"
+         text="-" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+      <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="AMOUNT:"
+         GridPane.columnIndex="2" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalAmountLabel" style="-fx-font-weight: bold;" text="\$0.00"
+         GridPane.columnIndex="3" GridPane.rowIndex="0" />
 
       <Label style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d;" text="ORIGINAL:"
-         GridPane.columnIndex="2" GridPane.rowIndex="0" />
-      <Label fx:id="itemTotalOriginalLabel" text="$0.00" GridPane.columnIndex="3"
+         GridPane.columnIndex="4" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalOriginalLabel" text="\$0.00" GridPane.columnIndex="5"
          GridPane.rowIndex="0" />
 
       <Label style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;" text="D/C:"
-         GridPane.columnIndex="4" GridPane.rowIndex="0" />
-      <Label fx:id="itemTotalDiscountLabel" style="-fx-text-fill: #e74c3c;" text="$0.00"
-         GridPane.columnIndex="5" GridPane.rowIndex="0" />
+         GridPane.columnIndex="6" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalDiscountLabel" style="-fx-text-fill: #e74c3c;" text="\$0.00"
+         GridPane.columnIndex="7" GridPane.rowIndex="0" />
 
       <Label style="-fx-font-weight: bold; -fx-text-fill: #16a085;" text="COST:"
-         GridPane.columnIndex="6" GridPane.rowIndex="0" />
-      <Label fx:id="itemTotalCostLabel" text="$0.00" GridPane.columnIndex="7" GridPane.rowIndex="0" />
+         GridPane.columnIndex="8" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalCostLabel" text="\$0.00" GridPane.columnIndex="9" GridPane.rowIndex="0" />
 
       <Label style="-fx-font-weight: bold; -fx-text-fill: #2980b9;" text="MARGIN:"
-         GridPane.columnIndex="8" GridPane.rowIndex="0" />
+         GridPane.columnIndex="10" GridPane.rowIndex="0" />
       <Label fx:id="itemTotalMarginLabel" style="-fx-font-weight: bold; -fx-text-fill: #2980b9;"
-         text="$0.00" GridPane.columnIndex="9" GridPane.rowIndex="0" />
+         text="\$0.00" GridPane.columnIndex="11" GridPane.rowIndex="0" />
 
       <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="TOTAL QTY:"
-         GridPane.columnIndex="10" GridPane.rowIndex="0" />
-      <Label fx:id="itemTotalQtyLabel" text="0" GridPane.columnIndex="11" GridPane.rowIndex="0" />
+         GridPane.columnIndex="12" GridPane.rowIndex="0" />
+      <Label fx:id="itemTotalQtyLabel" text="0" GridPane.columnIndex="13" GridPane.rowIndex="0" />
    </GridPane>
 
    <TableView fx:id="saleItemsTableView" VBox.vgrow="ALWAYS">
