@@ -1,64 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox spacing="5.0" style="-fx-padding: 0;" xmlns="http://javafx.com/javafx/22"
    xmlns:fx="http://javafx.com/fxml/1"
    fx:controller="com.swna.javafx.admin.sale.SalesTableController">
 
-   <GridPane hgap="10"
-      style="-fx-background-color: white; -fx-padding: 10; -fx-border-color: #ddd; -fx-border-radius: 4; -fx-background-radius: 4;"
-      vgap="5">
-      <columnConstraints>
-         <ColumnConstraints />
-         <ColumnConstraints />
-         <ColumnConstraints />
-         <ColumnConstraints />
-         <ColumnConstraints />
-         <ColumnConstraints />
-         <ColumnConstraints />
-         <ColumnConstraints />
-         <ColumnConstraints />
-         <ColumnConstraints />
-         <ColumnConstraints />
-         <ColumnConstraints />
-      </columnConstraints>
-      <rowConstraints>
-         <RowConstraints minHeight="25.0" prefHeight="25.0" />
-      </rowConstraints>
+   <!-- GridPane을 ToolBar로 대체 -->
+   <ToolBar prefHeight="40.0"
+      style="-fx-background-color: white; -fx-padding: 5 10 5 10; -fx-border-color: #ddd; -fx-border-width: 0 0 1 0;">
+      <items>
+         <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="AMOUNT:" />
+         <Label fx:id="totalAmountLabel" style="-fx-font-weight: bold;" text="-" />
 
-      <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="AMOUNT:"
-         GridPane.columnIndex="0" GridPane.rowIndex="0" />
-      <Label fx:id="totalAmountLabel" style="-fx-font-weight: bold;" text="-"
-         GridPane.columnIndex="1" GridPane.rowIndex="0" />
+         <Separator orientation="VERTICAL" />
 
-      <Label style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;" text="COST:"
-         GridPane.columnIndex="2" GridPane.rowIndex="0" />
-      <Label fx:id="totalCostLabel" style="-fx-font-weight: bold;" text="-" GridPane.columnIndex="3"
-         GridPane.rowIndex="0" />
+         <Label style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;" text="COST:" />
+         <Label fx:id="totalCostLabel" style="-fx-font-weight: bold;" text="-" />
 
-      <Label style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d;" text="D/C:"
-         GridPane.columnIndex="4" GridPane.rowIndex="0" />
-      <Label fx:id="totalDiscountLabel" text="-" GridPane.columnIndex="5" GridPane.rowIndex="0" />
+         <Separator orientation="VERTICAL" />
 
-      <Label style="-fx-font-weight: bold; -fx-text-fill: #27ae60;" text="CASH:"
-         GridPane.columnIndex="6" GridPane.rowIndex="0" />
-      <Label fx:id="totalCashLabel" text="-" GridPane.columnIndex="7" GridPane.rowIndex="0" />
+         <Label style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d;" text="D/C:" />
+         <Label fx:id="totalDiscountLabel" text="-" />
 
-      <Label style="-fx-font-weight: bold; -fx-text-fill: #2980b9;" text="Eftpos:"
-         GridPane.columnIndex="8" GridPane.rowIndex="0" />
-      <Label fx:id="totalEftposLabel" text="-" GridPane.columnIndex="9" GridPane.rowIndex="0" />
+         <Separator orientation="VERTICAL" />
 
-      <Label style="-fx-font-weight: bold; -fx-text-fill: #8e44ad;" text="CASH OUT:"
-         GridPane.columnIndex="10" GridPane.rowIndex="0" />
-      <Label fx:id="totalCashoutLabel" text="-" GridPane.columnIndex="11" GridPane.rowIndex="0" />
-   </GridPane>
+         <Label style="-fx-font-weight: bold; -fx-text-fill: #27ae60;" text="CASH:" />
+         <Label fx:id="totalCashLabel" text="-" />
+
+         <Separator orientation="VERTICAL" />
+
+         <Label style="-fx-font-weight: bold; -fx-text-fill: #2980b9;" text="CREDIT:" />
+         <Label fx:id="totalEftposLabel" text="-" />
+
+         <Separator orientation="VERTICAL" />
+
+         <Label style="-fx-font-weight: bold; -fx-text-fill: #8e44ad;" text="CASH OUT:" />
+         <Label fx:id="totalCashoutLabel" text="-" />
+      </items>
+   </ToolBar>
 
    <TableView fx:id="salesTableView" VBox.vgrow="ALWAYS">
       <columns>
@@ -73,7 +58,7 @@
          <TableColumn fx:id="cashoutColumn" prefWidth="100" text="CASHOUT" />
          <TableColumn fx:id="balanceColumn" prefWidth="100" text="BALANCE" />
          <TableColumn fx:id="acceptColumn" prefWidth="100" text="TYPE" />
-         <TableColumn fx:id="dateColumn" prefWidth="150" text="DATE" />
+         <TableColumn fx:id="dateColumn" prefWidth="200" text="DATE" />
       </columns>
    </TableView>
 </VBox>
