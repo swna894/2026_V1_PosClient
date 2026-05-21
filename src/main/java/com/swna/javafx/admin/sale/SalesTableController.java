@@ -22,30 +22,30 @@ import javafx.scene.control.TableView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 메인 판매 전표 테이블 및 통합 상단 요약 바 제어 컨트롤러
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class SalesTableController implements Initializable {
     
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    
-    // 💡 중복 리터럴 방지를 위한 통화 포맷 상수 선언
     private static final String CURRENCY_FORMAT = "$%,.2f";
     
     private final SalesViewModel viewModel;
     
-    // 상단 합계 통계 요약 바 컴포넌트 맵핑
-    @FXML private Label totalAmountLabel;
-    @FXML private Label totalCostLabel;
-    @FXML private Label totalDiscountLabel;
-    @FXML private Label totalCashLabel;
-    @FXML private Label totalEftposLabel;
-    @FXML private Label totalCashoutLabel;
+    // ========== 원본에 존재했던 모든 상단 합계 통계 요약 바 필드 ==========
+    // (FXML에 없는 totalAmountLabel은 제거 - 에러 원인)
+    @FXML private Label totalCostLabel;        // COST
+    @FXML private Label totalDiscountLabel;    // D/C
+    @FXML private Label totalCashLabel;        // CASH
+    @FXML private Label totalEftposLabel;      // CREDIT
+    @FXML private Label totalCashoutLabel;     // CASH OUT
     
-    // 메인 테이블 컴포넌트 및 제공해주신 원본 순서 컬럼 선언
+    // ========== FXML의 ToolBar에 실제 정의된 Label들 (추가 필요) ==========
+    @FXML private Label originalTotalLabel;    // Orig. TOTAL
+    @FXML private Label finalTotalLabel;       // Final TOTAL
+    @FXML private Label discountTotalLabel;    // Dis. TOTAL
+    
+    // 메인 테이블 컴포넌트
     @FXML private TableView<SaleModel> salesTableView;
     @FXML private TableColumn<SaleModel, String> noColumn;
     @FXML private TableColumn<SaleModel, String> receiptColumn;
@@ -68,9 +68,6 @@ public class SalesTableController implements Initializable {
         setupSelectionListener();
     }
     
-    /**
-     * ⭕ 전달해주신 원본 구조와 컬럼 매핑 로직을 완전히 일치시켜 복구한 메서드
-     */
     private void setupTableColumns() {
         TableColumnUtil.createNumberColumn(salesTableView, noColumn, 50);
         TableColumnUtil.makeStringColumn(receiptColumn, SaleModel::receiptNoProperty, null, false, true, TableColumnUtil.CENTER, null);
@@ -83,7 +80,7 @@ public class SalesTableController implements Initializable {
         TableColumnUtil.makeBigDecimalCurrencyColumn(cashoutColumn, SaleModel::cashoutAmountProperty, false, true, TableColumnUtil.RIGHT, null);
         TableColumnUtil.makeBigDecimalCurrencyColumn(balanceColumn, SaleModel::changeAmountProperty, false, false, TableColumnUtil.RIGHT, null);
         TableColumnUtil.makeStringColumn(acceptColumn, SaleModel::paymentTypeProperty, null, false, true, TableColumnUtil.CENTER, null);
-        TableColumnUtil.makeDateTimeColumn(dateColumn, SaleModel::getPaymentDateTime, null, false, true,TableColumnUtil.CENTER, DATE_TIME_FORMATTER, null);
+        TableColumnUtil.makeDateTimeColumn(dateColumn, SaleModel::getPaymentDateTime, null, false, true, TableColumnUtil.CENTER, DATE_TIME_FORMATTER, null);
     }
     
     private void setupTableBindings() {
@@ -99,21 +96,40 @@ public class SalesTableController implements Initializable {
     }
     
     /**
-     * ViewModel의 실시간 정산 집계 속성과 상단 요약 바 라벨 간의 1:1 결합 자동화
+     * 모든 Label에 대해 Null-safe하게 바인딩 설정
+     * - 원본에 있던 필드(totalCostLabel, totalDiscountLabel, totalCashLabel, totalEftposLabel, totalCashoutLabel) 유지
+     * - FXML에 정의된 추가 Label(originalTotalLabel, finalTotalLabel, discountTotalLabel)도 바인딩
      */
     private void setupSummaryBindings() {
-        // 💡 CURRENCY_FORMAT 상수를 활용하여 중복 리터럴 없이 안전하게 바인딩 처리 완료
-        totalAmountLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalSalesAmountProperty()));
-        totalDiscountLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalDiscountAmountProperty()));
-        totalCashoutLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalCashoutAmountProperty()));
-        totalCostLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalCostAmountProperty()));
-        totalCashLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalCashAmountProperty()));
-        totalEftposLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalCreditAmountProperty()));
+        // 원본에 존재하던 필드들
+        if (totalCostLabel != null) {
+            totalCostLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalCostAmountProperty()));
+        }
+        if (totalDiscountLabel != null) {
+            totalDiscountLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalDiscountAmountProperty()));
+        }
+        if (totalCashLabel != null) {
+            totalCashLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalCashAmountProperty()));
+        }
+        if (totalEftposLabel != null) {
+            totalEftposLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalCreditAmountProperty()));
+        }
+        if (totalCashoutLabel != null) {
+            totalCashoutLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalCashoutAmountProperty()));
+        }
+        
+        // FXML에 정의되어 있지만 원본 Controller에 없었던 필드들 (추가 바인딩)
+        if (originalTotalLabel != null) {
+            originalTotalLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalOriginalAmountProperty()));
+        }
+        if (finalTotalLabel != null) {
+            finalTotalLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalSalesAmountProperty()));
+        }
+        if (discountTotalLabel != null) {
+            discountTotalLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.totalDiscountAmountProperty()));
+        }
     }
     
-    /**
-     * 테이블 행 선택 상태 양방향 동기화 및 상세 아이템 연쇄 조회 리스너
-     */
     private void setupSelectionListener() {
         salesTableView.getSelectionModel().selectedItemProperty()
             .addListener((obs, oldVal, newVal) -> {

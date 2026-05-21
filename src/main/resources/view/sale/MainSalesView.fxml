@@ -36,11 +36,18 @@
             <DatePicker fx:id="endDatePicker" prefWidth="130" promptText="End Date" />
          </HBox>
 
+         <!-- 액션 버튼 -->
+         <Button fx:id="searchButton" text="Search" contentDisplay="CENTER">
+            <graphic>
+               <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
+                  <Image url="@../../images/search.png" />
+               </ImageView>
+            </graphic>
+         </Button>
          <Separator orientation="VERTICAL" />
 
          <!-- 빠른 필터 버튼 -->
-         <Button fx:id="todayBtn" style="-fx-background-color: #3498db; -fx-text-fill: white;"
-            text="Today" />
+         <Button fx:id="todayBtn" text="Today" />
          <Button fx:id="weekBtn" text="This Week" />
          <Button fx:id="monthBtn" text="This Month" />
 
@@ -48,16 +55,8 @@
 
          <Region HBox.hgrow="ALWAYS" />
 
-         <!-- 액션 버튼 -->
-         <Button fx:id="searchButton" text="Search">
-            <graphic>
-               <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
-                  <Image url="@../../images/search.png" />
-               </ImageView>
-            </graphic>
-         </Button>
 
-         <Button fx:id="excelButton" text="Excel">
+         <Button fx:id="excelButton" text="Excel" contentDisplay="CENTER">
             <graphic>
                <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
                   <Image url="@../../images/excel.png" />
@@ -65,7 +64,7 @@
             </graphic>
          </Button>
 
-         <Button fx:id="reloadButton" text="Reload">
+         <Button fx:id="reloadButton" text="Reload" contentDisplay="CENTER">
             <graphic>
                <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
                   <Image url="@../../images/refresh.png" />

@@ -12,6 +12,15 @@
 /* ========================================================================= */
 /* 2. COMMON COMPONENTS - BUTTONS (공통 버튼 스타일)                          */
 /* ========================================================================= */
+/* 선택된 버튼 스타일 */
+.button:selected {
+   -fx-background-color: #3498db;
+   -fx-text-fill: white;
+   -fx-border-color: #2980b9;
+   -fx-border-radius: 4px;
+   -fx-background-radius: 4px;
+}
+
 .btn {
    -fx-font-size: 14px;
    -fx-font-weight: bold;

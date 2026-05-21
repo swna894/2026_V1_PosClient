@@ -14,6 +14,7 @@ import com.swna.javafx.pos.PosViewController;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -34,6 +35,12 @@ public class SalesController implements Initializable {
     
     private final SalesViewModel viewModel;
     private final NavigationService navigationService;
+
+    // 1. 멤버 변수로 버튼 배열을 선언 (필드 레벨)
+    private Button[] navButtons;
+
+    // 버튼 상태 관리를 위한 PseudoClass
+    private static final PseudoClass SELECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("selected");
     
     // ========== ToolBar Controls ==========
     @FXML private Button backButton;
@@ -68,12 +75,17 @@ public class SalesController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+        // 2. 초기화 시점에 배열 생성
+        this.navButtons = new Button[] { todayBtn, weekBtn, monthBtn, searchButton };
+
         setupBindings();
         setupDatePickers();
         setupButtonActions();
-        setupSelectionListener();
         fixSplitPaneDivider();
+
         viewModel.loadTodaySales();
+        updateButtonSelection(todayBtn);
     }
     
     private void fixSplitPaneDivider() {
@@ -179,19 +191,25 @@ public class SalesController implements Initializable {
         }
     }
     
-    private void setupButtonActions() {
+private void setupButtonActions() {
+        // 각 버튼의 액션 설정
+        if (todayBtn != null) todayBtn.setOnAction(e -> { updateButtonSelection(todayBtn); viewModel.loadTodaySales(); });
+        if (weekBtn != null) weekBtn.setOnAction(e -> { updateButtonSelection(weekBtn); viewModel.loadThisWeekSales(); });
+        if (monthBtn != null) monthBtn.setOnAction(e -> { updateButtonSelection(monthBtn); viewModel.loadThisMonthSales(); });
+        if (searchButton != null) searchButton.setOnAction(e -> { updateButtonSelection(searchButton); viewModel.loadSalesByDateRange(); });
+        
         if (backButton != null) backButton.setOnAction(e -> handleBack());
-        if (todayBtn != null) todayBtn.setOnAction(e -> viewModel.loadTodaySales());
-        if (weekBtn != null) weekBtn.setOnAction(e -> viewModel.loadThisWeekSales());
-        if (monthBtn != null) monthBtn.setOnAction(e -> viewModel.loadThisMonthSales());
-        if (searchButton != null) searchButton.setOnAction(e -> viewModel.loadSalesByDateRange());
         if (excelButton != null) excelButton.setOnAction(e -> handleExportExcel());
         if (reloadButton != null) reloadButton.setOnAction(e -> viewModel.refresh());
         if (deleteButton != null) deleteButton.setOnAction(e -> handleDelete());
     }
-    
-    private void setupSelectionListener() {
-        // 확장 리스너 필요 시 구현 공간 유지
+
+    private void updateButtonSelection(Button selectedBtn) {
+        for (Button btn : navButtons) {
+            if (btn != null) {
+                btn.pseudoClassStateChanged(SELECTED_PSEUDO_CLASS, btn == selectedBtn);
+            }
+        }
     }
     
     private void handleBack() {

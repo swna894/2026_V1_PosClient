@@ -15,8 +15,16 @@
    <ToolBar prefHeight="40.0"
       style="-fx-background-color: white; -fx-padding: 5 10 5 10; -fx-border-color: #ddd; -fx-border-width: 0 0 1 0;">
       <items>
-         <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="AMOUNT:" />
-         <Label fx:id="totalAmountLabel" style="-fx-font-weight: bold;" text="-" />
+         <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="Orig. TTL:" />
+         <Label fx:id="originalTotalLabel" style="-fx-font-weight: bold;" text="-" />
+
+         <Separator orientation="VERTICAL" />
+         <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="Final TTL:" />
+         <Label fx:id="finalTotalLabel" style="-fx-font-weight: bold;" text="-" />
+
+         <Separator orientation="VERTICAL" />
+         <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="Dis. TTL:" />
+         <Label fx:id="discountTotalLabel" style="-fx-font-weight: bold;" text="-" />
 
          <Separator orientation="VERTICAL" />
 
@@ -49,8 +57,8 @@
       <columns>
          <TableColumn fx:id="noColumn" prefWidth="50" text="NO" />
          <TableColumn fx:id="receiptColumn" prefWidth="190" text="RECEIPT" />
-         <TableColumn fx:id="saleAmountColumn" prefWidth="100" text="Final Amt" />
          <TableColumn fx:id="originalAmountColumn" prefWidth="100" text="Original Amt" />
+         <TableColumn fx:id="saleAmountColumn" prefWidth="100" text="Final Amt" />
          <TableColumn fx:id="discountColumn" prefWidth="100" text="Disc. Amt" />
          <TableColumn fx:id="costColumn" prefWidth="100" text="COST" />
          <TableColumn fx:id="cashColumn" prefWidth="100" text="CASH" />
