@@ -37,6 +37,7 @@ public class SalesTableController implements Initializable {
     @FXML private TableColumn<SaleModel, BigDecimal> creditColumn;
     @FXML private TableColumn<SaleModel, BigDecimal> cashoutColumn;
     @FXML private TableColumn<SaleModel, BigDecimal> discountColumn;
+    @FXML private TableColumn<SaleModel, BigDecimal> costColumn;
     @FXML private TableColumn<SaleModel, BigDecimal> balanceColumn;
     @FXML private TableColumn<SaleModel, String> acceptColumn;
     @FXML private TableColumn<SaleModel, LocalDateTime> dateColumn;
@@ -64,6 +65,10 @@ public class SalesTableController implements Initializable {
         
         // 4. 할인액
         TableColumnUtil.makeBigDecimalCurrencyColumn(discountColumn, SaleModel::discountAmountProperty,
+            false, true,TableColumnUtil.RIGHT, null);
+        
+        // 4-1. 원가 총액
+        TableColumnUtil.makeBigDecimalCurrencyColumn(costColumn, SaleModel::costAmountProperty,
             false, true,TableColumnUtil.RIGHT, null);
         
         // 5. 현금 (receivedAmount - cashoutAmount)

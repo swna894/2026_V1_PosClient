@@ -114,7 +114,7 @@ public class PosItem {
     public static PosItem createQuickItem(String manualBarcodePrefix, double amount) {
         PosItem item = new PosItem();
         item.setBarcode(String.format("%s_%.2f", manualBarcodePrefix, amount));
-        item.setDescription(String.format("Open Item ($%.2f)", amount));
+        item.setDescription(String.format("Temporary Item ($%.2f)", amount));
         item.setOriginalPrice(amount);
         item.setSellingPrice(amount);
         item.setDiscountType(DiscountType.NONE);  // ✅ 할인 없음으로 설정

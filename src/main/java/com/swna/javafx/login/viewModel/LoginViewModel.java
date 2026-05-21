@@ -63,11 +63,7 @@ public class LoginViewModel extends BaseViewModel {
 
         status.set("Logging in...");
 
-        runAsync(
-                this::requestLogin,
-                this::handleSuccess,
-                this::handleError
-        );
+        runAsync(  this::requestLogin, this::handleSuccess,  this::handleError  );
     }
 
     // =========================

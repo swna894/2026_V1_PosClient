@@ -11,6 +11,7 @@ public class SaleDto {
     private BigDecimal discountAmount;
     private BigDecimal originalAmount;
     private BigDecimal saleAmount;
+    private BigDecimal costAmount;
     
     private BigDecimal cashAmount;
     private BigDecimal cashoutAmount;

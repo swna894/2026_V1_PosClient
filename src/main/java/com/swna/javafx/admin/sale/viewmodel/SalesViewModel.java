@@ -151,6 +151,7 @@ public class SalesViewModel {
      * ✅ 수정 완료: 일반 클래스 형태의 SaleDto(Lombok Getter) 스펙 적용 및 데이터 바인딩 일치
      */
     private SaleModel convertToModel(SaleDto dto) {
+        System.err.println("convertToModel: " + dto);
         SaleModel model = new SaleModel();
         // 1. 기본 정보 설정
         model.setId(parseId(dto.getId()));
@@ -161,6 +162,7 @@ public class SalesViewModel {
         // 2. 금액 정보 설정 (Null 방어 코드를 추가하면 더욱 안전합니다)
         model.setOriginalAmount(dto.getOriginalAmount() != null ? dto.getOriginalAmount() : BigDecimal.ZERO);
         model.setDiscountAmount(dto.getDiscountAmount() != null ? dto.getDiscountAmount() : BigDecimal.ZERO);
+        model.setCostAmount(dto.getCostAmount() != null ? dto.getCostAmount() : BigDecimal.ZERO);
         model.setCreditAmount(dto.getCreditAmount() != null ? dto.getCreditAmount() : BigDecimal.ZERO);
         model.setSaleAmount(dto.getSaleAmount() != null ? dto.getSaleAmount() : BigDecimal.ZERO);
         model.setCashAmount(dto.getSaleAmount() != null ? dto.getCashAmount() : BigDecimal.ZERO);

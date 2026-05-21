@@ -23,6 +23,7 @@ public class SaleModel {
     private final ObjectProperty<BigDecimal> cashoutAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> creditAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> discountAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> costAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> saleAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> receivedAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> changeAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
@@ -80,6 +81,10 @@ public class SaleModel {
     public BigDecimal getDiscountAmount() { return discountAmount.get(); }
     public ObjectProperty<BigDecimal> discountAmountProperty() { return discountAmount; }
     public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount.set(discountAmount); }
+
+    public BigDecimal getCostAmount() { return costAmount.get(); } 
+    public ObjectProperty<BigDecimal> costAmountProperty() { return costAmount; }
+    public void setCostAmount(BigDecimal costAmount) { this.costAmount.set(costAmount); }
     
     public BigDecimal getSaleAmount() { return saleAmount.get(); }
     public ObjectProperty<BigDecimal> saleAmountProperty() { return saleAmount; }

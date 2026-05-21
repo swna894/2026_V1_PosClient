@@ -127,7 +127,7 @@ public class SupplierController implements Initializable {
         setupActionColumn();
         
         supplierTable.setItems(viewModel.getSuppliers());
-        supplierTable.getSortOrder().add(idColumn);
+        //supplierTable.getColumns().add(idColumn);
     }
     
     /**

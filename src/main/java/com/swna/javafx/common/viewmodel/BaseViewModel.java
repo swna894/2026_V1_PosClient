@@ -79,19 +79,12 @@ public abstract class BaseViewModel {
     // ================= ASYNC EXECUTION =================
 
     // 기본형
-    protected <T> void runAsync(
-            Supplier<T> supplier,
-            Consumer<T> onSuccess
-    ) {
+    protected <T> void runAsync( Supplier<T> supplier, Consumer<T> onSuccess ) {
         runAsync(supplier, onSuccess, null);
     }
 
     // 확장형 (error handler 포함)
-    protected <T> void runAsync(
-            Supplier<T> supplier,
-            Consumer<T> onSuccess,
-            Consumer<Throwable> onError
-    ) {
+    protected <T> void runAsync( Supplier<T> supplier, Consumer<T> onSuccess, Consumer<Throwable> onError ) {
 
         setLoading(true);
         clearError();

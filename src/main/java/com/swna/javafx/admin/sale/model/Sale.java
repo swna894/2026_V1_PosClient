@@ -19,6 +19,7 @@ public class Sale {
     private final ObjectProperty<BigDecimal> subtotal = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> tax = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> discount = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> cost = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> totalAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> amountPaid = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final ObjectProperty<BigDecimal> change = new SimpleObjectProperty<>(BigDecimal.ZERO);
@@ -43,6 +44,7 @@ public class Sale {
         this.subtotal.set(BigDecimal.ZERO);
         this.tax.set(BigDecimal.ZERO);
         this.discount.set(BigDecimal.ZERO);
+        this.cost.set(BigDecimal.ZERO);
         this.totalAmount.set(BigDecimal.ZERO);
         this.amountPaid.set(BigDecimal.ZERO);
         this.change.set(BigDecimal.ZERO);
@@ -123,6 +125,7 @@ public class Sale {
     public ObjectProperty<BigDecimal> subtotalProperty() { return subtotal; }
     public ObjectProperty<BigDecimal> taxProperty() { return tax; }
     public ObjectProperty<BigDecimal> discountProperty() { return discount; }
+    public ObjectProperty<BigDecimal> costProperty() { return cost; }
     public ObjectProperty<BigDecimal> totalAmountProperty() { return totalAmount; }
     public ObjectProperty<BigDecimal> amountPaidProperty() { return amountPaid; }
     public ObjectProperty<BigDecimal> changeProperty() { return change; }
@@ -140,6 +143,7 @@ public class Sale {
     public BigDecimal getSubtotal() { return subtotal.get(); }
     public BigDecimal getTax() { return tax.get(); }
     public BigDecimal getDiscount() { return discount.get(); }
+    public BigDecimal getCost() { return cost.get(); }
     public BigDecimal getTotalAmount() { return totalAmount.get(); }
     public BigDecimal getAmountPaid() { return amountPaid.get(); }
     public BigDecimal getChange() { return change.get(); }
@@ -155,6 +159,9 @@ public class Sale {
     public void setSaleDate(LocalDateTime saleDate) { this.saleDate.set(saleDate); }
     public void setSubtotal(BigDecimal subtotal) { this.subtotal.set(subtotal); }
     public void setTax(BigDecimal tax) { this.tax.set(tax); }
+    public void setCost(BigDecimal cost) { this.cost.set(cost); }
+
+    //TODO calcuateTotals() 확인 필요
     public void setDiscount(BigDecimal discount) { 
         this.discount.set(discount);
         calculateTotals();

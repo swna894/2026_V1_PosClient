@@ -19,6 +19,7 @@
          <TableColumn fx:id="cashoutColumn" text="CASHOUT" prefWidth="100" />
          <TableColumn fx:id="balanceColumn" text="BALANCE" prefWidth="100" />
          <TableColumn fx:id="discountColumn" text="Disc. Amt" prefWidth="100" />
+         <TableColumn fx:id="costColumn" text="Cost. Amt" prefWidth="100" />
          <TableColumn fx:id="originalAmountColumn" text="Orig. Amt" prefWidth="100" />
          <TableColumn fx:id="acceptColumn" text="ACCEPT" prefWidth="120" />
          <TableColumn fx:id="dateColumn" text="DATE" prefWidth="125" />

@@ -8,5 +8,6 @@ public record SaleResponse(
         String status,
         BigDecimal totalAmount,
         BigDecimal discountAmount,
-        BigDecimal finalAmount
+        BigDecimal finalAmount,
+        BigDecimal costAmount
 ) {}
