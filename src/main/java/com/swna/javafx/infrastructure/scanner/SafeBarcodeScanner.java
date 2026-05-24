@@ -18,9 +18,10 @@ import lombok.extern.slf4j.Slf4j;
  * - KeyEvent 입력 문자 큐에 저장
  * - 큐 처리 전용 Thread에서 ENTER 감지 시 바코드 완성
  * - ScanListener 또는 Consumer를 통해 바코드 전달
+ * - 최소/최대 길이 검증 지원
  * 
  * @author POS Team
- * @version 2.0
+ * @version 2.1
  */
 @Slf4j
 @Component
@@ -30,7 +31,9 @@ public class SafeBarcodeScanner {
     // Constants
     // =========================
     private static final int DEFAULT_QUEUE_CAPACITY = 1000;
-    private static final int MAX_BARCODE_LENGTH = 128;
+    private static final int DEFAULT_MAX_BARCODE_LENGTH = 128;
+    private static final int DEFAULT_MIN_BARCODE_LENGTH = 6;
+    private static final int DEFAULT_WARNING_THRESHOLD = 100;
 
     // =========================
     // Fields
@@ -39,7 +42,7 @@ public class SafeBarcodeScanner {
     private final BlockingQueue<String> eventQueue = new LinkedBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
     
     /** 입력 중인 바코드 임시 버퍼 */
-    private final StringBuilder buffer = new StringBuilder(MAX_BARCODE_LENGTH);
+    private final StringBuilder buffer = new StringBuilder(DEFAULT_MAX_BARCODE_LENGTH);
     
     /** 바코드 스캔 완료 리스너 (레거시 지원) */
     private ScanListener legacyListener;
@@ -52,6 +55,15 @@ public class SafeBarcodeScanner {
     
     /** 스캐너 활성화 여부 */
     private volatile boolean enabled = true;
+    
+    /** 최대 바코드 길이 */
+    private volatile int maxBarcodeLength = DEFAULT_MAX_BARCODE_LENGTH;
+    
+    /** 최소 바코드 길이 */
+    private volatile int minBarcodeLength = DEFAULT_MIN_BARCODE_LENGTH;
+    
+    /** 경고 로그 임계값 */
+    private volatile int warningThreshold = DEFAULT_WARNING_THRESHOLD;
 
     // =========================
     // Constructors
@@ -63,7 +75,8 @@ public class SafeBarcodeScanner {
      */
     public SafeBarcodeScanner() {
         startProcessorThread();
-        log.info("SafeBarcodeScanner initialized (version 2.0)");
+        log.info("SafeBarcodeScanner initialized (version 2.1) - min length: {}, max length: {}", 
+            minBarcodeLength, maxBarcodeLength);
     }
 
     // =========================
@@ -85,7 +98,7 @@ public class SafeBarcodeScanner {
                 if (!enabled) return;
                 
                 String character = event.getCharacter();
-                if (character != null && !character.isEmpty() && character.length() == 1) {
+                if (isValidCharacter(character)) {
                     enqueueCharacter(character);
                 }
             });
@@ -97,12 +110,12 @@ public class SafeBarcodeScanner {
     }
     
     /**
-     * Scene 등록 후 자동으로 제거할 수 있는 버전 (WeakReference 기반 선택)
+     * Scene 등록 후 자동으로 제거할 수 있는 버전
      * @deprecated 명시적 unregister 호출 권장
      */
+    @Deprecated
     public void registerWithAutoCleanup(Scene scene) {
         register(scene);
-        // Scene이 닫힐 때 자동 정리 로직 (선택 구현)
     }
     
     /**
@@ -111,14 +124,12 @@ public class SafeBarcodeScanner {
      */
     public void unregister(Scene scene) {
         if (scene != null) {
-            // Note: JavaFX에서는 등록된 필터를 직접 제거해야 함
-            // 현재 구조에서는 scene 참조를 저장해야 가능
             log.info("Unregister request received - implement if needed");
         }
     }
 
     // =========================
-    // Public API - Listeners (Multiple ways)
+    // Public API - Listeners
     // =========================
     
     /**
@@ -127,7 +138,7 @@ public class SafeBarcodeScanner {
      */
     public void setScanListener(ScanListener listener) {
         this.legacyListener = listener;
-        this.barcodeConsumer = null; // Consumer 우선순위: 명시적 설정 시 덮어쓰지 않음
+        this.barcodeConsumer = null;
         log.info("Legacy ScanListener registered");
     }
     
@@ -137,7 +148,7 @@ public class SafeBarcodeScanner {
      */
     public void setBarcodeConsumer(Consumer<String> consumer) {
         this.barcodeConsumer = consumer;
-        this.legacyListener = null; // Consumer 우선순위
+        this.legacyListener = null;
         log.info("Barcode Consumer registered");
     }
     
@@ -156,6 +167,73 @@ public class SafeBarcodeScanner {
         this.legacyListener = null;
         this.barcodeConsumer = null;
         log.info("All listeners cleared");
+    }
+
+    // =========================
+    // Public API - Configuration
+    // =========================
+    
+    /**
+     * 최소 바코드 길이 설정 (짧은 입력 무시)
+     * @param length 최소 길이 (1 이상, maxLength 이하)
+     * @throws IllegalArgumentException 유효하지 않은 길이인 경우
+     */
+    public void setMinBarcodeLength(int length) {
+        if (length < 1) {
+            throw new IllegalArgumentException("Minimum length must be at least 1");
+        }
+        if (length > maxBarcodeLength) {
+            throw new IllegalArgumentException(
+                String.format("Minimum length (%d) cannot exceed maximum length (%d)", 
+                    length, maxBarcodeLength));
+        }
+        
+        this.minBarcodeLength = length;
+        log.info("Minimum barcode length set to: {}", length);
+    }
+    
+    /**
+     * 최대 바코드 길이 설정
+     * @param length 최대 길이 (minLength 이상)
+     * @throws IllegalArgumentException 유효하지 않은 길이인 경우
+     */
+    public void setMaxBarcodeLength(int length) {
+        if (length < minBarcodeLength) {
+            throw new IllegalArgumentException(
+                String.format("Maximum length (%d) cannot be less than minimum length (%d)", 
+                    length, minBarcodeLength));
+        }
+        
+        this.maxBarcodeLength = length;
+        log.info("Maximum barcode length set to: {}", length);
+        
+        // 버퍼 용량 조정
+        synchronized (buffer) {
+            if (buffer.capacity() < maxBarcodeLength) {
+                buffer.ensureCapacity(maxBarcodeLength);
+            }
+        }
+    }
+    
+    /**
+     * 현재 최소 바코드 길이 반환
+     */
+    public int getMinBarcodeLength() {
+        return minBarcodeLength;
+    }
+    
+    /**
+     * 현재 최대 바코드 길이 반환
+     */
+    public int getMaxBarcodeLength() {
+        return maxBarcodeLength;
+    }
+    
+    /**
+     * 경고 로그 임계값 설정 (디버깅용)
+     */
+    public void setWarningThreshold(int threshold) {
+        this.warningThreshold = threshold;
     }
 
     // =========================
@@ -223,7 +301,7 @@ public class SafeBarcodeScanner {
     private void processQueue() {
         try {
             while (!Thread.currentThread().isInterrupted() && enabled) {
-                String character = eventQueue.take(); // 블로킹 대기
+                String character = eventQueue.take();
                 handleCharacter(character);
             }
         } catch (InterruptedException e) {
@@ -243,15 +321,31 @@ public class SafeBarcodeScanner {
         boolean offered = eventQueue.offer(character);
         if (!offered) {
             log.warn("Event queue full, dropping character: {}", character);
-            // 큐 오버플로우 시 오래된 항목 제거 후 재시도
             eventQueue.poll();
             eventQueue.offer(character);
+        }
+        
+        // 큐 크기 모니터링 (경고)
+        int queueSize = eventQueue.size();
+        if (queueSize > warningThreshold) {
+            log.warn("Event queue size threshold exceeded: {}", queueSize);
         }
     }
 
     // =========================
     // Private Methods - Character Processing
     // =========================
+    
+    /**
+     * 유효한 문자인지 확인
+     */
+    private boolean isValidCharacter(String character) {
+        if (character == null || character.isEmpty()) {
+            return false;
+        }
+        // 단일 문자만 처리
+        return character.length() == 1;
+    }
     
     /**
      * 단일 문자 처리 (Thread-safe)
@@ -261,16 +355,38 @@ public class SafeBarcodeScanner {
         if (!enabled) return;
         
         try {
-            // ENTER 키 감지 (스캐너 종료 신호)
-            if ("\r".equals(character) || "\n".equals(character)) {
+            if (isEnterKey(character)) {
                 processCompleteBarcode();
-            } else {
+            } else if (isValidBarcodeCharacter(character)) {
                 appendToBuffer(character);
+            } else {
+                log.debug("Ignoring invalid barcode character: '{}' (code: {})", 
+                    character, (int) character.charAt(0));
             }
         } catch (Exception e) {
             log.error("Error handling character: {}", character, e);
-            resetBuffer(); // 오류 시 버퍼 초기화
+            resetBuffer();
         }
+    }
+    
+    /**
+     * Enter 키 확인
+     */
+    private boolean isEnterKey(String character) {
+        return "\r".equals(character) || "\n".equals(character);
+    }
+    
+    /**
+     * 바코드에 허용되는 문자인지 확인
+     * (선택적: 필요시 확장 가능)
+     */
+    private boolean isValidBarcodeCharacter(String character) {
+        char c = character.charAt(0);
+        // 기본 ASCII 범위: 숫자, 영문자, 일부 특수문자
+        return (c >= '0' && c <= '9') ||
+               (c >= 'A' && c <= 'Z') ||
+               (c >= 'a' && c <= 'z') ||
+               c == '-' || c == '_' || c == '.' || c == '/';
     }
     
     /**
@@ -278,8 +394,8 @@ public class SafeBarcodeScanner {
      */
     private void appendToBuffer(String character) {
         synchronized (buffer) {
-            if (buffer.length() >= MAX_BARCODE_LENGTH) {
-                log.warn("Buffer exceeded max length ({}), resetting", MAX_BARCODE_LENGTH);
+            if (buffer.length() >= maxBarcodeLength) {
+                log.warn("Buffer exceeded max length ({}), resetting", maxBarcodeLength);
                 buffer.setLength(0);
             }
             buffer.append(character);
@@ -290,32 +406,68 @@ public class SafeBarcodeScanner {
      * 완성된 바코드 처리 및 버퍼 초기화
      */
     private void processCompleteBarcode() {
-        String barcode;
-        synchronized (buffer) {
-            barcode = buffer.toString().trim();
-            buffer.setLength(0);
-        }
+        String barcode = extractAndClearBuffer();
         
         if (barcode.isEmpty()) {
             log.debug("Empty barcode ignored");
             return;
         }
         
-        if (barcode.length() > MAX_BARCODE_LENGTH) {
-            log.warn("Barcode too long ({} chars), truncating", barcode.length());
-            barcode = barcode.substring(0, MAX_BARCODE_LENGTH);
+        BarcodeValidationResult validationResult = validateBarcode(barcode);
+        
+        if (!validationResult.isValid()) {
+            log.debug("Barcode validation failed: {} - {}", 
+                validationResult.getReason(), barcode);
+            return;
+        }
+        
+        if (validationResult.isTruncated()) {
+            barcode = validationResult.getTruncatedBarcode();
         }
         
         notifyListeners(barcode);
     }
     
     /**
+     * 버퍼에서 바코드 추출 후 초기화
+     */
+    private String extractAndClearBuffer() {
+        synchronized (buffer) {
+            String barcode = buffer.toString().trim();
+            buffer.setLength(0);
+            return barcode;
+        }
+    }
+    
+    /**
+     * 바코드 검증 수행
+     */
+    private BarcodeValidationResult validateBarcode(String barcode) {
+        int length = barcode.length();
+        
+        // 최소 길이 검증
+        if (length < minBarcodeLength) {
+            return BarcodeValidationResult.invalid(
+                String.format("length %d < minimum %d", length, minBarcodeLength));
+        }
+        
+        // 최대 길이 검증
+        if (length > maxBarcodeLength) {
+            log.warn("Barcode too long ({} chars), truncating to {}: {}", 
+                length, maxBarcodeLength, barcode);
+            String truncated = barcode.substring(0, maxBarcodeLength);
+            return BarcodeValidationResult.truncated(truncated);
+        }
+        
+        return BarcodeValidationResult.valid();
+    }
+    
+    /**
      * 등록된 모든 리스너에게 바코드 전달
      */
     private void notifyListeners(String barcode) {
-        log.debug("Barcode scanned: {}", barcode);
+        log.info("Barcode scanned: {} (length: {})", barcode, barcode.length());
         
-        // Consumer 우선 (현대적 방식)
         if (barcodeConsumer != null) {
             try {
                 barcodeConsumer.accept(barcode);
@@ -325,7 +477,6 @@ public class SafeBarcodeScanner {
             }
         }
         
-        // Fallback: 레거시 리스너
         if (legacyListener != null) {
             try {
                 legacyListener.onScan(barcode);
@@ -363,9 +514,18 @@ public class SafeBarcodeScanner {
     public int getQueueSize() {
         return eventQueue.size();
     }
+    
+    /**
+     * 설정 정보 반환 (디버깅용)
+     */
+    public String getConfigurationInfo() {
+        return String.format(
+            "SafeBarcodeScanner[enabled=%s, minLen=%d, maxLen=%d, queueSize=%d, bufferLen=%d]",
+            enabled, minBarcodeLength, maxBarcodeLength, getQueueSize(), getCurrentBuffer().length());
+    }
 
     // =========================
-    // Inner Interfaces
+    // Inner Classes
     // =========================
     
     /**
@@ -374,5 +534,40 @@ public class SafeBarcodeScanner {
     @FunctionalInterface
     public interface ScanListener {
         void onScan(String barcode);
+    }
+    
+    /**
+     * 바코드 검증 결과를 담는 내부 클래스
+     */
+    private static class BarcodeValidationResult {
+        private final boolean valid;
+        private final boolean truncated;
+        private final String truncatedBarcode;
+        private final String reason;
+        
+        private BarcodeValidationResult(boolean valid, boolean truncated, 
+                                        String truncatedBarcode, String reason) {
+            this.valid = valid;
+            this.truncated = truncated;
+            this.truncatedBarcode = truncatedBarcode;
+            this.reason = reason;
+        }
+        
+        public static BarcodeValidationResult valid() {
+            return new BarcodeValidationResult(true, false, null, null);
+        }
+        
+        public static BarcodeValidationResult invalid(String reason) {
+            return new BarcodeValidationResult(false, false, null, reason);
+        }
+        
+        public static BarcodeValidationResult truncated(String barcode) {
+            return new BarcodeValidationResult(true, true, barcode, null);
+        }
+        
+        public boolean isValid() { return valid; }
+        public boolean isTruncated() { return truncated; }
+        public String getTruncatedBarcode() { return truncatedBarcode; }
+        public String getReason() { return reason; }
     }
 }

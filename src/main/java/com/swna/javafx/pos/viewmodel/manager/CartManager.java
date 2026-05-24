@@ -26,9 +26,12 @@ public class CartManager {
             item.discountTotalProperty(),
             item.unitDiscountProperty(),
             item.commentProperty(),
-            item.sellingPriceProperty()
+            item.sellingPriceProperty(),
+            item.barcodeProperty()
         }
     );
+
+    
     
     private final DoubleProperty totalAmount = new SimpleDoubleProperty(0);
     private final DoubleProperty totalDiscount = new SimpleDoubleProperty(0);
@@ -51,6 +54,7 @@ public class CartManager {
     // ========== 기본 CRUD ==========
     
     public void addItem(PosItem item) {
+        log.debug("[Cart] ADD Item: barcode={}, qty={}", item.getBarcode(), item.getQty());
         items.add(item);
         moveToTop(item);
         selectedItem.set(item);

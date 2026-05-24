@@ -28,6 +28,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -153,7 +154,7 @@ public class PosViewController {
     }
     
     // ========== Setup Methods ==========
-    
+    private final TablePosition<PosItem, ?>[] editingCellRef = new TablePosition[1];
     private void setupTable() {
         PosTableSetup.TableColumns columns = PosTableSetup.TableColumns.builder()
             .colNo(colNo)
@@ -178,6 +179,7 @@ public class PosViewController {
             .build();
         
         tableSetup.setup(table, viewModel, columns, callbacks);
+        
     }
     
     private void setupLabelBindings() {
@@ -192,7 +194,7 @@ public class PosViewController {
     
     private void handleBarcode(String code) {
         if (code == null || code.isBlank()) return;
-        Platform.runLater(() -> viewModel.scan(code));
+        Platform.runLater(() -> viewModel.scan(code)); 
     }
 
     private void showDiscountDialog(PosItem item) {
