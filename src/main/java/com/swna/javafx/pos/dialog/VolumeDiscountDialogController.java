@@ -91,14 +91,6 @@ public class VolumeDiscountDialogController extends BasePaymentDialog {
                         event.consume();
                     }
                 });
-                // newScene.setOnMousePressed(event -> {
-                //     setDragOffset(event.getSceneX(), event.getSceneY());
-                // });
-                // newScene.setOnMouseDragged(event -> {
-                //     Stage stage = (Stage) newScene.getWindow();
-                //     stage.setX(event.getScreenX() - getDragXOffset());
-                //     stage.setY(event.getScreenY() - getDragYOffset());
-                // });
             }
         });
     }

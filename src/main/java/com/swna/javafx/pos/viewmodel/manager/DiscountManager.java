@@ -64,6 +64,7 @@ public class DiscountManager {
         for (PosItem item : cartManager.getItems()) {
             double discountAmount = item.getOriginalPrice() * (percent / 100);
             item.setUnitDiscount(discountAmount);
+            item.setSellingPrice(item.getOriginalPrice() - discountAmount);
         }
     }
 }
