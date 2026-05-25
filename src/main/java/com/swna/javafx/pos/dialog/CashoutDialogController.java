@@ -43,6 +43,9 @@ public class CashoutDialogController extends BasePaymentDialog {
         this.totalAfterDiscount = total;
         this.callback = callback;
 
+         // 🔥 방법 1: 전체 창 드래그 활성화 (가장 간단)
+        enableFullWindowDrag();
+        
         setupUI(total, discount);
         setupInputHandlers();
         

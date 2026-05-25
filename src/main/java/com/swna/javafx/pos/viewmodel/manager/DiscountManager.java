@@ -58,4 +58,12 @@ public class DiscountManager {
             log.debug("[Discount] Applied unit discount ${}", unitDiscountAmount);
         }
     }
+
+    // DiscountManager.java에 추가
+    public void applyPercentToAll(double percent) {
+        for (PosItem item : cartManager.getItems()) {
+            double discountAmount = item.getOriginalPrice() * (percent / 100);
+            item.setUnitDiscount(discountAmount);
+        }
+    }
 }

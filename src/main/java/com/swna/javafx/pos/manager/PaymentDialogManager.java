@@ -10,7 +10,9 @@ import com.swna.javafx.pos.dialog.CashoutDialogController;
 import com.swna.javafx.pos.dialog.CreditDialogController;
 import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
+import com.swna.javafx.pos.dialog.VolumeDiscountDialogController;
 import com.swna.javafx.pos.functional.TriConsumer;
+import com.swna.javafx.pos.manager.PaymentDialogManager.DialogResult;
 import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
 
@@ -151,6 +153,51 @@ public class PaymentDialogManager {
                 }
             })
         );
+    }
+
+    // PaymentDialogManager.java (추가할 부분)
+
+    /**
+     * 볼륨 할인 다이얼로그 표시
+     */
+    public void showVolumeDiscountDialog(PosViewModel viewModel, Consumer<DialogResult> callback) {
+        BigDecimal total = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
+        BigDecimal discount = BigDecimal.valueOf(viewModel.discountProperty().get());
+        
+        if (total.compareTo(BigDecimal.ZERO) <= 0) {
+            callback.accept(DialogResult.failure("No items to apply discount"));
+            return;
+        }
+        
+        showDialog(VolumeDiscountDialogController.class, controller -> {
+            controller.initData(total, (amountAfterDC, percent) -> {
+                if (amountAfterDC != null) {
+                    // 금액 기준 할인
+                    viewModel.applyVolumeDiscountByAmount(amountAfterDC, success -> {
+                        if (Boolean.TRUE.equals(success)) {
+                            callback.accept(DialogResult.success(
+                                String.format("Amount discounted to: $%.2f", amountAfterDC)
+                            ));
+                        } else {
+                            callback.accept(DialogResult.failure("Failed to apply amount discount"));
+                        }
+                    });
+                } else if (percent != null) {
+                    // 퍼센트 기준 할인
+                    viewModel.applyVolumeDiscountByPercent(percent, success -> {
+                        if (Boolean.TRUE.equals(success)) {
+                            callback.accept(DialogResult.success(
+                                String.format("%.2f%% discount applied", percent)
+                            ));
+                        } else {
+                            callback.accept(DialogResult.failure("Failed to apply percent discount"));
+                        }
+                    });
+                } else {
+                    callback.accept(DialogResult.failure("Invalid discount parameters"));
+                }
+            });
+        });
     }
 
     /**

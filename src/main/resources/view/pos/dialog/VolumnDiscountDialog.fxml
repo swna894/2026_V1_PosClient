@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+
+<VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css"
+   xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.pos.dialog.VolumeDiscountDialogController"
+>
+
+   <padding>
+      <Insets bottom="25" left="30" right="30" top="25" />
+   </padding>
+
+   <!-- 헤더 영역 -->
+   <VBox alignment="CENTER" spacing="5">
+      <Label styleClass="title-label" text="Volume Discount" />
+      <Separator prefWidth="250.0" style="-fx-opacity: 0.5;" />
+      <HBox alignment="CENTER" spacing="10">
+         <Label styleClass="info-header" text="Total Amount" />
+         <Label fx:id="lblTotalAmount" styleClass="info-value" text="5.50" />
+      </HBox>
+   </VBox>
+
+   <GridPane hgap="15" vgap="15">
+      <columnConstraints>
+         <ColumnConstraints halignment="CENTER" minWidth="30" />
+         <ColumnConstraints hgrow="ALWAYS" minWidth="160" />
+         <ColumnConstraints minWidth="100" />
+      </columnConstraints>
+
+      <!-- 첫 번째 행 (Amount after DC) 클릭 레이어 -->
+      <StackPane onMouseClicked="#handlePriceRowClick" style="-fx-cursor: hand;"
+         GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.columnSpan="3" />
+
+      <RadioButton fx:id="rbPrice" selected="true" GridPane.columnIndex="0" GridPane.rowIndex="0"
+         mouseTransparent="true">
+         <toggleGroup>
+            <ToggleGroup fx:id="dcGroup" />
+         </toggleGroup>
+      </RadioButton>
+      <Label styleClass="field-label" text="Amount after DC" GridPane.columnIndex="1"
+         GridPane.rowIndex="0" mouseTransparent="true" />
+      <TextField fx:id="txtPrice" styleClass="input-field" GridPane.columnIndex="2"
+         GridPane.rowIndex="0" />
+
+      <!-- 두 번째 행 (DC By %) 클릭 레이어 -->
+      <StackPane onMouseClicked="#handlePercentRowClick" style="-fx-cursor: hand;"
+         GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="3" />
+
+      <RadioButton fx:id="rbPercent" toggleGroup="$dcGroup" GridPane.columnIndex="0"
+         GridPane.rowIndex="1" mouseTransparent="true" />
+      <Label styleClass="field-label" text="DC By %" GridPane.columnIndex="1"
+         GridPane.rowIndex="1" mouseTransparent="true" />
+      <TextField fx:id="txtPercent" styleClass="input-field" GridPane.columnIndex="2"
+         GridPane.rowIndex="1" />
+
+      <rowConstraints>
+         <RowConstraints minHeight="45" />
+         <RowConstraints minHeight="45" />
+      </rowConstraints>
+   </GridPane>
+
+   <!-- 하단 버튼 -->
+   <VBox spacing="10" alignment="CENTER">
+      <Separator prefWidth="250.0" style="-fx-opacity: 0.5;" />
+      <HBox alignment="CENTER" spacing="15">
+         <Button onAction="#handleConfirm" styleClass="btn-confirm" text="CONFIRM [ENTER]" />
+         <Button onAction="#handleCancel" styleClass="btn-cancel" text="CANCEL [ESC]" />
+      </HBox>
+   </VBox>
+</VBox>

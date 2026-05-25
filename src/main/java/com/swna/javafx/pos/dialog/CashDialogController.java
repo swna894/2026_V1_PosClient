@@ -31,6 +31,9 @@ public class CashDialogController extends BasePaymentDialog {
         lblAmount.setText(CURRENCY_FORMAT.format(total));
         lblDiscount.setText(CURRENCY_FORMAT.format(discount));
 
+         // 🔥 방법 1: 전체 창 드래그 활성화 (가장 간단)
+        enableFullWindowDrag();
+        
         // 추상 클래스 기능 활용[cite: 7]
         applyNumericFilter(txtCash);
         setupKeyEvents(txtCash);

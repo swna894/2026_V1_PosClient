@@ -273,15 +273,31 @@ public class PosViewController {
     }
 
     @FXML private void onClose(MouseEvent event) { viewModel.clear(); System.exit(0); }
-    @FXML private void onActionDiscountVolumn(ActionEvent e) { log.info("onActionDiscountVolumn"); }
+    @FXML private void onActionDiscountVolumn(ActionEvent e) { 
+        log.info("onActionDiscountVolumn");
+        
+        paymentDialogManager.showVolumeDiscountDialog( viewModel,this::afterVolumeDiscount );
+    }
+
+    private void afterVolumeDiscount(PaymentDialogManager.DialogResult result) {
+        if (result.isSuccess()) {
+            log.info("[UI] Volume discount successful: {}", result.getMessage());
+            showSuccessMessage(result.getMessage());
+            table.refresh();  // 테이블 새로고침
+        } else {
+            log.warn("[UI] Volume discount failed: {}", result.getMessage());
+            showErrorMessage("Volume discount failed: " + result.getMessage());
+        }
+    }
+
     @FXML private void onActionScanner(ActionEvent e) { log.info("onActionScanner"); }
     @FXML private void onActionCancel(ActionEvent e) { log.info("onActionCancel"); }
     @FXML private void onActionQty(ActionEvent e) { log.info("onActionQty"); }
     @FXML private void onActionPrint(ActionEvent e) { log.info("onActionPrint"); }
     @FXML private void onActionDrawer(ActionEvent e) { log.info("onActionDrawer"); }
     @FXML private void onGenerate(ActionEvent e) { navigationService.navigateStage(LabelController.class); }
-    @FXML
-    private void onMenu(ActionEvent e) {
+
+    @FXML private void onMenu(ActionEvent e) {
         navigationService.navigateStage(MenuController.class);
     }
     @FXML

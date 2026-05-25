@@ -133,6 +133,65 @@ public class PosViewModel {
         discountManager.applyUnitDiscountToSelected(unitDiscountAmount); 
     }
     
+    // ========== Volume Discount Methods ==========
+
+    /**
+     * 금액 기준 볼륨 할인 적용
+     */
+    public void applyVolumeDiscountByAmount(BigDecimal amountAfterDC, Consumer<Boolean> callback) {
+        try {
+            BigDecimal currentTotal = BigDecimal.valueOf(totalAmountProperty().get());
+            
+            if (currentTotal.compareTo(BigDecimal.ZERO) <= 0) {
+                callback.accept(false);
+                return;
+            }
+            
+            if (amountAfterDC.compareTo(currentTotal) >= 0) {
+                callback.accept(false);
+                return;
+            }
+            
+            // 할인율 계산 후 DiscountManager에 위임
+            BigDecimal discountPercent = currentTotal.subtract(amountAfterDC)
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(currentTotal, 2, BigDecimal.ROUND_HALF_UP);
+            
+            discountManager.applyPercentToAll(discountPercent.doubleValue());
+            
+            callback.accept(true);
+        } catch (Exception e) {
+            log.error("Failed to apply amount discount", e);
+            callback.accept(false);
+        }
+    }
+
+    /**
+     * 퍼센트 기준 볼륨 할인 적용
+     */
+    public void applyVolumeDiscountByPercent(BigDecimal percent, Consumer<Boolean> callback) {
+        try {
+            BigDecimal currentTotal = BigDecimal.valueOf(totalAmountProperty().get());
+            
+            if (currentTotal.compareTo(BigDecimal.ZERO) <= 0) {
+                callback.accept(false);
+                return;
+            }
+            
+            if (percent.compareTo(BigDecimal.ZERO) < 0 || percent.compareTo(BigDecimal.valueOf(100)) > 0) {
+                callback.accept(false);
+                return;
+            }
+            
+            discountManager.applyPercentToAll(percent.doubleValue());
+            
+            callback.accept(true);
+        } catch (Exception e) {
+            log.error("Failed to apply percent discount", e);
+            callback.accept(false);
+        }
+    }
+
     // ========== HoldManager Delegate ==========
     public void holdCart() {
         if (holdManager.save()) {
