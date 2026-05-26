@@ -549,111 +549,51 @@ public class SalesViewModel {
         SaleModel model = new SaleModel();
 
         if (dto.getId() != null && !dto.getId().isBlank()) {
-
             try {
-
                 model.setId(Long.parseLong(dto.getId()));
-
             } catch (NumberFormatException e) {
-
                 log.error("ID Parse Error", e);
             }
         }
 
         model.setReceiptNo(dto.getReceiptNo());
-
         model.setPaymentDateTime(dto.getPaymentDateTime());
-
         model.setOriginalAmount(dto.getOriginalAmount());
-
         model.setSaleAmount(dto.getSaleAmount());
-
         model.setDiscountAmount(dto.getDiscountAmount());
-
         model.setCostAmount(dto.getCostAmount());
-
         model.setCashAmount(dto.getCashAmount());
-
         model.setCreditAmount(dto.getCreditAmount());
-
         model.setCashoutAmount(dto.getCashoutAmount());
-
         model.setReceivedAmount(dto.getReceivedAmount());
-
         model.setChangeAmount(dto.getChangeAmount());
-
         model.setPaymentType(dto.getPaymentType());
-
         model.setCardNumber(dto.getCardNumber());
-
         return model;
     }
 
-    private SaleItemModel convertToItemModel(
-            SaleItemResponse response
-    ) {
+    private SaleItemModel convertToItemModel( SaleItemResponse response ) {
 
         SaleItemModel model = new SaleItemModel();
 
-        model.idProperty().set(
-                response.id() != null
-                        ? response.id()
-                        : ""
-        );
-
-        model.barcodeProperty().set(
-                response.barcode() != null
-                        ? response.barcode()
-                        : ""
-        );
-
+        model.idProperty().set( response.id() != null ? response.id() : "");
+        model.barcodeProperty().set( response.barcode() != null  ? response.barcode(): "" );
+        model.descriptionProperty().set( response.description() != null ? response.description() : "");
         model.quantityProperty().set(response.quantity());
 
-        BigDecimal salePrice =
-                response.salePrice() != null
-                        ? response.salePrice()
-                        : BigDecimal.ZERO;
-
-        BigDecimal discountPrice =
-                response.discountPrice() != null
-                        ? response.discountPrice()
-                        : BigDecimal.ZERO;
-
-        BigDecimal cost =
-                response.cost() != null
-                        ? response.cost()
-                        : BigDecimal.ZERO;
-
+        BigDecimal salePrice = response.salePrice() != null ? response.salePrice(): BigDecimal.ZERO;
+        BigDecimal discountPrice = response.discountPrice() != null ? response.discountPrice() : BigDecimal.ZERO;
+        BigDecimal cost = response.cost() != null? response.cost() : BigDecimal.ZERO;
         model.salePriceProperty().set(salePrice);
-
         model.discountPriceProperty().set(discountPrice);
-
-        model.originalPriceProperty()
-                .set(salePrice.add(discountPrice));
-
+        model.originalPriceProperty().set(salePrice.add(discountPrice));
         model.costProperty().set(cost);
+        BigDecimal qty = BigDecimal.valueOf(response.quantity());
+        model.saleAmountProperty() .set(salePrice.multiply(qty));
+        model.discountAmountProperty().set(discountPrice.multiply(qty));
 
-        BigDecimal qty =
-                BigDecimal.valueOf(response.quantity());
-
-        model.saleAmountProperty()
-                .set(salePrice.multiply(qty));
-
-        model.discountAmountProperty()
-                .set(discountPrice.multiply(qty));
-
-        model.originalAmountProperty()
-                .set(
-                        salePrice
-                                .add(discountPrice)
-                                .multiply(qty)
-                );
-
-        model.setComment(
-                response.comment() != null
-                        ? response.comment()
-                        : ""
-        );
+        model.originalAmountProperty() .set( salePrice .add(discountPrice).multiply(qty));
+        model.setComment( response.comment() != null ? response.comment()  : "" );
 
         return model;
     }

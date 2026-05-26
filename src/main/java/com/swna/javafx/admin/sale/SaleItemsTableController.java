@@ -27,7 +27,7 @@ public class SaleItemsTableController implements Initializable {
     
     private final SalesViewModel viewModel;
     
-    // 💡 추가된 선택 전표 영수증 라벨 매핑
+    // 선택 전표 영수증 라벨 매핑
     @FXML private Label itemSelectedReceiptLabel;
     
     @FXML private Label itemTotalAmountLabel;
@@ -39,6 +39,7 @@ public class SaleItemsTableController implements Initializable {
     
     @FXML private TableView<SaleItemModel> saleItemsTableView;
     @FXML private TableColumn<SaleItemModel, String> barcodeColumn;
+    @FXML private TableColumn<SaleItemModel, String> descriptionColumn;  // ✅ 추가
     @FXML private TableColumn<SaleItemModel, Integer> qtyColumn;
     @FXML private TableColumn<SaleItemModel, BigDecimal> originalPriceColumn;
     @FXML private TableColumn<SaleItemModel, BigDecimal> discountPriceColumn;
@@ -58,6 +59,7 @@ public class SaleItemsTableController implements Initializable {
     
     private void setupTableColumns() {
         TableColumnUtil.makeStringColumn(barcodeColumn, SaleItemModel::barcodeProperty, null, false, true, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeStringColumn(descriptionColumn, SaleItemModel::descriptionProperty, null, false, true, TableColumnUtil.LEFT, null);  // ✅ 추가
         TableColumnUtil.makeIntegerColumn(qtyColumn, SaleItemModel::quantityProperty, null, false, true, TableColumnUtil.CENTER, null);
         
         TableColumnUtil.makeBigDecimalCurrencyColumn(salePriceColumn, SaleItemModel::salePriceProperty, false, true, TableColumnUtil.RIGHT, null);
@@ -67,7 +69,7 @@ public class SaleItemsTableController implements Initializable {
         TableColumnUtil.makeBigDecimalCurrencyColumn(discountAmountColumn, SaleItemModel::discountAmountProperty, false, true, TableColumnUtil.RIGHT, null);
         TableColumnUtil.makeBigDecimalCurrencyColumn(costColumn, SaleItemModel::costProperty, false, true, TableColumnUtil.RIGHT, null);
         
-        TableColumnUtil.makeStringColumn(codeColumn, SaleItemModel::idProperty, null, false, true, TableColumnUtil.LEFT, null);
+        TableColumnUtil.makeStringColumn(codeColumn, SaleItemModel::idProperty, null, false, false, TableColumnUtil.LEFT, null);
         TableColumnUtil.makeStringColumn(commentColumn, SaleItemModel::commentProperty, null, false, true, TableColumnUtil.LEFT, null);
     }
     
@@ -84,12 +86,10 @@ public class SaleItemsTableController implements Initializable {
     }
 
     private void setupSummaryBindings() {
-        // 💡 핵심 추가: 메인 테이블에서 선택된 SaleModel의 receiptNo 속성을 안전하게 추적 및 바인딩
         itemSelectedReceiptLabel.textProperty().bind(
             Bindings.selectString(viewModel.selectedSaleProperty(), "receiptNo")
         );
 
-        // 기존 요약 통계 속성 바인딩
         itemTotalAmountLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.itemTotalAmountProperty()));
         itemTotalOriginalLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.itemTotalOriginalProperty()));
         itemTotalDiscountLabel.textProperty().bind(Bindings.format(CURRENCY_FORMAT, viewModel.itemTotalDiscountProperty()));

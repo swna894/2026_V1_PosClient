@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 public record SaleItemResponse(
     String id,
     String barcode,
+    String description, // ✅ 상품명 추가
     BigDecimal discountPrice, // ✅ unitPrice 제거 후 정렬
     BigDecimal cost,
     BigDecimal salePrice,     
@@ -37,6 +38,7 @@ public record SaleItemResponse(
     public static class Builder {
         private String id;
         private String barcode;
+        private String description;
         private BigDecimal discountPrice = BigDecimal.ZERO; // ✅ unitPrice 필드 제거
         private BigDecimal cost = BigDecimal.ZERO;
         private BigDecimal salePrice = BigDecimal.ZERO;     
@@ -46,6 +48,7 @@ public record SaleItemResponse(
 
         public Builder id(String id) { this.id = id; return this; }
         public Builder barcode(String barcode) { this.barcode = barcode; return this; }
+        public Builder description(String description) { this.description = description; return this; }
         public Builder discountPrice(BigDecimal discountPrice) { this.discountPrice = discountPrice; return this; } 
         public Builder cost(BigDecimal cost) { this.cost = cost; return this; }
         public Builder salePrice(BigDecimal salePrice) { this.salePrice = salePrice; return this; }     
@@ -60,6 +63,7 @@ public record SaleItemResponse(
             return new SaleItemResponse(
                 this.id, 
                 this.barcode, 
+                this.description, // ✅ 상품명 추가
                 this.discountPrice, // ✅ 순서 맞춤
                 this.cost, 
                 this.salePrice,     

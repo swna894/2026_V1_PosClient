@@ -10,7 +10,6 @@
 <VBox spacing="5" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
    fx:controller="com.swna.javafx.admin.sale.SaleItemsTableController">
 
-   <!-- ToolBar의 text 속성 내 '$' 기호 앞에 '\'를 추가하여 이스케이프 처리 -->
    <ToolBar prefHeight="40.0"
       style="-fx-background-color: white; -fx-padding: 5 10 5 10; -fx-border-color: #ddd; -fx-border-width: 0 0 1 0;">
       <items>
@@ -54,6 +53,7 @@
    <TableView fx:id="saleItemsTableView" VBox.vgrow="ALWAYS">
       <columns>
          <TableColumn fx:id="barcodeColumn" prefWidth="120" text="BARCODE" />
+         <TableColumn fx:id="descriptionColumn" prefWidth="200" text="DESCRIPTION" />  <!-- ✅ 추가 -->
          <TableColumn fx:id="salePriceColumn" prefWidth="90" text="Sale Price" />
          <TableColumn fx:id="qtyColumn" prefWidth="50" text="QTY" />
          <TableColumn fx:id="saleAmountColumn" prefWidth="100" text="Sale Amt" />
@@ -61,7 +61,7 @@
          <TableColumn fx:id="discountPriceColumn" prefWidth="80" text="DC Price" />
          <TableColumn fx:id="discountAmountColumn" prefWidth="90" text="DC Amt" />
          <TableColumn fx:id="costColumn" prefWidth="80" text="COST" />
-         <TableColumn fx:id="codeColumn" prefWidth="100" text="ITEM ID" />
+         <TableColumn fx:id="codeColumn" prefWidth="100" text="ID" />
          <TableColumn fx:id="commentColumn" prefWidth="150" text="COMMENT" />
       </columns>
    </TableView>

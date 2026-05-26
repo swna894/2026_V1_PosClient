@@ -17,6 +17,7 @@ public class SaleItemModel {
     
     private final StringProperty id = new SimpleStringProperty();
     private final StringProperty barcode = new SimpleStringProperty();
+    private final StringProperty description = new SimpleStringProperty();  // ✅ 추가
     private final IntegerProperty quantity = new SimpleIntegerProperty(0);
     
     // 단가 관련 속성 (오리지널 단가 = 할인 단가 + 실판매 단가)
@@ -44,6 +45,7 @@ public class SaleItemModel {
     SaleItemModel(Builder builder) {
         this.id.set(builder.id);
         this.barcode.set(builder.barcode);
+        this.description.set(builder.description != null ? builder.description : "");  // ✅ 추가
         this.quantity.set(builder.quantity);
         this.discountPrice.set(builder.discountPrice != null ? builder.discountPrice : BigDecimal.ZERO);
         this.salePrice.set(builder.salePrice != null ? builder.salePrice : BigDecimal.ZERO);
@@ -82,6 +84,7 @@ public class SaleItemModel {
     public static class Builder {
         private String id;
         private String barcode;
+        private String description;  // ✅ 추가
         private int quantity;
         private BigDecimal discountPrice = BigDecimal.ZERO; 
         private BigDecimal salePrice = BigDecimal.ZERO;   
@@ -90,6 +93,7 @@ public class SaleItemModel {
 
         public Builder id(String id) { this.id = id; return this; }
         public Builder barcode(String barcode) { this.barcode = barcode; return this; }
+        public Builder description(String description) { this.description = description; return this; }  // ✅ 추가
         public Builder quantity(int quantity) { this.quantity = quantity; return this; }
         public Builder discountPrice(BigDecimal discountPrice) { this.discountPrice = discountPrice; return this; } 
         public Builder salePrice(BigDecimal salePrice) { this.salePrice = salePrice; return this; }     
@@ -113,11 +117,16 @@ public class SaleItemModel {
     public StringProperty barcodeProperty() { return barcode; }
     public void setBarcode(String barcode) { this.barcode.set(barcode); }
     
+    // ✅ description getter/setter
+    public String getDescription() { return description.get(); }
+    public StringProperty descriptionProperty() { return description; }
+    public void setDescription(String description) { this.description.set(description); }
+    
     public int getQuantity() { return quantity.get(); }
     public IntegerProperty quantityProperty() { return quantity; }
     public void setQuantity(int quantity) { 
         this.quantity.set(quantity); 
-        calculatePricesAndAmounts(); // 값 변경 시 재계산
+        calculatePricesAndAmounts();
     }
     
     // 단가(Price) 관련 Getter / Setter
@@ -128,17 +137,17 @@ public class SaleItemModel {
     public ObjectProperty<BigDecimal> discountPriceProperty() { return discountPrice; }
     public void setDiscountPrice(BigDecimal discountPrice) { 
         this.discountPrice.set(discountPrice); 
-        calculatePricesAndAmounts(); // 값 변경 시 재계산
+        calculatePricesAndAmounts();
     }
 
     public BigDecimal getSalePrice() { return salePrice.get(); }
     public ObjectProperty<BigDecimal> salePriceProperty() { return salePrice; }
     public void setSalePrice(BigDecimal salePrice) { 
         this.salePrice.set(salePrice); 
-        calculatePricesAndAmounts(); // 값 변경 시 재계산
+        calculatePricesAndAmounts();
     }
     
-    // 총액(Amount) 관련 Getter (Set터는 자동 연산되므로 제공하지 않거나 내부용으로만 제한)
+    // 총액(Amount) 관련 Getter (Setter는 자동 연산되므로 제공하지 않음)
     public BigDecimal getOriginalAmount() { return originalAmount.get(); }
     public ObjectProperty<BigDecimal> originalAmountProperty() { return originalAmount; }
 
