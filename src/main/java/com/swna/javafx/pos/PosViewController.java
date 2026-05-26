@@ -97,8 +97,9 @@ public class PosViewController {
     @FXML private Button buttonCart1;
     @FXML private Button buttonCart2;
     @FXML private Button buttonCart3;
+    @FXML private Button buttonBarcode;
     @FXML private Button buttonDiscountVolumn;
-    @FXML private Button buttonScanner;
+    @FXML private Button buttonReceipt;
     @FXML private Button buttonCancel;
     @FXML private Button buttonPrint;
     @FXML private Button buttonQty;
@@ -276,7 +277,7 @@ public class PosViewController {
     @FXML private void onActionDiscountVolumn(ActionEvent e) { 
         log.info("onActionDiscountVolumn");
         
-        paymentDialogManager.showVolumeDiscountDialog( viewModel,this::afterVolumeDiscount );
+        paymentDialogManager.showVolumeDiscountDialog( viewModel, this::afterVolumeDiscount );
     }
 
     private void afterVolumeDiscount(PaymentDialogManager.DialogResult result) {
@@ -290,7 +291,42 @@ public class PosViewController {
         }
     }
 
-    @FXML private void onActionScanner(ActionEvent e) { log.info("onActionScanner"); }
+    @FXML private void onActionReceipt(ActionEvent e) { 
+        log.info("onActionReceipt");
+        
+        paymentDialogManager.showReceiptDialog(receiptNumber -> {
+            log.info("Searching for receipt: {}", receiptNumber);
+            // 영수증 검색 로직 구현
+            searchReceipt(receiptNumber);
+        });
+    }
+
+    /**
+     * 영수증 번호로 검색하는 메서드
+     */
+    private void searchReceipt(String receiptNumber) {
+        showSuccessMessage("Searching for receipt: " + receiptNumber);
+    }
+
+    @FXML  private void onActionBarcode(ActionEvent e) { 
+        log.info("onActionBarcode");
+        
+        paymentDialogManager.showBarcodeDialog(barcodeNumber -> {
+            log.info("Searching for barcode: {}", barcodeNumber);
+            // 바코드 검색 로직 구현
+            searchBarcode(barcodeNumber);
+        });
+    }
+
+    /**
+     * 바코드 번호로 검색하는 메서드
+     */
+    private void searchBarcode(String barcodeNumber) {
+        // 바코드 스캔 처리
+        viewModel.scan(barcodeNumber);
+        showSuccessMessage("Barcode scanned: " + barcodeNumber);
+    }
+
     @FXML private void onActionCancel(ActionEvent e) { log.info("onActionCancel"); }
     @FXML private void onActionQty(ActionEvent e) { log.info("onActionQty"); }
     @FXML private void onActionPrint(ActionEvent e) { log.info("onActionPrint"); }
@@ -408,6 +444,11 @@ public class PosViewController {
                     buttonCart1.fire();
                     event.consume();
                 }
+                case F3 -> {
+                    // 영수증 검색
+                    buttonReceipt.fire();  // buttonReceipt 필드가 필요함
+                    event.consume();
+                }
                 case F5 -> {
                     // 장바구니 3번 액션 [cite: 26, 27]
                     buttonDiscountVolumn.fire();
@@ -415,7 +456,7 @@ public class PosViewController {
                 }
                 case F6 -> {
                     // 장바구니 3번 액션 [cite: 26, 27]
-                    buttonScanner.fire();
+                    buttonBarcode.fire();
                     event.consume();
                 }
                 case F7 -> {

@@ -5,11 +5,13 @@ import java.util.function.Consumer;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.pos.dialog.BarcodeDialogController;
 import com.swna.javafx.pos.dialog.CashDialogController;
 import com.swna.javafx.pos.dialog.CashoutDialogController;
 import com.swna.javafx.pos.dialog.CreditDialogController;
 import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
+import com.swna.javafx.pos.dialog.ReceiptDialogController;
 import com.swna.javafx.pos.dialog.VolumeDiscountDialogController;
 import com.swna.javafx.pos.functional.TriConsumer;
 import com.swna.javafx.pos.manager.PaymentDialogManager.DialogResult;
@@ -198,6 +200,35 @@ public class PaymentDialogManager {
                 }
             });
         });
+    }
+
+    
+    /**
+     * 영수증 번호 검색 다이얼로그 표시
+     */
+    public void showReceiptDialog(Consumer<String> callback) {
+        showDialog(ReceiptDialogController.class, controller ->
+            controller.initData(receiptNumber -> {
+                log.info("[PaymentDialogManager] Receipt search: {}", receiptNumber);
+                if (callback != null) {
+                    callback.accept(receiptNumber);
+                }
+            })
+        );
+    }
+
+    /**
+     * 바코드 번호 검색 다이얼로그 표시
+     */
+    public void showBarcodeDialog(Consumer<String> callback) {
+        showDialog(BarcodeDialogController.class, controller ->
+            controller.initData(barcodeNumber -> {
+                log.info("[PaymentDialogManager] Barcode search: {}", barcodeNumber);
+                if (callback != null) {
+                    callback.accept(barcodeNumber);
+                }
+            })
+        );
     }
 
     /**

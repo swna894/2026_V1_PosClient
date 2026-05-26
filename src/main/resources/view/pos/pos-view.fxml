@@ -283,6 +283,24 @@
          </Button>
 
          <!-- ================================================= -->
+         <!-- SCANNER -->
+         <!-- ================================================= -->
+
+         <Button fx:id="buttonReceipt" focusTraversable="false" onAction="#onActionReceipt"
+            styleClass="btn,btn-lg" text="[F4]">
+            <tooltip>
+               <Tooltip text="RECEIPT SCANNING" />
+            </tooltip>
+            <graphic>
+               <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@../../images/scan_24px.png" />
+                  </image>
+               </ImageView>
+            </graphic>
+         </Button>
+
+         <!-- ================================================= -->
          <!-- DISCOUNT -->
          <!-- ================================================= -->
 
@@ -304,15 +322,15 @@
          <!-- SCANNER -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonScanner" focusTraversable="false" onAction="#onActionScanner"
+         <Button fx:id="buttonBarcode" focusTraversable="false" onAction="#onActionBarcode"
             styleClass="btn,btn-lg" text="[F6]">
             <tooltip>
-               <Tooltip text="RECEIPT SCANNING" />
+               <Tooltip text="ENTER BARCODE" />
             </tooltip>
             <graphic>
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
                   <image>
-                     <Image url="@../../images/scan_24px.png" />
+                     <Image url="@../../images/keyboard_24px.png" />
                   </image>
                </ImageView>
             </graphic>
@@ -484,7 +502,7 @@
          <!-- ================================================= -->
 
          <Button fx:id="buttonOnPos" focusTraversable="false" mnemonicParsing="false"
-            onAction="#onPos" prefHeight="34" styleClass="btn,btn-md" text="OFF">
+            onAction="#onPos" prefHeight="34" styleClass="btn,btn-lg" text="OFF">
             <graphic>
                <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
@@ -500,7 +518,7 @@
          <!-- ================================================= -->
 
          <Button fx:id="buttonOnPrint" focusTraversable="false" mnemonicParsing="false"
-            onAction="#onPrint" prefHeight="34" styleClass="btn,btn-md" text="OFF">
+            onAction="#onPrint" prefHeight="34" styleClass="btn,btn-lg" text="OFF">
 
             <graphic>
 
