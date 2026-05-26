@@ -1,5 +1,7 @@
 package com.swna.javafx.pos;
 
+import java.time.LocalDate;
+
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,7 @@ import com.swna.javafx.common.navigation.NavigationService;
 import com.swna.javafx.common.util.StatusLabel;
 import com.swna.javafx.common.util.StatusLabelManager;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
+import com.swna.javafx.pos.dialog.PrintReceiptDialogController;
 import com.swna.javafx.pos.manager.BarcodeScannerManager;
 import com.swna.javafx.pos.manager.CartButtonManager;
 import com.swna.javafx.pos.manager.ClockManager;
@@ -329,7 +332,51 @@ public class PosViewController {
 
     @FXML private void onActionCancel(ActionEvent e) { log.info("onActionCancel"); }
     @FXML private void onActionQty(ActionEvent e) { log.info("onActionQty"); }
-    @FXML private void onActionPrint(ActionEvent e) { log.info("onActionPrint"); }
+    @FXML private void onActionPrint(ActionEvent e) { 
+        log.info("onActionPrint");
+        
+        paymentDialogManager.showPrintReceiptDialog(new PrintReceiptDialogController.PrintReceiptCallback() {
+            @Override
+            public void onSearch(LocalDate startDate, LocalDate endDate) {
+                log.info("Searching receipts from {} to {}", startDate, endDate);
+                searchReceipts(startDate, endDate);
+            }
+            
+            @Override
+            public void onPrint(String receiptNo) {
+                log.info("Printing receipt: {}", receiptNo);
+                printReceipt(receiptNo);
+            }
+            
+            @Override
+            public void onPreview(String receiptNo) {
+                log.info("Previewing receipt: {}", receiptNo);
+                previewReceipt(receiptNo);
+            }
+        });
+    }
+
+    /**
+     * 영수증 검색 메서드
+     */
+    private void searchReceipts(LocalDate startDate, LocalDate endDate) {
+        showSuccessMessage("Searching receipts from " + startDate + " to " + endDate);
+    }
+
+    /**
+     * 영수증 출력 메서드
+     */
+    private void printReceipt(String receiptNo) {
+        showSuccessMessage("Printing receipt: " + receiptNo);
+    }
+
+    /**
+     * 영수증 미리보기 메서드
+     */
+    private void previewReceipt(String receiptNo) {
+        showSuccessMessage("Previewing receipt: " + receiptNo);
+    }
+
     @FXML private void onActionDrawer(ActionEvent e) { log.info("onActionDrawer"); }
     @FXML private void onGenerate(ActionEvent e) { navigationService.navigateStage(LabelController.class); }
 

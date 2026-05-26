@@ -11,6 +11,7 @@ import com.swna.javafx.pos.dialog.CashoutDialogController;
 import com.swna.javafx.pos.dialog.CreditDialogController;
 import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
+import com.swna.javafx.pos.dialog.PrintReceiptDialogController;
 import com.swna.javafx.pos.dialog.ReceiptDialogController;
 import com.swna.javafx.pos.dialog.VolumeDiscountDialogController;
 import com.swna.javafx.pos.functional.TriConsumer;
@@ -229,6 +230,15 @@ public class PaymentDialogManager {
                 }
             })
         );
+    }
+
+    /**
+     * 영수증 출력/검색 다이얼로그 표시
+     */
+    public void showPrintReceiptDialog(PrintReceiptDialogController.PrintReceiptCallback callback) {
+        showDialog(PrintReceiptDialogController.class, controller -> {
+            controller.initData(callback);
+        });
     }
 
     /**

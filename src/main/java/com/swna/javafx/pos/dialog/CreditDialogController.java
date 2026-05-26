@@ -55,7 +55,7 @@ public class CreditDialogController extends BasePaymentDialog {
             legacyCallback.accept(cash, card, cardNumber);
         };
 
-         // 🔥 방법 1: 전체 창 드래그 활성화 (가장 간단)
+        // 🔥 전체 창 드래그 활성화 (가장 간단)
         enableFullWindowDrag();
         
         setupUI(total, discount);

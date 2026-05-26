@@ -59,7 +59,7 @@ public class ReceiptDialogController extends BasePaymentDialog {
       this.onSearchCallback = onSearchCallback;
       this.txtReceiptNumber.setText("");
 
-      // 🔥 방법 1: 전체 창 드래그 활성화 (가장 간단)
+      // 🔥 전체 창 드래그 활성화 (가장 간단)
       enableFullWindowDrag();
     }
     

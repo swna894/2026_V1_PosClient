@@ -221,15 +221,10 @@ public class SalesViewModel {
             return;
         }
 
-        LocalDateTime start =
-                startDate.get().atStartOfDay();
+        LocalDateTime start = startDate.get().atStartOfDay();
+        LocalDateTime end = endDate.get().atTime(LocalTime.MAX);
 
-        LocalDateTime end =
-                endDate.get().atTime(LocalTime.MAX);
-
-        executeSalesLoad(
-                saleApiClient.getSalesByDateRange(start, end)
-        );
+        executeSalesLoad( saleApiClient.getSalesByDateRange(start, end) );
     }
 
     // =========================================================
@@ -248,10 +243,7 @@ public class SalesViewModel {
 
                         sales -> Platform.runLater(() -> {
 
-                            List<SaleModel> models =
-                                    sales.stream()
-                                            .map(this::convertToModel)
-                                            .toList();
+                            List<SaleModel> models = sales.stream() .map(this::convertToModel) .toList();
 
                             salesList.setAll(models);
 
