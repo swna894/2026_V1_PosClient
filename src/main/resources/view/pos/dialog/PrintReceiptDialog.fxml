@@ -34,7 +34,6 @@
          <Button fx:id="searchButton" contentDisplay="CENTER" text="Search">
             <graphic>
                <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
-                  <Image url="@../../images/search.png" />
                </ImageView>
             </graphic>
          </Button>
@@ -43,9 +42,6 @@
          <Button fx:id="todayBtn" contentDisplay="CENTER" text="Today" />
          <Button fx:id="weekBtn" contentDisplay="CENTER" text="Week" />
          <Button fx:id="monthBtn" contentDisplay="CENTER" text="Month" />
-
-         <Separator orientation="VERTICAL" />
-
 
          <Separator orientation="VERTICAL" />
 
@@ -67,7 +63,6 @@
          <Button fx:id="refreshButton" contentDisplay="CENTER" text="Refresh">
             <graphic>
                <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
-                  <Image url="@../../images/refresh.png" />
                </ImageView>
             </graphic>
          </Button>
@@ -82,8 +77,7 @@
    </top>
 
    <center>
-      <!-- 메인 수평 SplitPane -->
-      <SplitPane fx:id="mainSplitPane" dividerPositions="0.4"
+      <SplitPane fx:id="mainSplitPane" dividerPositions="0.37"
          style="-fx-background-color: #f0f0f0;">
          <items>
             <!-- 왼쪽: 영수증 목록 테이블 -->
@@ -97,44 +91,92 @@
                </columns>
             </TableView>
 
-            <!-- 오른쪽: 수직 SplitPane (상하 구조) -->
+            <!-- 오른쪽: 수직 SplitPane -->
             <SplitPane fx:id="rightSplitPane" dividerPositions="0.5" orientation="VERTICAL"
                style="-fx-background-color: #f0f0f0;">
                <items>
                   <!-- 위쪽: Sale Items TableView -->
                   <VBox spacing="5" style="-fx-background-color: white; -fx-padding: 0;">
                      <children>
-                        <!-- 요약 정보 HBox -->
-                        <HBox spacing="20" style="-fx-padding: 8 10; -fx-background-color: #ecf0f1;">
-                           <children>
-                              <Label style="-fx-font-weight: bold;" text="Sales Summary" />
+                        <!-- Summary ToolBar (HBox로 감싸서 텍스트 잘림 방지) -->
+                        <ToolBar style="-fx-background-color: #ecf0f1; -fx-padding: 3 10;">
+                           <items>
+                              <Label style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"
+                                 text="Sales Summary" />
                               <Separator orientation="VERTICAL" />
-                              <Label text="Date:" />
-                              <Label fx:id="summaryDateLabel" style="-fx-font-weight: bold;"
-                                 text="-" />
+
+                              <!-- Date - HBox로 감쌈 -->
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
+                                 <Label style="-fx-text-fill: #7f8c8d;" text="Date:" />
+                                 <Label fx:id="summaryDateLabel"
+                                    style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"
+                                    text="-"
+                                    minWidth="80" />
+                              </HBox>
                               <Separator orientation="VERTICAL" />
-                              <Label text="Total:" />
-                              <Label fx:id="summaryTotalLabel"
-                                 style="-fx-font-weight: bold; -fx-text-fill: #27ae60;"
-                                 text="\$0.00" />
+
+                              <!-- Total - HBox로 감쌈 -->
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
+                                 <Label style="-fx-text-fill: #7f8c8d;" text="Total:" />
+                                 <Label fx:id="summaryTotalLabel"
+                                    style="-fx-font-weight: bold; -fx-text-fill: #27ae60;"
+                                    text="\$0.00"
+                                    minWidth="85" />
+                              </HBox>
                               <Separator orientation="VERTICAL" />
-                              <Label text="Discount:" />
-                              <Label fx:id="summaryDiscountLabel" style="-fx-text-fill: #e74c3c;"
-                                 text="\$0.00" />
+
+                              <!-- Discount - HBox로 감쌈 -->
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
+                                 <Label style="-fx-text-fill: #7f8c8d;" text="Discount:" />
+                                 <Label fx:id="summaryDiscountLabel"
+                                    style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;"
+                                    text="\$0.00"
+                                    minWidth="85" />
+                              </HBox>
                               <Separator orientation="VERTICAL" />
-                              <!-- <Label text="Cash:" />
-                              <Label fx:id="summaryCashLabel" text="$0.00" />
+
+                              <!-- Cash - HBox로 감쌈 -->
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
+                                 <Label style="-fx-text-fill: #7f8c8d;" text="Cash:" />
+                                 <Label fx:id="summaryCashLabel"
+                                    style="-fx-font-weight: bold; -fx-text-fill: #2980b9;"
+                                    text="\$0.00"
+                                    minWidth="85" />
+                              </HBox>
                               <Separator orientation="VERTICAL" />
-                              <Label text="Credit:" />
-                              <Label fx:id="summaryCreditLabel" text="\$0.00" />
+
+                              <!-- Credit - HBox로 감쌈 -->
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
+                                 <Label style="-fx-text-fill: #7f8c8d;" text="Credit:" />
+                                 <Label fx:id="summaryCreditLabel"
+                                    style="-fx-font-weight: bold; -fx-text-fill: #8e44ad;"
+                                    text="\$0.00"
+                                    minWidth="85" />
+                              </HBox>
                               <Separator orientation="VERTICAL" />
-                              <Label text="Cashout:" />
-                              <Label fx:id="summaryCashoutLabel" text="\$0.00" />
+
+                              <!-- Cashout - HBox로 감쌈 -->
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
+                                 <Label style="-fx-text-fill: #7f8c8d;" text="Cashout:" />
+                                 <Label fx:id="summaryCashoutLabel"
+                                    style="-fx-font-weight: bold; -fx-text-fill: #e67e22;"
+                                    text="\$0.00"
+                                    minWidth="85" />
+                              </HBox>
                               <Separator orientation="VERTICAL" />
-                              <Label fx:id="totalCountLabel" style="-fx-text-fill: #7f8c8d;"
-                                 text="Total: 0" /> -->
-                           </children>
-                        </HBox>
+
+                              <Region HBox.hgrow="ALWAYS" />
+
+                              <!-- Total Count - HBox로 감쌈 -->
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="80">
+                                 <Label fx:id="totalCountLabel"
+                                    style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d;"
+                                    text="Items: 0"
+                                    minWidth="70" />
+                              </HBox>
+                           </items>
+                        </ToolBar>
+
                         <TableView fx:id="saleItemsTableView" VBox.vgrow="ALWAYS">
                            <columns>
                               <TableColumn fx:id="itemNoColumn" prefWidth="50" text="NO" />
@@ -150,7 +192,7 @@
                      </children>
                   </VBox>
 
-                  <!-- 아래쪽: 영수증 미리보기 영역 (WebView 사용) -->
+                  <!-- 아래쪽: 영수증 미리보기 영역 -->
                   <VBox spacing="5" style="-fx-background-color: #fafafa; -fx-padding: 0;">
                      <children>
                         <ToolBar style="-fx-background-color: #ecf0f1; -fx-padding: 5 10 5 10;">
@@ -163,12 +205,9 @@
                                  text="Print Preview" />
                               <Region HBox.hgrow="ALWAYS" />
                               <Label fx:id="lblStatus" style="-fx-text-fill: #7f8c8d;" text="Ready" />
-                              <!-- <ProgressIndicator fx:id="progressIndicator" prefHeight="20"
-                                 prefWidth="20" visible="false" /> -->
                            </items>
                         </ToolBar>
 
-                        <!-- WebView: 실제 영수증 모양 미리보기 -->
                         <WebView fx:id="receiptWebView" prefHeight="350" VBox.vgrow="ALWAYS" />
                      </children>
                   </VBox>

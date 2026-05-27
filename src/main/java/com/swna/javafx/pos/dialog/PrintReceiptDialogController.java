@@ -17,16 +17,12 @@ import com.swna.javafx.common.ui.table.TableColumnUtil;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -73,7 +69,6 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
     @FXML private Label previewTotalLabel;
     
     // ========== Loading & Status ==========
-    @FXML private ProgressIndicator progressIndicator;
     @FXML private Label totalCountLabel;
     @FXML private Label lblStatus;
     
@@ -121,7 +116,6 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         setupSelectionListener();
         setupSaleItemsListener();
 
-        
         loadInitialData();
         enableFullWindowDrag();
         
@@ -179,23 +173,18 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         
         Platform.runLater(() -> {
             int size = salesViewModel.getSalesList().size();
-            if (lblStatus != null) {
-                lblStatus.setText(size == 0 ? "No sales data found for today: " + today : "Ready - " + size + " receipts found");
-            }
+            updateStatusMessage(size == 0 ? "No sales data found for today: " + today : "Ready - " + size + " receipts found");
             if (receiptItemsTableView != null) receiptItemsTableView.refresh();
             
             // 첫 번째 영수증 자동 선택
-            if (size > 0 && receiptItemsTableView != null) {
-                SaleModel firstSale = salesViewModel.getSalesList().get(0);
-                receiptItemsTableView.getSelectionModel().select(firstSale);
-                salesViewModel.selectedSaleProperty().set(firstSale);
-                salesViewModel.onSelectedSaleChanged(firstSale);
-                updateReceiptPreview(firstSale);
-            }
+            selectFirstReceiptAfterLoad();
         });
     }
 
     private void setupBindings() {
+        log.info("[PrintReceiptDialog] Setting up bindings...");
+        
+        // DatePicker 바인딩
         if (startDatePicker != null) {
             startDatePicker.valueProperty().bindBidirectional(salesViewModel.startDateProperty());
         }
@@ -203,83 +192,147 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
             endDatePicker.valueProperty().bindBidirectional(salesViewModel.endDateProperty());
         }
         
-        if (progressIndicator != null) {
-            salesViewModel.loadingProperty().addListener((obs, old, val) -> 
-                Platform.runLater(() -> {
-                    if (progressIndicator != null) progressIndicator.setVisible(val != null && val);
-                })
-            );
-        }
-        
+        // Status Message 바인딩
         if (lblStatus != null) {
             salesViewModel.errorMessageProperty().addListener((obs, old, msg) -> 
-                Platform.runLater(() -> {
-                    if (lblStatus != null) lblStatus.setText(msg != null ? msg : "Ready");
-                })
+                Platform.runLater(() -> updateStatusMessage(msg != null ? msg : "Ready"))
             );
         }
         
-        if (totalCountLabel != null) {
-            totalCountLabel.textProperty().bind(
-                Bindings.createStringBinding(
-                    () -> String.format("Total: %d", salesViewModel.totalCountProperty().get()),
-                    salesViewModel.totalCountProperty()
-                )
-            );
-        }
+        // =========================================================
+        // Toolbar Summary - 선택된 영수증의 아이템 기준으로 변경
+        // =========================================================
         
+        // Summary Date - 선택된 영수증의 날짜로 표시
         if (summaryDateLabel != null) {
             summaryDateLabel.textProperty().bind(
                 Bindings.createStringBinding(
-                    () -> LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    () -> {
+                        SaleModel selected = salesViewModel.selectedSaleProperty().get();
+                        if (selected != null && selected.getPaymentDateTime() != null) {
+                            return selected.getPaymentDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        }
+                        return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    },
+                    salesViewModel.selectedSaleProperty()
                 )
             );
         }
         
+        // Total Amount - 선택된 영수증의 아이템 총액
         if (summaryTotalLabel != null) {
             summaryTotalLabel.textProperty().bind(
                 Bindings.createStringBinding(
-                    () -> formatCurrency(salesViewModel.totalSalesAmountProperty().get()),
-                    salesViewModel.totalSalesAmountProperty()
+                    () -> formatCurrency(salesViewModel.itemTotalAmountProperty().get()),
+                    salesViewModel.itemTotalAmountProperty()
                 )
             );
         }
         
+        // Discount Amount - 선택된 영수증의 아이템 할인总额
         if (summaryDiscountLabel != null) {
             summaryDiscountLabel.textProperty().bind(
                 Bindings.createStringBinding(
-                    () -> formatCurrency(salesViewModel.totalDiscountAmountProperty().get()),
-                    salesViewModel.totalDiscountAmountProperty()
+                    () -> formatCurrency(salesViewModel.itemTotalDiscountProperty().get()),
+                    salesViewModel.itemTotalDiscountProperty()
                 )
             );
         }
         
+        // Cash Amount - 선택된 영수증의 현금 결제액
         if (summaryCashLabel != null) {
             summaryCashLabel.textProperty().bind(
                 Bindings.createStringBinding(
-                    () -> formatCurrency(salesViewModel.totalCashAmountProperty().get()),
-                    salesViewModel.totalCashAmountProperty()
+                    () -> {
+                        SaleModel selected = salesViewModel.selectedSaleProperty().get();
+                        if (selected != null) {
+                            return formatCurrency(selected.getCashAmount());
+                        }
+                        return "$0.00";
+                    },
+                    salesViewModel.selectedSaleProperty()
                 )
             );
         }
         
+        // Credit Amount - 선택된 영수증의 카드 결제액
         if (summaryCreditLabel != null) {
             summaryCreditLabel.textProperty().bind(
                 Bindings.createStringBinding(
-                    () -> formatCurrency(salesViewModel.totalCreditAmountProperty().get()),
-                    salesViewModel.totalCreditAmountProperty()
+                    () -> {
+                        SaleModel selected = salesViewModel.selectedSaleProperty().get();
+                        if (selected != null) {
+                            return formatCurrency(selected.getCreditAmount());
+                        }
+                        return "$0.00";
+                    },
+                    salesViewModel.selectedSaleProperty()
                 )
             );
         }
         
+        // Cashout Amount - 선택된 영수증의 현금 인출액
         if (summaryCashoutLabel != null) {
             summaryCashoutLabel.textProperty().bind(
                 Bindings.createStringBinding(
-                    () -> formatCurrency(salesViewModel.totalCashoutAmountProperty().get()),
-                    salesViewModel.totalCashoutAmountProperty()
+                    () -> {
+                        SaleModel selected = salesViewModel.selectedSaleProperty().get();
+                        if (selected != null) {
+                            return formatCurrency(selected.getCashoutAmount());
+                        }
+                        return "$0.00";
+                    },
+                    salesViewModel.selectedSaleProperty()
                 )
             );
         }
+        
+        // Total Count - 선택된 영수증의 아이템 개수
+        if (totalCountLabel != null) {
+            totalCountLabel.textProperty().bind(
+                Bindings.createStringBinding(
+                    () -> String.format("Items: %d", salesViewModel.itemTotalQtyProperty().get()),
+                    salesViewModel.itemTotalQtyProperty()
+                )
+            );
+        }
+        
+        log.info("[PrintReceiptDialog] Bindings setup completed");
+    } 
+    /**
+     * Summary Date 업데이트
+     */
+    private void updateSummaryDate() {
+        if (summaryDateLabel != null) {
+            String todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            summaryDateLabel.setText(todayStr);
+        }
+    }
+    
+    /**
+     * Summary 값들을 강제로 새로고침 (ViewModel 데이터 직접 읽기)
+     */
+    private void refreshSummaryValues() {
+        if (summaryTotalLabel != null) {
+            summaryTotalLabel.setText(formatCurrency(salesViewModel.totalSalesAmountProperty().get()));
+        }
+        if (summaryDiscountLabel != null) {
+            summaryDiscountLabel.setText(formatCurrency(salesViewModel.totalDiscountAmountProperty().get()));
+        }
+        if (summaryCashLabel != null) {
+            summaryCashLabel.setText(formatCurrency(salesViewModel.totalCashAmountProperty().get()));
+        }
+        if (summaryCreditLabel != null) {
+            summaryCreditLabel.setText(formatCurrency(salesViewModel.totalCreditAmountProperty().get()));
+        }
+        if (summaryCashoutLabel != null) {
+            summaryCashoutLabel.setText(formatCurrency(salesViewModel.totalCashoutAmountProperty().get()));
+        }
+        if (totalCountLabel != null) {
+            totalCountLabel.setText(String.format("Total: %d", salesViewModel.totalCountProperty().get()));
+        }
+        
+        log.debug("[Refresh] Summary values refreshed manually");
     }
 
     private void setupDatePickers() {
@@ -305,33 +358,28 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
             todayBtn.setOnAction(e -> {
                 updateButtonSelection(todayBtn);
                 salesViewModel.loadTodaySales();
-                updateStatusAfterLoad();
-                // 데이터 로드 후 첫 번째 영수증 선택
-                selectFirstReceiptAfterLoad();
+                updateAfterDataLoad();
             });
         }
         if (weekBtn != null) {
             weekBtn.setOnAction(e -> {
                 updateButtonSelection(weekBtn);
                 salesViewModel.loadThisWeekSales();
-                updateStatusAfterLoad();
-                selectFirstReceiptAfterLoad();
+                updateAfterDataLoad();
             });
         }
         if (monthBtn != null) {
             monthBtn.setOnAction(e -> {
                 updateButtonSelection(monthBtn);
                 salesViewModel.loadThisMonthSales();
-                updateStatusAfterLoad();
-                selectFirstReceiptAfterLoad();
+                updateAfterDataLoad();
             });
         }
         if (searchButton != null) {
             searchButton.setOnAction(e -> {
                 updateButtonSelection(searchButton);
                 salesViewModel.loadSalesByDateRange();
-                updateStatusAfterLoad();
-                selectFirstReceiptAfterLoad();
+                updateAfterDataLoad();
                 if (callback != null && startDatePicker != null && endDatePicker != null) {
                     callback.onSearch(startDatePicker.getValue(), endDatePicker.getValue());
                 }
@@ -341,12 +389,37 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         if (refreshButton != null) {
             refreshButton.setOnAction(e -> {
                 salesViewModel.refresh();
-                updateStatusAfterLoad();
-                selectFirstReceiptAfterLoad();
+                updateAfterDataLoad();
             });
         }
         if (closeButton != null) closeButton.setOnAction(e -> handleCancel());
         if (previewPrintButton != null) previewPrintButton.setOnAction(e -> handlePreviewPrint());
+    }
+    
+    /**
+     * 데이터 로드 후 UI 업데이트를 처리하는 통합 메서드
+     */
+    private void updateAfterDataLoad() {
+        Platform.runLater(() -> {
+            // 지연 후 Summary 값들 강제 새로고침
+            new Thread(() -> {
+                try {
+                    Thread.sleep(300); // 데이터 로드 완료 대기
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                Platform.runLater(() -> {
+                    int size = salesViewModel.getSalesList().size();
+                    updateStatusMessage(size == 0 ? "No receipts found for selected date range" : "Ready - " + size + " receipts found");
+                    if (receiptItemsTableView != null) receiptItemsTableView.refresh();
+                    
+                    // Summary 값들 강제 새로고침
+                    refreshSummaryValues();
+                    
+                    selectFirstReceiptAfterLoad();
+                });
+            }).start();
+        });
     }
     
     private void selectFirstReceiptAfterLoad() {
@@ -372,14 +445,10 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         });
     }
     
-    private void updateStatusAfterLoad() {
-        Platform.runLater(() -> {
-            int size = salesViewModel.getSalesList().size();
-            if (receiptItemsTableView != null) receiptItemsTableView.refresh();
-            if (lblStatus != null) {
-                lblStatus.setText(size == 0 ? "No receipts found for selected date range" : "Ready - " + size + " receipts found");
-            }
-        });
+    private void updateStatusMessage(String message) {
+        if (lblStatus != null) {
+            lblStatus.setText(message);
+        }
     }
 
     private void setupSelectionListener() {
@@ -428,8 +497,7 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         salesViewModel.getSaleItemsList().addListener(
                 (ListChangeListener<SaleItemModel>) change -> {
 
-                    SaleModel selectedSale =
-                            salesViewModel.selectedSaleProperty().get();
+                    SaleModel selectedSale = salesViewModel.selectedSaleProperty().get();
 
                     if (selectedSale == null) {
                         return;
@@ -437,8 +505,7 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
 
                     Platform.runLater(() -> {
 
-                        List<SaleItemModel> snapshot =
-                                List.copyOf(salesViewModel.getSaleItemsList());
+                        List<SaleItemModel> snapshot = List.copyOf(salesViewModel.getSaleItemsList());
 
                         log.info(
                                 "[Preview Refresh] receipt={}, items={}",
@@ -453,11 +520,10 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
     }
 
     /**
-     * 실제 preview 갱신
+     * 실제 preview 갱신 (아이템 리스트 파라미터 버전)
      */
-    private void updateReceiptPreview( SaleModel sale, List<SaleItemModel> items) {
-
-        if (sale == null) {  return;  }
+    private void updateReceiptPreview(SaleModel sale, List<SaleItemModel> items) {
+        if (sale == null) return;
 
         log.info(
                 "[updateReceiptPreview] receipt={}, itemCount={}",
@@ -465,43 +531,11 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
                 items != null ? items.size() : 0
         );
 
-        if (previewReceiptNo != null) {
-            previewReceiptNo.setText(  "Receipt #: " + sale.getReceiptNo());
-        }
-
-        if (previewDate != null) {
-
-            String date =
-                    sale.getPaymentDateTime() != null
-                            ? sale.getPaymentDateTime().format(
-                            DateTimeFormatter.ofPattern(
-                                    "yyyy-MM-dd HH:mm:ss"
-                            )
-                    )
-                            : "";
-
-            previewDate.setText("Date : " + date);
-        }
-
-        if (previewTotalLabel != null) {
-
-            double total =
-                    sale.getSaleAmount() != null
-                            ? sale.getSaleAmount().doubleValue()
-                            : 0;
-
-            previewTotalLabel.setText(
-                    String.format("$%.2f", total)
-            );
-        }
-
+        updatePreviewLabels(sale);
+        
         if (receiptWebView != null) {
-
-            String html =
-                    generateReceiptHTML(sale, items);
-
-            receiptWebView.getEngine()
-                    .loadContent(html);
+            String html = generateReceiptHTML(sale, items);
+            receiptWebView.getEngine().loadContent(html);
         }
     }
 
@@ -528,23 +562,34 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
             log.warn("[PrintReceiptDialog] No items found for receipt: {}", sale.getReceiptNo());
         }
         
-        // 기본 정보 설정
-        if (previewReceiptNo != null) previewReceiptNo.setText("Receipt #: " + sale.getReceiptNo());
-        if (previewDate != null) {
-            String date = sale.getPaymentDateTime() != null ? 
-                sale.getPaymentDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "";
-            previewDate.setText("Date: " + date);
-        }
-        if (previewTotalLabel != null) {
-            double total = sale.getSaleAmount() != null ? sale.getSaleAmount().doubleValue() : 0;
-            previewTotalLabel.setText(String.format("$%.2f", total));
-        }
+        updatePreviewLabels(sale);
         
         // WebView에 HTML 영수증 표시 (현재 선택된 아이템 전달)
         if (receiptWebView != null) {
             String htmlReceipt = generateReceiptHTML(sale, items);
             receiptWebView.getEngine().loadContent(htmlReceipt);
             log.info("[PrintReceiptDialog] Receipt preview loaded for: {}", sale.getReceiptNo());
+        }
+    }
+    
+    /**
+     * 프리뷰 라벨 업데이트 (코드 중복 제거)
+     */
+    private void updatePreviewLabels(SaleModel sale) {
+        if (previewReceiptNo != null) {
+            previewReceiptNo.setText("Receipt #: " + sale.getReceiptNo());
+        }
+
+        if (previewDate != null) {
+            String date = sale.getPaymentDateTime() != null
+                    ? sale.getPaymentDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    : "";
+            previewDate.setText("Date : " + date);
+        }
+
+        if (previewTotalLabel != null) {
+            double total = sale.getSaleAmount() != null ? sale.getSaleAmount().doubleValue() : 0;
+            previewTotalLabel.setText(String.format("$%.2f", total));
         }
     }
     
@@ -764,6 +809,10 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
     private String formatCurrency(BigDecimal amount) {
         if (amount == null) return "$0.00";
         java.text.NumberFormat currencyFormat = java.text.NumberFormat.getCurrencyInstance();
+    
+        currencyFormat.setMinimumFractionDigits(2);
+        currencyFormat.setMaximumFractionDigits(2);
+
         return currencyFormat.format(amount);
     }
 
@@ -775,7 +824,7 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
     private void handlePrint() {
         SaleModel selectedSale = salesViewModel.selectedSaleProperty().get();
         if (selectedSale == null) {
-            if (lblStatus != null) lblStatus.setText("Please select a receipt to print");
+            updateStatusMessage("Please select a receipt to print");
             return;
         }
         
@@ -783,14 +832,14 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         log.info("[PrintReceiptDialog] Printing receipt: {}", receiptNo);
         
         if (callback != null) callback.onPrint(receiptNo);
-        if (lblStatus != null) lblStatus.setText("Printing receipt: " + receiptNo);
+        updateStatusMessage("Printing receipt: " + receiptNo);
     }
 
     @FXML
     private void handlePreviewPrint() {
         SaleModel selectedSale = salesViewModel.selectedSaleProperty().get();
         if (selectedSale == null) {
-            if (lblStatus != null) lblStatus.setText("Please select a receipt to preview");
+            updateStatusMessage("Please select a receipt to preview");
             return;
         }
         
