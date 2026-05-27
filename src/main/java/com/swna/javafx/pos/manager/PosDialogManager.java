@@ -32,7 +32,7 @@ import net.rgielen.fxweaver.core.FxWeaver;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PaymentDialogManager {
+public class PosDialogManager {
 
     private final FxWeaver fxWeaver;
 

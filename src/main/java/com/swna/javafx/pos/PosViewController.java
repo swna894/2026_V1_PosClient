@@ -17,7 +17,7 @@ import com.swna.javafx.pos.dialog.PrintReceiptDialogController;
 import com.swna.javafx.pos.manager.BarcodeScannerManager;
 import com.swna.javafx.pos.manager.CartButtonManager;
 import com.swna.javafx.pos.manager.ClockManager;
-import com.swna.javafx.pos.manager.PaymentDialogManager;
+import com.swna.javafx.pos.manager.PosDialogManager;
 import com.swna.javafx.pos.manager.PosTableSetup;
 import com.swna.javafx.pos.manager.UiNotifier;
 import com.swna.javafx.pos.model.PosItem;
@@ -61,7 +61,7 @@ public class PosViewController {
     private final SafeBarcodeScanner safeBarcodeScanner;
     private final BarcodeScannerManager scannerManager;
     private final PosTableSetup tableSetup;
-    private final PaymentDialogManager paymentDialogManager;
+    private final PosDialogManager posDialogManager;
     private final UiNotifier uiNotifier;
     private final ClockManager clockManager;
     private final CartButtonManager cartButtonManager;
@@ -202,14 +202,14 @@ public class PosViewController {
     }
 
     private void showDiscountDialog(PosItem item) {
-        paymentDialogManager.showDiscountDialog(item, 
+        posDialogManager.showDiscountDialog(item, 
             revisedPrice -> viewModel.discountItemPrice(item, revisedPrice),
             () -> table.refresh()
         );
     }
 
     private void showPriceChangeDialog(PosItem item) {
-        paymentDialogManager.showPriceChangeDialog(item,
+        posDialogManager.showPriceChangeDialog(item,
             newPrice -> viewModel.changeItemPrice(item, newPrice),
             () -> table.refresh()
         );
@@ -235,24 +235,24 @@ public class PosViewController {
     }
 
     @FXML private void onActionCash(ActionEvent event) {
-        paymentDialogManager.showCashDialog(viewModel, 
+        posDialogManager.showCashDialog(viewModel, 
             result -> afterPayment(result, "Cash")
         );
     }
 
     @FXML private void onActionCredit(ActionEvent event) {
-        paymentDialogManager.showCreditDialog(viewModel,
+        posDialogManager.showCreditDialog(viewModel,
             result -> afterPayment(result, "Mixed")
         );
     }
 
     @FXML private void onActionCashout(ActionEvent event) {
-        paymentDialogManager.showCashoutDialog(viewModel,
+        posDialogManager.showCashoutDialog(viewModel,
             result -> afterPayment(result, "Cashout")
         );
     }
 
-    private void afterPayment(PaymentDialogManager.DialogResult result, String paymentType) {
+    private void afterPayment(PosDialogManager.DialogResult result, String paymentType) {
         if (result.isSuccess()) {
             log.info("[UI] {} payment successful: {}", paymentType, result.getMessage());
             showSuccessMessage(result.getMessage());
@@ -277,10 +277,10 @@ public class PosViewController {
     @FXML private void onActionDiscountVolumn(ActionEvent e) { 
         log.info("onActionDiscountVolumn");
         
-        paymentDialogManager.showVolumeDiscountDialog( viewModel, this::afterVolumeDiscount );
+        posDialogManager.showVolumeDiscountDialog( viewModel, this::afterVolumeDiscount );
     }
 
-    private void afterVolumeDiscount(PaymentDialogManager.DialogResult result) {
+    private void afterVolumeDiscount(PosDialogManager.DialogResult result) {
         if (result.isSuccess()) {
             log.info("[UI] Volume discount successful: {}", result.getMessage());
             showSuccessMessage(result.getMessage());
@@ -294,7 +294,7 @@ public class PosViewController {
     @FXML private void onActionReceipt(ActionEvent e) { 
         log.info("onActionReceipt");
         
-        paymentDialogManager.showReceiptDialog(receiptNumber -> {
+        posDialogManager.showReceiptDialog(receiptNumber -> {
             log.info("Searching for receipt: {}", receiptNumber);
             // 영수증 검색 로직 구현
             searchReceipt(receiptNumber);
@@ -311,7 +311,7 @@ public class PosViewController {
     @FXML  private void onActionBarcode(ActionEvent e) { 
         log.info("onActionBarcode");
         
-        paymentDialogManager.showBarcodeDialog(barcodeNumber -> {
+        posDialogManager.showBarcodeDialog(barcodeNumber -> {
             log.info("Searching for barcode: {}", barcodeNumber);
             // 바코드 검색 로직 구현
             searchBarcode(barcodeNumber);
@@ -331,7 +331,7 @@ public class PosViewController {
         log.info("onActionCancel");
         
         // 확인 다이얼로그 표시
-        paymentDialogManager.showConfirmDeleteDialog(
+        posDialogManager.showConfirmDeleteDialog(
             // 확인 시 실행할 로직
             () -> {
                 log.info("User confirmed - Deleting all items");
@@ -365,7 +365,7 @@ public class PosViewController {
     @FXML private void onActionPrint(ActionEvent e) { 
         log.info("onActionPrint");
         
-        paymentDialogManager.showPrintReceiptDialog(new PrintReceiptDialogController.PrintReceiptCallback() {
+        posDialogManager.showPrintReceiptDialog(new PrintReceiptDialogController.PrintReceiptCallback() {
             @Override
             public void onSearch(LocalDate startDate, LocalDate endDate) {
                 log.info("Searching receipts from {} to {}", startDate, endDate);
