@@ -15,8 +15,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.WebView?>
 
-<BorderPane prefHeight="700" prefWidth="1150.0" stylesheets="@../../../styles/app.css"
+<BorderPane prefHeight="700" prefWidth="1200.0" stylesheets="@../../../styles/app.css"
    xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
    fx:controller="com.swna.javafx.pos.dialog.PrintReceiptDialogController">
 
@@ -30,7 +31,6 @@
          </HBox>
 
          <Separator orientation="VERTICAL" />
-
          <Button fx:id="searchButton" contentDisplay="CENTER" text="Search">
             <graphic>
                <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
@@ -38,6 +38,14 @@
                </ImageView>
             </graphic>
          </Button>
+         <Separator orientation="VERTICAL" />
+
+         <Button fx:id="todayBtn" contentDisplay="CENTER" text="Today" />
+         <Button fx:id="weekBtn" contentDisplay="CENTER" text="Week" />
+         <Button fx:id="monthBtn" contentDisplay="CENTER" text="Month" />
+
+         <Separator orientation="VERTICAL" />
+
 
          <Separator orientation="VERTICAL" />
 
@@ -75,7 +83,7 @@
 
    <center>
       <!-- 메인 수평 SplitPane -->
-      <SplitPane fx:id="mainSplitPane" dividerPositions="0.37"
+      <SplitPane fx:id="mainSplitPane" dividerPositions="0.4"
          style="-fx-background-color: #f0f0f0;">
          <items>
             <!-- 왼쪽: 영수증 목록 테이블 -->
@@ -85,17 +93,48 @@
                   <TableColumn fx:id="noColumn" prefWidth="50" text="NO" />
                   <TableColumn fx:id="receiptColumn" prefWidth="180" text="RECEIPT" />
                   <TableColumn fx:id="amountColumn" prefWidth="90" text="AMOUNT" />
-                  <TableColumn fx:id="discountColumn" prefWidth="70" text="D/C" />
+                  <TableColumn fx:id="discountColumn" prefWidth="90" text="D/C" />
                </columns>
             </TableView>
 
             <!-- 오른쪽: 수직 SplitPane (상하 구조) -->
-            <SplitPane fx:id="rightSplitPane" dividerPositions="0.6" orientation="VERTICAL"
+            <SplitPane fx:id="rightSplitPane" dividerPositions="0.5" orientation="VERTICAL"
                style="-fx-background-color: #f0f0f0;">
                <items>
                   <!-- 위쪽: Sale Items TableView -->
                   <VBox spacing="5" style="-fx-background-color: white; -fx-padding: 0;">
                      <children>
+                        <!-- 요약 정보 HBox -->
+                        <HBox spacing="20" style="-fx-padding: 8 10; -fx-background-color: #ecf0f1;">
+                           <children>
+                              <Label style="-fx-font-weight: bold;" text="Sales Summary" />
+                              <Separator orientation="VERTICAL" />
+                              <Label text="Date:" />
+                              <Label fx:id="summaryDateLabel" style="-fx-font-weight: bold;"
+                                 text="-" />
+                              <Separator orientation="VERTICAL" />
+                              <Label text="Total:" />
+                              <Label fx:id="summaryTotalLabel"
+                                 style="-fx-font-weight: bold; -fx-text-fill: #27ae60;"
+                                 text="\$0.00" />
+                              <Separator orientation="VERTICAL" />
+                              <Label text="Discount:" />
+                              <Label fx:id="summaryDiscountLabel" style="-fx-text-fill: #e74c3c;"
+                                 text="\$0.00" />
+                              <Separator orientation="VERTICAL" />
+                              <!-- <Label text="Cash:" />
+                              <Label fx:id="summaryCashLabel" text="$0.00" />
+                              <Separator orientation="VERTICAL" />
+                              <Label text="Credit:" />
+                              <Label fx:id="summaryCreditLabel" text="\$0.00" />
+                              <Separator orientation="VERTICAL" />
+                              <Label text="Cashout:" />
+                              <Label fx:id="summaryCashoutLabel" text="\$0.00" />
+                              <Separator orientation="VERTICAL" />
+                              <Label fx:id="totalCountLabel" style="-fx-text-fill: #7f8c8d;"
+                                 text="Total: 0" /> -->
+                           </children>
+                        </HBox>
                         <TableView fx:id="saleItemsTableView" VBox.vgrow="ALWAYS">
                            <columns>
                               <TableColumn fx:id="itemNoColumn" prefWidth="50" text="NO" />
@@ -111,8 +150,8 @@
                      </children>
                   </VBox>
 
-                  <!-- 아래쪽: 영수증 미리보기 영역 -->
-                  <VBox spacing="5" style="-fx-background-color: #fafafa; -fx-padding: 10;">
+                  <!-- 아래쪽: 영수증 미리보기 영역 (WebView 사용) -->
+                  <VBox spacing="5" style="-fx-background-color: #fafafa; -fx-padding: 0;">
                      <children>
                         <ToolBar style="-fx-background-color: #ecf0f1; -fx-padding: 5 10 5 10;">
                            <items>
@@ -122,28 +161,15 @@
                               <Button fx:id="previewPrintButton"
                                  style="-fx-background-color: #3498db; -fx-text-fill: white;"
                                  text="Print Preview" />
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Label fx:id="lblStatus" style="-fx-text-fill: #7f8c8d;" text="Ready" />
+                              <!-- <ProgressIndicator fx:id="progressIndicator" prefHeight="20"
+                                 prefWidth="20" visible="false" /> -->
                            </items>
                         </ToolBar>
-                        <VBox fx:id="previewArea"
-                           style="-fx-padding: 15; -fx-background-color: white;" VBox.vgrow="ALWAYS">
-                           <children>
-                              <Label
-                                 style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2c3e50;"
-                                 text="영수증 미리보기" />
-                              <Separator />
-                              <Label fx:id="previewReceiptNo" text="Receipt #: R-20260526-001" />
-                              <Label fx:id="previewDate" text="Date: 2026-05-26 14:30:00" />
-                              <Separator />
-                              <Label style="-fx-text-fill: #7f8c8d;" text="[영수증 내용이 여기에 표시됩니다]" />
-                              <Separator />
-                              <HBox alignment="CENTER_RIGHT" spacing="10">
-                                 <Label style="-fx-font-weight: bold;" text="Total:" />
-                                 <Label fx:id="previewTotalLabel"
-                                    style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;"
-                                    text="0.00" />
-                              </HBox>
-                           </children>
-                        </VBox>
+
+                        <!-- WebView: 실제 영수증 모양 미리보기 -->
+                        <WebView fx:id="receiptWebView" prefHeight="350" VBox.vgrow="ALWAYS" />
                      </children>
                   </VBox>
                </items>
