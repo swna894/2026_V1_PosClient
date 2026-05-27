@@ -330,6 +330,13 @@ public class PosViewController {
     @FXML private void onActionCancel(ActionEvent e) { 
         log.info("onActionCancel");
         
+        // getPosItems()를 사용하여 아이템 존재 여부 확인
+        if (viewModel.getPosItems().isEmpty()) {
+            log.info("No items in cart - skipping confirmation dialog");
+            showErrorMessage("No items to delete");
+            return;
+        }
+
         // 확인 다이얼로그 표시
         posDialogManager.showConfirmDeleteDialog(
             // 확인 시 실행할 로직
