@@ -26,6 +26,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -115,6 +116,19 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         setupButtonActions();
         setupSelectionListener();
         setupSaleItemsListener();
+
+        // Scene에 키 이벤트 추가 (가장 간단함)
+        Platform.runLater(() -> {
+            if (receiptNoLabel != null && receiptNoLabel.getScene() != null) {
+                receiptNoLabel.getScene().setOnKeyPressed(event -> {
+                    if (event.getCode() == KeyCode.ESCAPE) {
+                        log.info("[PrintReceiptDialog] ESC key pressed - closing dialog");
+                        handleCancel();
+                        event.consume();
+                    }
+                });
+            }
+        });
 
         loadInitialData();
         enableFullWindowDrag();
@@ -432,7 +446,7 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
                     if (receiptItemsTableView != null) receiptItemsTableView.refresh();
                     
                     // Summary 값들 강제 새로고침
-                    refreshSummaryValues();
+                    //refreshSummaryValues();
                     
                     selectFirstReceiptAfterLoad();
                 });
