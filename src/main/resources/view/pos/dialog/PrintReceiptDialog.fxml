@@ -186,7 +186,7 @@
                               <TableColumn fx:id="itemQtyColumn" prefWidth="60" text="QTY" />
                               <TableColumn fx:id="itemPriceColumn" prefWidth="100" text="PRICE" />
                               <TableColumn fx:id="itemAmountColumn" prefWidth="100" text="AMOUNT" />
-                              <TableColumn fx:id="itemDiscountColumn" prefWidth="80" text="D/C" />
+                              <TableColumn fx:id="itemDiscountColumn" prefWidth="100" text="D/C" />
                            </columns>
                         </TableView>
                      </children>
