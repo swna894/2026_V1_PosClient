@@ -16,7 +16,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Component
 @Scope("prototype")
 @FxmlView("/view/pos/dialog/BarcodeDialog.fxml")
-public class BarcodeDialogController extends BasePaymentDialog {
+public class BarcodeDialogController extends BasePosDialog {
 
     @FXML private TextField txtBarcodeNumber;
 

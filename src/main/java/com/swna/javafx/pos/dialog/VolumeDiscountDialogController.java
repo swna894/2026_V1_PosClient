@@ -21,7 +21,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Component
 @Scope("prototype")
 @FxmlView("/view/pos/dialog/VolumnDiscountDialog.fxml")
-public class VolumeDiscountDialogController extends BasePaymentDialog {
+public class VolumeDiscountDialogController extends BasePosDialog {
 
     @FXML private Label lblTotalAmount;
     @FXML private TextField txtPrice;

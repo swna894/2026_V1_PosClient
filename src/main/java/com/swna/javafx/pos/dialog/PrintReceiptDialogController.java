@@ -39,7 +39,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Scope("prototype")
 @RequiredArgsConstructor
 @FxmlView("/view/pos/dialog/PrintReceiptDialog.fxml")
-public class PrintReceiptDialogController extends BasePaymentDialog implements Initializable {
+public class PrintReceiptDialogController extends BasePosDialog implements Initializable {
 
     private final SalesViewModel salesViewModel;
 

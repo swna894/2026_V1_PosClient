@@ -13,7 +13,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 
 @Component @Scope("prototype")
 @FxmlView("/view/pos/dialog/CashPaymentDialog.fxml")
-public class CashDialogController extends BasePaymentDialog {
+public class CashDialogController extends BasePosDialog {
 
     @FXML private Label lblAmount;
     @FXML private Label lblBalance;

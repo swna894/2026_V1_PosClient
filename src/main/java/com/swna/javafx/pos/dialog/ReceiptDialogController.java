@@ -16,7 +16,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Component
 @Scope("prototype")
 @FxmlView("/view/pos/dialog/ReceiptDialog.fxml")
-public class ReceiptDialogController extends BasePaymentDialog {
+public class ReceiptDialogController extends BasePosDialog {
 
     @FXML private TextField txtReceiptNumber;
 

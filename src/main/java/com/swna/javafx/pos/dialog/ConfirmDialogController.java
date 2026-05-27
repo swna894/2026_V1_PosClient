@@ -15,7 +15,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Component 
 @Scope("prototype")
 @FxmlView("/view/pos/dialog/ConfirmDialog.fxml")
-public class ConfirmDialogController extends BasePaymentDialog {
+public class ConfirmDialogController extends BasePosDialog {
     
     @FXML
     private StackPane paneReceiptRow;

@@ -15,7 +15,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
-public abstract class BasePaymentDialog {
+public abstract class BasePosDialog {
     protected static final Pattern NUMERIC_PATTERN = Pattern.compile("\\d*(\\.\\d*)?");
     protected static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
     

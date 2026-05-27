@@ -22,7 +22,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Scope("prototype")
 @FxmlView("/view/pos/dialog/CreditPaymentDialog.fxml")
 @RequiredArgsConstructor
-public class CreditDialogController extends BasePaymentDialog {
+public class CreditDialogController extends BasePosDialog {
 
     @FXML private Label lblAmount;
     @FXML private Label lblDiscount;

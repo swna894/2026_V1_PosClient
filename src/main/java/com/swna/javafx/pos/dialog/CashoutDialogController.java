@@ -22,7 +22,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Scope("prototype")
 @FxmlView("/view/pos/dialog/CashoutPaymentDialog.fxml")
 @RequiredArgsConstructor
-public class CashoutDialogController extends BasePaymentDialog {
+public class CashoutDialogController extends BasePosDialog {
 
     @FXML private Label lblAmount;
     @FXML private Label lblDiscount;
