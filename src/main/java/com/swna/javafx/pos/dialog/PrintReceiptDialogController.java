@@ -116,7 +116,6 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         setupBindings();
         setupDatePickers();
         setupTableColumns();
-        setupReceiptTableDirect();
         setupTableBindings();
         setupButtonActions();
         setupSelectionListener();
@@ -129,68 +128,6 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         log.info("[PrintReceiptDialog] initialize() completed");
     }
     
-    /**
-     * Receipt Table 직접 설정 (강제 적용)
-     */
-    private void setupReceiptTableDirect() {
-        log.info("[PrintReceiptDialog] setupReceiptTableDirect() started");
-        
-        if (receiptItemsTableView == null) {
-            log.error("[PrintReceiptDialog] receiptItemsTableView is NULL!");
-            return;
-        }
-        
-        // 번호 컬럼
-        if (noColumn != null) {
-            noColumn.setCellValueFactory(cellData -> {
-                int index = receiptItemsTableView.getItems().indexOf(cellData.getValue()) + 1;
-                return new SimpleObjectProperty<>(String.valueOf(index));
-            });
-            noColumn.setStyle("-fx-alignment: CENTER;");
-        }
-        
-        // 영수증 번호 컬럼
-        if (receiptColumn != null) {
-            receiptColumn.setCellValueFactory(cellData -> {
-                SaleModel sale = cellData.getValue();
-                return new SimpleStringProperty(sale != null && sale.getReceiptNo() != null ? sale.getReceiptNo() : "");
-            });
-        }
-        
-        // 총액 컬럼
-        if (amountColumn != null) {
-            amountColumn.setCellValueFactory(cellData -> {
-                SaleModel sale = cellData.getValue();
-                return new SimpleObjectProperty<>(sale != null && sale.getSaleAmount() != null ? sale.getSaleAmount() : BigDecimal.ZERO);
-            });
-            amountColumn.setCellFactory(col -> new TableCell<SaleModel, BigDecimal>() {
-                @Override
-                protected void updateItem(BigDecimal item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) setText(null);
-                    else setText(String.format("$%,.2f", item));
-                }
-            });
-        }
-        
-        // 할인 컬럼
-        if (discountColumn != null) {
-            discountColumn.setCellValueFactory(cellData -> {
-                SaleModel sale = cellData.getValue();
-                return new SimpleObjectProperty<>(sale != null && sale.getDiscountAmount() != null ? sale.getDiscountAmount() : BigDecimal.ZERO);
-            });
-            discountColumn.setCellFactory(col -> new TableCell<SaleModel, BigDecimal>() {
-                @Override
-                protected void updateItem(BigDecimal item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) setText(null);
-                    else setText(String.format("$%,.2f", item));
-                }
-            });
-        }
-        
-        receiptItemsTableView.refresh();
-    }
 
     private void setupTableColumns() {
         log.info("[PrintReceiptDialog] setupTableColumns() started");
@@ -515,17 +452,12 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
                 });
     }
 
-        /**
+    /**
      * 실제 preview 갱신
      */
-    private void updateReceiptPreview(
-            SaleModel sale,
-            List<SaleItemModel> items
-    ) {
+    private void updateReceiptPreview( SaleModel sale, List<SaleItemModel> items) {
 
-        if (sale == null) {
-            return;
-        }
+        if (sale == null) {  return;  }
 
         log.info(
                 "[updateReceiptPreview] receipt={}, itemCount={}",
@@ -534,9 +466,7 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         );
 
         if (previewReceiptNo != null) {
-            previewReceiptNo.setText(
-                    "Receipt #: " + sale.getReceiptNo()
-            );
+            previewReceiptNo.setText(  "Receipt #: " + sale.getReceiptNo());
         }
 
         if (previewDate != null) {
@@ -701,7 +631,7 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
                 double price = item.getSalePrice() != null ? item.getSalePrice().doubleValue() : 0;
                 double amount = item.getSaleAmount() != null ? item.getSaleAmount().doubleValue() : 0;
                 double discount = item.getDiscountAmount() != null ? item.getDiscountAmount().doubleValue() : 0;
-                double finalAmount = amount - discount;
+                double finalAmount = amount;
                 
                 subtotal += amount;
                 
