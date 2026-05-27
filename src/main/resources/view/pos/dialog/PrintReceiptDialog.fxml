@@ -116,52 +116,52 @@
                               <Separator orientation="VERTICAL" />
 
                               <!-- Total - HBox로 감쌈 -->
-                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="90">
                                  <Label style="-fx-text-fill: #7f8c8d;" text="Total:" />
                                  <Label fx:id="summaryTotalLabel"
                                     style="-fx-font-weight: bold; -fx-text-fill: #27ae60;"
                                     text="\$0.00"
-                                    minWidth="85" />
-                              </HBox>
-                              <Separator orientation="VERTICAL" />
-
-                              <!-- Discount - HBox로 감쌈 -->
-                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
-                                 <Label style="-fx-text-fill: #7f8c8d;" text="Discount:" />
-                                 <Label fx:id="summaryDiscountLabel"
-                                    style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;"
-                                    text="\$0.00"
-                                    minWidth="85" />
+                                    minWidth="70" />
                               </HBox>
                               <Separator orientation="VERTICAL" />
 
                               <!-- Cash - HBox로 감쌈 -->
-                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="90">
                                  <Label style="-fx-text-fill: #7f8c8d;" text="Cash:" />
                                  <Label fx:id="summaryCashLabel"
                                     style="-fx-font-weight: bold; -fx-text-fill: #2980b9;"
                                     text="\$0.00"
-                                    minWidth="85" />
+                                    minWidth="70" />
                               </HBox>
                               <Separator orientation="VERTICAL" />
 
                               <!-- Credit - HBox로 감쌈 -->
-                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="90">
                                  <Label style="-fx-text-fill: #7f8c8d;" text="Credit:" />
                                  <Label fx:id="summaryCreditLabel"
                                     style="-fx-font-weight: bold; -fx-text-fill: #8e44ad;"
                                     text="\$0.00"
-                                    minWidth="85" />
+                                    minWidth="70" />
                               </HBox>
                               <Separator orientation="VERTICAL" />
 
                               <!-- Cashout - HBox로 감쌈 -->
-                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="100">
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="90">
                                  <Label style="-fx-text-fill: #7f8c8d;" text="Cashout:" />
                                  <Label fx:id="summaryCashoutLabel"
                                     style="-fx-font-weight: bold; -fx-text-fill: #e67e22;"
                                     text="\$0.00"
-                                    minWidth="85" />
+                                    minWidth="70" />
+                              </HBox>
+                              <Separator orientation="VERTICAL" />
+
+                              <!-- Discount - HBox로 감쌈 -->
+                              <HBox alignment="CENTER_LEFT" spacing="3" minWidth="90">
+                                 <Label style="-fx-text-fill: #7f8c8d;" text="Discount:" />
+                                 <Label fx:id="summaryDiscountLabel"
+                                    style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;"
+                                    text="\$0.00"
+                                    minWidth="70" />
                               </HBox>
                               <Separator orientation="VERTICAL" />
 

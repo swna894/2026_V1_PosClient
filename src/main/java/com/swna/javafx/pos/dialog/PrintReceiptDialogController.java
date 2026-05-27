@@ -198,6 +198,24 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
                 Platform.runLater(() -> updateStatusMessage(msg != null ? msg : "Ready"))
             );
         }
+
+        // =========================================================
+        // Receipt No Label 바인딩 (추가)
+        // =========================================================
+        if (receiptNoLabel != null) {
+            receiptNoLabel.textProperty().bind(
+                Bindings.createStringBinding(
+                    () -> {
+                        SaleModel selected = salesViewModel.selectedSaleProperty().get();
+                        if (selected != null && selected.getReceiptNo() != null) {
+                            return selected.getReceiptNo();
+                        }
+                        return "No receipt selected";
+                    },
+                    salesViewModel.selectedSaleProperty()
+                )
+            );
+        }
         
         // =========================================================
         // Toolbar Summary - 선택된 영수증의 아이템 기준으로 변경
@@ -783,10 +801,6 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         return String.format("$%,.2f", amount);
     }
     
-    private String formatMoney(BigDecimal amount) {
-        if (amount == null) return "$0.00";
-        return String.format("$%,.2f", amount);
-    }
     
     private String escapeHtml(String text) {
         if (text == null) return "";
