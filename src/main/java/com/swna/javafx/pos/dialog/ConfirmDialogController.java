@@ -18,22 +18,33 @@ import net.rgielen.fxweaver.core.FxmlView;
 public class ConfirmDialogController extends BasePaymentDialog {
     
     @FXML
-    private StackPane paneReceiptRow;  // 포커스를 받을 영역 (선택사항)
+    private StackPane paneReceiptRow;
     
     @FXML
-    private TextField txtReceiptNumber;  // 숨겨진 필드로 사용 가능 (선택사항)
+    private TextField txtReceiptNumber;
+    
+    private Runnable onConfirm;
+    private Runnable onCancel;
     
     @FXML
     public void initialize() {
         // 전체 창 드래그 기능 활성화
         enableFullWindowDrag();
         
-        // ESC 키 전역 처리 (선택사항)
+        // ESC/ENTER 키 전역 처리
         setupGlobalKeyEvents();
     }
     
     /**
-     * 다이얼로그 전체에서 ESC 키 처리
+     * 다이얼로그 초기화 (콜백 설정)
+     */
+    public void initData(Runnable onConfirm, Runnable onCancel) {
+        this.onConfirm = onConfirm;
+        this.onCancel = onCancel;
+    }
+    
+    /**
+     * 다이얼로그 전체에서 ESC/ENTER 키 처리
      */
     private void setupGlobalKeyEvents() {
         TextField focusField = getFocusField();
@@ -54,11 +65,9 @@ public class ConfirmDialogController extends BasePaymentDialog {
     @Override
     protected void handleConfirm() {
         log.info("Confirm button clicked - Deleting all items");
-        
-        // 서버에 DELETE 요청 로직 호출
-        deleteAllItemsToServer();
-        
-        // 다이얼로그 닫기
+        if (onConfirm != null) {
+            onConfirm.run();
+        }
         closeDialog();
     }
     
@@ -66,39 +75,14 @@ public class ConfirmDialogController extends BasePaymentDialog {
     @Override
     protected void handleCancel() {
         log.info("Cancel button clicked - Delete operation cancelled");
+        if (onCancel != null) {
+            onCancel.run();
+        }
         closeDialog();
     }
     
     @Override
     protected TextField getFocusField() {
-        // 포커스를 받을 TextField 반환 (없으면 null)
-        // 드래그 기능을 위해 필요하지만, TextField가 없으면 StackPane이나 다른 노드 사용 가능
         return txtReceiptNumber;
-    }
-    
-    private void deleteAllItemsToServer() {
-        try {
-            log.info("Sending DELETE request to server for all items...");
-            
-            // REST API 호출 예시
-            // ResponseEntity<Void> response = restTemplate.exchange(
-            //     "/api/items/all",
-            //     HttpMethod.DELETE,
-            //     null,
-            //     Void.class
-            // );
-            
-            // if (response.getStatusCode().is2xxSuccessful()) {
-            //     log.info("All items deleted successfully from server");
-            // } else {
-            //     log.error("Failed to delete items from server");
-            // }
-            
-            // 임시 로그
-            log.info("All items deleted from server successfully");
-            
-        } catch (Exception e) {
-            log.error("Error while deleting items from server", e);
-        }
     }
 }

@@ -327,7 +327,40 @@ public class PosViewController {
         showSuccessMessage("Barcode scanned: " + barcodeNumber);
     }
 
-    @FXML private void onActionCancel(ActionEvent e) { log.info("onActionCancel"); }
+    @FXML private void onActionCancel(ActionEvent e) { 
+        log.info("onActionCancel");
+        
+        // 확인 다이얼로그 표시
+        paymentDialogManager.showConfirmDeleteDialog(
+            // 확인 시 실행할 로직
+            () -> {
+                log.info("User confirmed - Deleting all items");
+                viewModel.clear();  // 모든 아이템 삭제
+                showSuccessMessage("All items have been deleted");
+                
+                // 서버에 DELETE 요청 (선택사항)
+                deleteAllItemsToServer();
+            },
+            // 취소 시 실행할 로직
+            () -> {
+                log.info("User cancelled - Delete operation cancelled");
+                showErrorMessage("Delete operation cancelled");
+            }
+        );
+    }
+
+    /**
+     * 서버에 전체 항목 삭제 요청
+     */
+    private void deleteAllItemsToServer() {
+        log.info("Sending DELETE request to server for all items");
+        // 예: restTemplate.delete("/api/items/all");
+    }
+
+
+
+
+
     @FXML private void onActionQty(ActionEvent e) { log.info("onActionQty"); }
     @FXML private void onActionPrint(ActionEvent e) { 
         log.info("onActionPrint");

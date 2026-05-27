@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.pos.dialog.BarcodeDialogController;
 import com.swna.javafx.pos.dialog.CashDialogController;
 import com.swna.javafx.pos.dialog.CashoutDialogController;
+import com.swna.javafx.pos.dialog.ConfirmDialogController;
 import com.swna.javafx.pos.dialog.CreditDialogController;
 import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
@@ -15,7 +16,6 @@ import com.swna.javafx.pos.dialog.PrintReceiptDialogController;
 import com.swna.javafx.pos.dialog.ReceiptDialogController;
 import com.swna.javafx.pos.dialog.VolumeDiscountDialogController;
 import com.swna.javafx.pos.functional.TriConsumer;
-import com.swna.javafx.pos.manager.PaymentDialogManager.DialogResult;
 import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
 
@@ -141,6 +141,16 @@ public class PaymentDialogManager {
             })
         );
     }
+
+    /**
+     * 전체 항목 삭제 확인 다이얼로그 표시
+     */
+    public void showConfirmDeleteDialog(Runnable onConfirm, Runnable onCancel) {
+        showDialog(ConfirmDialogController.class, controller ->
+            controller.initData(onConfirm, onCancel)
+        );
+    }
+
 
     /**
      * 가격 변경 다이얼로그 표시
