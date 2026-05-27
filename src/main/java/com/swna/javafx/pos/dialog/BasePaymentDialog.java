@@ -4,6 +4,7 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -21,6 +22,7 @@ public abstract class BasePaymentDialog {
     private double xOffset = 0;
     private double yOffset = 0;
     private boolean dragEnabled = false;
+    private Scene scene = null;
 
     /** 
      * 숫자와 소수점 하나만 허용하는 필터
@@ -46,53 +48,43 @@ public abstract class BasePaymentDialog {
     }
 
     /**
-     * 다이얼로그 드래그 기능 활성화 (기본 비활성화)
-     * @param node 드래그 시작점이 될 Node (예: 타이틀바, 패널 등)
-     */
-    protected void enableDrag(Node node) {
-        this.dragEnabled = true;
-        setupDragListeners(node);
-    }
-
-    /**
-     * 전체 Scene에 드래그 기능 활성화 (다이얼로그 전체 드래그)
+     * 다이얼로그 드래그 기능 활성화 (전체 영역)
      */
     protected void enableFullWindowDrag() {
-        Node focusField = getFocusField();
-        if (focusField != null && focusField.getScene() != null) {
-            enableDrag(focusField.getScene().getRoot());
-        } else {
-            // Scene이 아직 설정되지 않은 경우 리스너 등록
-            if (focusField != null) {
-                focusField.sceneProperty().addListener((obs, oldScene, newScene) -> {
-                    if (newScene != null) {
-                        enableDrag(newScene.getRoot());
-                    }
-                });
+        this.dragEnabled = true;
+        
+        // Stage가 준비될 때까지 대기
+        Platform.runLater(() -> {
+            Stage stage = getCurrentStage();
+            if (stage != null && stage.getScene() != null) {
+                setupDragListeners(stage.getScene());
+            } else {
+                // Scene이 아직 없으면 리스너 등록
+                Node focusField = getFocusField();
+                if (focusField != null) {
+                    focusField.sceneProperty().addListener((obs, oldScene, newScene) -> {
+                        if (newScene != null && newScene.getWindow() instanceof Stage) {
+                            setupDragListeners(newScene);
+                        }
+                    });
+                }
             }
-        }
+        });
     }
 
     /**
-     * 드래그 리스너 설정
+     * 드래그 리스너 설정 (Scene 전체)
      */
-    private void setupDragListeners(Node node) {
-        if (node == null) return;
+    private void setupDragListeners(Scene scene) {
+        if (scene == null || !dragEnabled) return;
         
-        // Scene이 있으면 리스너 등록 (중복 방지를 위해 기존 리스너 제거 후 추가)
-        Scene scene = node.getScene();
-        if (scene != null) {
-            scene.setOnMousePressed(this::handleMousePressed);
-            scene.setOnMouseDragged(this::handleMouseDragged);
-        } else {
-            // Scene이 아직 없으면 나중에 설정
-            node.sceneProperty().addListener((obs, oldScene, newScene) -> {
-                if (newScene != null) {
-                    newScene.setOnMousePressed(this::handleMousePressed);
-                    newScene.setOnMouseDragged(this::handleMouseDragged);
-                }
-            });
-        }
+        this.scene = scene;
+        
+        // 마우스 이벤트 리스너 추가
+        scene.setOnMousePressed(this::handleMousePressed);
+        scene.setOnMouseDragged(this::handleMouseDragged);
+        
+        System.out.println("[BasePaymentDialog] Drag listeners enabled for scene");
     }
 
     /**
@@ -100,8 +92,13 @@ public abstract class BasePaymentDialog {
      */
     private void handleMousePressed(MouseEvent event) {
         if (!dragEnabled) return;
-        xOffset = event.getSceneX();
-        yOffset = event.getSceneY();
+        
+        Stage stage = getCurrentStage();
+        if (stage != null) {
+            xOffset = event.getScreenX() - stage.getX();
+            yOffset = event.getScreenY() - stage.getY();
+            System.out.println("[BasePaymentDialog] Mouse pressed - offset: " + xOffset + ", " + yOffset);
+        }
     }
 
     /**
@@ -109,10 +106,12 @@ public abstract class BasePaymentDialog {
      */
     private void handleMouseDragged(MouseEvent event) {
         if (!dragEnabled) return;
+        
         Stage stage = getCurrentStage();
         if (stage != null) {
             stage.setX(event.getScreenX() - xOffset);
             stage.setY(event.getScreenY() - yOffset);
+            System.out.println("[BasePaymentDialog] Mouse dragged - stage position: " + stage.getX() + ", " + stage.getY());
         }
     }
 
@@ -124,6 +123,12 @@ public abstract class BasePaymentDialog {
         if (focusField != null && focusField.getScene() != null) {
             return (Stage) focusField.getScene().getWindow();
         }
+        
+        // Scene이 이미 저장되어 있으면 사용
+        if (scene != null && scene.getWindow() instanceof Stage) {
+            return (Stage) scene.getWindow();
+        }
+        
         return null;
     }
 

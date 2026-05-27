@@ -158,7 +158,7 @@ public class PosViewController {
     }
     
     // ========== Setup Methods ==========
-    private final TablePosition<PosItem, ?>[] editingCellRef = new TablePosition[1];
+
     private void setupTable() {
         PosTableSetup.TableColumns columns = PosTableSetup.TableColumns.builder()
             .colNo(colNo)
@@ -226,8 +226,7 @@ public class PosViewController {
         }
     }
 
-    @FXML
-    private void onActionCart(ActionEvent event) {
+    @FXML private void onActionCart(ActionEvent event) {
         cartButtonManager.handleCartAction(viewModel, (Button) event.getSource(), () -> {
             table.refresh();
             if (!table.getItems().isEmpty()) table.getSelectionModel().select(0);
@@ -235,22 +234,19 @@ public class PosViewController {
         });
     }
 
-    @FXML
-    private void onActionCash(ActionEvent event) {
+    @FXML private void onActionCash(ActionEvent event) {
         paymentDialogManager.showCashDialog(viewModel, 
             result -> afterPayment(result, "Cash")
         );
     }
 
-    @FXML
-    private void onActionCredit(ActionEvent event) {
+    @FXML private void onActionCredit(ActionEvent event) {
         paymentDialogManager.showCreditDialog(viewModel,
             result -> afterPayment(result, "Mixed")
         );
     }
 
-    @FXML
-    private void onActionCashout(ActionEvent event) {
+    @FXML private void onActionCashout(ActionEvent event) {
         paymentDialogManager.showCashoutDialog(viewModel,
             result -> afterPayment(result, "Cashout")
         );
@@ -277,6 +273,7 @@ public class PosViewController {
     }
 
     @FXML private void onClose(MouseEvent event) { viewModel.clear(); System.exit(0); }
+
     @FXML private void onActionDiscountVolumn(ActionEvent e) { 
         log.info("onActionDiscountVolumn");
         

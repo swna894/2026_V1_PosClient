@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 
 @Slf4j
 @Service
-public class PaymentApiService {
+public class PosApiService {
 
     private final WebClientCommon webClientCommon;
     
@@ -27,7 +27,7 @@ public class PaymentApiService {
     private static final ParameterizedTypeReference<ApiResponse<SaleResponse>> SALE_RESPONSE_TYPE = 
         new ParameterizedTypeReference<ApiResponse<SaleResponse>>() {};
 
-    public PaymentApiService(WebClientCommon webClientCommon) {
+    public PosApiService(WebClientCommon webClientCommon) {
         this.webClientCommon = webClientCommon;
     }
 

@@ -117,6 +117,7 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         setupSelectionListener();
         setupSaleItemsListener();
 
+        enableFullWindowDrag();
         // Scene에 키 이벤트 추가 (가장 간단함)
         Platform.runLater(() -> {
             if (receiptNoLabel != null && receiptNoLabel.getScene() != null) {
@@ -131,7 +132,6 @@ public class PrintReceiptDialogController extends BasePaymentDialog implements I
         });
 
         loadInitialData();
-        enableFullWindowDrag();
         
         log.info("[PrintReceiptDialog] initialize() completed");
     }

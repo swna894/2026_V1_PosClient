@@ -10,7 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.pos.api.PaymentApiService;
+import com.swna.javafx.pos.api.PosApiService;
 import com.swna.javafx.pos.event.PaymentSuccessEvent;
 import com.swna.javafx.pos.event.PrintFailureEvent;
 import com.swna.javafx.pos.model.PosItem;
@@ -39,7 +39,7 @@ public class PosViewModel {
     private final DiscountManager discountManager;
     private final HoldManager holdManager;
     private final ScanHandler scanHandler;
-    private final PaymentProcessor paymentProcessor;
+    private final PosProcessor posProcessor;
     
     // ========== UI 상태 ==========
     private final StringProperty scannedCode = new SimpleStringProperty("");
@@ -47,13 +47,13 @@ public class PosViewModel {
     
     public PosViewModel(ApplicationEventPublisher eventPublisher, 
                         ScanService posService, 
-                        PaymentApiService paymentService) {
+                        PosApiService posApiService) {
         this.eventPublisher = eventPublisher;
         this.cartManager = new CartManager();
         this.discountManager = new DiscountManager(cartManager);
         this.holdManager = new HoldManager(cartManager);
         this.scanHandler = new ScanHandler(posService, cartManager);
-        this.paymentProcessor = new PaymentProcessor(cartManager, paymentService);
+        this.posProcessor = new PosProcessor(cartManager, posApiService);
         
         setupScanCallbacks();
     }
@@ -238,7 +238,7 @@ public class PosViewModel {
      * 할인 적용된 최종 결제 금액
      */
     public BigDecimal getTotalAfterDiscount() {
-        return paymentProcessor.getTotalAfterDiscount();
+        return posProcessor.getTotalAfterDiscount();
     }
     
     // ========== 현금 결제 ==========
@@ -249,7 +249,7 @@ public class PosViewModel {
     
     public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash, 
                                    Consumer<Boolean> onComplete) {
-        paymentProcessor.processCashPayment(totalAmount, receivedCash, 
+        posProcessor.processCashPayment(totalAmount, receivedCash, 
             processed -> handleProcessedPayment(processed, onComplete),
             createResultHandler()
         );
@@ -273,7 +273,7 @@ public class PosViewModel {
     
     public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount,
                                       String cardNumber, Consumer<Boolean> onComplete) {
-        paymentProcessor.processCashoutPayment(cashoutAmount, totalCardAmount, cardNumber,
+        posProcessor.processCashoutPayment(cashoutAmount, totalCardAmount, cardNumber,
             processed -> handleProcessedPayment(processed, onComplete),
             createResultHandler()
         );
@@ -295,7 +295,7 @@ public class PosViewModel {
     
     public void processCreditPayment(BigDecimal cardAmount, String cardNumber, 
                                      Consumer<Boolean> onComplete) {
-        paymentProcessor.processCreditPayment(cardAmount, cardNumber,
+        posProcessor.processCreditPayment(cardAmount, cardNumber,
             processed -> handleProcessedPayment(processed, onComplete),
             createResultHandler()
         );
@@ -316,7 +316,7 @@ public class PosViewModel {
     }
     
     public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart,  String cardNumber, Consumer<Boolean> onComplete) {
-        paymentProcessor.processMixedPayment(cashPart, creditPart, cardNumber,
+        posProcessor.processMixedPayment(cashPart, creditPart, cardNumber,
             processed -> handleProcessedPayment(processed, onComplete),
             createResultHandler()
         );
@@ -327,7 +327,7 @@ public class PosViewModel {
     /**
      * ProcessedPayment 결과 처리
      */
-    private void handleProcessedPayment(PaymentProcessor.ProcessedPayment processed, 
+    private void handleProcessedPayment(PosProcessor.ProcessedPayment processed, 
                                         Consumer<Boolean> onComplete) {
         List<PosItem> itemsSnapshot = List.copyOf(getPosItems());
 
@@ -353,7 +353,7 @@ public class PosViewModel {
         }
     }
     
-    private void updateUIBeforeComplete(PaymentProcessor.ProcessedPayment processed) {
+    private void updateUIBeforeComplete(PosProcessor.ProcessedPayment processed) {
         Platform.runLater(() -> {
             scanStatus.set(processed.saleRequest().getPaymentTypeCode() + " " + STATUS_PAYMENT_SUCCESS   );
             clear();
@@ -363,8 +363,8 @@ public class PosViewModel {
     /**
      * PaymentResultHandler 생성 (UI 업데이트용)
      */
-    private PaymentProcessor.PaymentResultHandler createResultHandler() {
-        return new PaymentProcessor.PaymentResultHandler() {
+    private PosProcessor.PaymentResultHandler createResultHandler() {
+        return new PosProcessor.PaymentResultHandler() {
             @Override
             public void onFailure(String message) {
                 Platform.runLater(() -> {

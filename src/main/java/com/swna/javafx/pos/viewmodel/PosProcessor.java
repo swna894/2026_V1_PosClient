@@ -1,6 +1,6 @@
 package com.swna.javafx.pos.viewmodel;
 
-import com.swna.javafx.pos.api.PaymentApiService;
+import com.swna.javafx.pos.api.PosApiService;
 import com.swna.javafx.pos.dto.request.DiscountRequest;
 import com.swna.javafx.pos.dto.request.DiscountType;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
@@ -24,10 +24,10 @@ import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.*;
 
 @Slf4j
 @RequiredArgsConstructor
-public class PaymentProcessor {
+public class PosProcessor {
 
     private final CartManager cartManager;
-    private final PaymentApiService paymentService;
+    private final PosApiService posApiService;
 
     // ========== Result Record ==========
     
@@ -309,7 +309,7 @@ public class PaymentProcessor {
             buildCurrentSaleRequest().discounts()
         );
 
-        paymentService.executePayment(finalSaleRequest, paymentType)
+        posApiService.executePayment(finalSaleRequest, paymentType)
             .subscribe(result -> handlePaymentResult(result, finalSaleRequest, successMessage, onComplete, resultHandler));
     }
 
