@@ -13,7 +13,7 @@
 
 <VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css"
    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.swna.javafx.pos.dialog.ConfirmDialogController">
+   fx:controller="com.swna.javafx.pos.dialog.CancelDialogController">
 
    <padding>
       <Insets bottom="25" left="30" right="30" top="25" />

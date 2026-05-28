@@ -52,38 +52,28 @@ public class SalesViewModel {
     // Observable Collections
     // =========================================================
 
-    private final ObservableList<SaleModel> salesList =
-            FXCollections.observableArrayList();
-
-    private final ObservableList<SaleItemModel> saleItemsList =
-            FXCollections.observableArrayList();
+    private final ObservableList<SaleModel> salesList = FXCollections.observableArrayList();
+    private final ObservableList<SaleItemModel> saleItemsList = FXCollections.observableArrayList();
 
     // =========================================================
     // Selection
     // =========================================================
 
-    private final ObjectProperty<SaleModel> selectedSale =
-            new SimpleObjectProperty<>();
+    private final ObjectProperty<SaleModel> selectedSale =  new SimpleObjectProperty<>();
 
     // =========================================================
     // Search Conditions
     // =========================================================
 
-    private final ObjectProperty<LocalDate> startDate =
-            new SimpleObjectProperty<>(LocalDate.now());
-
-    private final ObjectProperty<LocalDate> endDate =
-            new SimpleObjectProperty<>(LocalDate.now());
+    private final ObjectProperty<LocalDate> startDate =  new SimpleObjectProperty<>(LocalDate.now());
+    private final ObjectProperty<LocalDate> endDate = new SimpleObjectProperty<>(LocalDate.now());
 
     // =========================================================
     // UI State
     // =========================================================
 
-    private final BooleanProperty loading =
-            new SimpleBooleanProperty(false);
-
-    private final StringProperty errorMessage =
-            new SimpleStringProperty("Ready");
+    private final BooleanProperty loading = new SimpleBooleanProperty(false);
+    private final StringProperty errorMessage = new SimpleStringProperty("Ready");
 
     // =========================================================
     // Main Summary
@@ -92,50 +82,42 @@ public class SalesViewModel {
     /**
      * Orig. TOTAL
      */
-    private final ObjectProperty<BigDecimal> totalOriginalAmount =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> totalOriginalAmount =  new SimpleObjectProperty<>(BigDecimal.ZERO);
 
     /**
      * Final TOTAL
      */
-    private final ObjectProperty<BigDecimal> totalSalesAmount =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> totalSalesAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
 
     /**
      * Dis. TOTAL / D/C
      */
-    private final ObjectProperty<BigDecimal> totalDiscountAmount =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> totalDiscountAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
 
     /**
      * COST
      */
-    private final ObjectProperty<BigDecimal> totalCostAmount =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> totalCostAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
 
     /**
      * CASH
      */
-    private final ObjectProperty<BigDecimal> totalCashAmount =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> totalCashAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
 
     /**
      * CREDIT
      */
-    private final ObjectProperty<BigDecimal> totalCreditAmount =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> totalCreditAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
 
     /**
      * CASH OUT
      */
-    private final ObjectProperty<BigDecimal> totalCashoutAmount =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> totalCashoutAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
 
     /**
      * 전체 건수
      */
-    private final IntegerProperty totalCount =
-            new SimpleIntegerProperty(0);
+    private final IntegerProperty totalCount = new SimpleIntegerProperty(0);
 
     // =========================================================
     // Selected Sale Item Summary
@@ -561,6 +543,7 @@ public class SalesViewModel {
         model.setChangeAmount(dto.getChangeAmount());
         model.setPaymentType(dto.getPaymentType());
         model.setCardNumber(dto.getCardNumber());
+        model.setStatus(dto.getStatus());
         return model;
     }
 

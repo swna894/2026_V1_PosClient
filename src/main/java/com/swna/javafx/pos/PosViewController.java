@@ -234,6 +234,9 @@ public class PosViewController {
         });
     }
 
+    // [사용자] → [PosViewController] → [PosDialogManager] → [CashDialogController]
+    // → [PosViewModel] → [PosProcessor] → [PosApiService] → [WebClientCommon]
+    // → [CommonApiClient] → [WebClient] → [서버]
     @FXML private void onActionCash(ActionEvent event) {
         posDialogManager.showCashDialog(viewModel, 
             result -> afterPayment(result, "Cash")
@@ -246,6 +249,9 @@ public class PosViewController {
         );
     }
 
+    // [사용자] → [PosViewController] → [PosDialogManager] → [CashoutDialogController]
+    // → [PosViewModel] → [PosProcessor] → [PosApiService] → [WebClientCommon]
+    // → [CommonApiClient] → [WebClient] → [서버]
     @FXML private void onActionCashout(ActionEvent event) {
         posDialogManager.showCashoutDialog(viewModel,
             result -> afterPayment(result, "Cashout")
@@ -330,42 +336,8 @@ public class PosViewController {
     @FXML private void onActionCancel(ActionEvent e) { 
         log.info("onActionCancel");
         
-        // getPosItems()를 사용하여 아이템 존재 여부 확인
-        if (viewModel.getPosItems().isEmpty()) {
-            log.info("No items in cart - skipping confirmation dialog");
-            showErrorMessage("No items to delete");
-            return;
-        }
-
-        // 확인 다이얼로그 표시
-        posDialogManager.showConfirmDeleteDialog(
-            // 확인 시 실행할 로직
-            () -> {
-                log.info("User confirmed - Deleting all items");
-                viewModel.clear();  // 모든 아이템 삭제
-                showSuccessMessage("All items have been deleted");
-                
-                // 서버에 DELETE 요청 (선택사항)
-                deleteAllItemsToServer();
-            },
-            // 취소 시 실행할 로직
-            () -> {
-                log.info("User cancelled - Delete operation cancelled");
-                showErrorMessage("Delete operation cancelled");
-            }
-        );
+        posDialogManager.showCancelDialog(viewModel,  result -> afterPayment(result, "Cash") );
     }
-
-    /**
-     * 서버에 전체 항목 삭제 요청
-     */
-    private void deleteAllItemsToServer() {
-        log.info("Sending DELETE request to server for all items");
-        // 예: restTemplate.delete("/api/items/all");
-    }
-
-
-
 
 
     @FXML private void onActionQty(ActionEvent e) { log.info("onActionQty"); }

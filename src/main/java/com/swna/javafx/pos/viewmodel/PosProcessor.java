@@ -75,6 +75,24 @@ public class PosProcessor {
     }
 
     /**
+     * 취소 결제 처리
+     */
+    public void processCancelPayment(BigDecimal totalAmount, BigDecimal receivedCash,
+                                   Consumer<ProcessedPayment> onComplete,
+                                   PaymentResultHandler resultHandler) {
+
+        PaymentRequest payment = PaymentRequestBuilder.delete(totalAmount, receivedCash);
+        
+        executePayment(
+            List.of(payment),
+            PAYMENT_DESC_DELETE,
+            "Delete success. ",
+            onComplete,
+            resultHandler
+        );
+    }
+
+    /**
      * 현금 인출 결제 처리 (카드번호 포함)
      */
     public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount,
@@ -171,6 +189,15 @@ public class PosProcessor {
         static PaymentRequest cash(BigDecimal amount, BigDecimal received) {
             return new PaymentRequest(PAY_CASH, amount, received, BigDecimal.ZERO, null, null);
         }
+
+        @SuppressWarnings("unused")
+        static PaymentRequest cancel(BigDecimal amount, BigDecimal received) {
+            return new PaymentRequest(PAY_CANCEL, amount, received, BigDecimal.ZERO, null, null);
+        }
+
+        static PaymentRequest delete(BigDecimal amount, BigDecimal received) {
+            return new PaymentRequest(PAY_DELETE, amount, received, BigDecimal.ZERO, null, null);
+        }
         
         static PaymentRequest credit(BigDecimal amount, String cardNumber) {
             return new PaymentRequest(PAY_CARD, amount, amount, BigDecimal.ZERO, generateRefNo("CREDIT"), cardNumber);
@@ -180,9 +207,7 @@ public class PosProcessor {
             return new PaymentRequest(PAY_CASHOUT, amount, amount, cashoutAmount, refNo, cardNumber);
         }
         
-        private static String generateRefNo(String prefix) {
-            return prefix + "_" + System.currentTimeMillis();
-        }
+        private static String generateRefNo(String prefix) {  return prefix + "_" + System.currentTimeMillis();}
     }
 
     // ========== Validation ==========

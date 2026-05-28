@@ -37,7 +37,7 @@
          </HBox>
 
          <!-- 액션 버튼 -->
-         <Button fx:id="searchButton" text="Search" contentDisplay="CENTER">
+         <Button fx:id="searchButton" contentDisplay="CENTER" text="Search">
             <graphic>
                <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
                   <Image url="@../../images/search.png" />
@@ -56,7 +56,7 @@
          <Region HBox.hgrow="ALWAYS" />
 
 
-         <Button fx:id="excelButton" text="Excel" contentDisplay="CENTER">
+         <Button fx:id="excelButton" contentDisplay="CENTER" text="Excel">
             <graphic>
                <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
                   <Image url="@../../images/excel.png" />
@@ -64,7 +64,7 @@
             </graphic>
          </Button>
 
-         <Button fx:id="reloadButton" text="Reload" contentDisplay="CENTER">
+         <Button fx:id="reloadButton" contentDisplay="CENTER" text="Reload">
             <graphic>
                <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
                   <Image url="@../../images/refresh.png" />

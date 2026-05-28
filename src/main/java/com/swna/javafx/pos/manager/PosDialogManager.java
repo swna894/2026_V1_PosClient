@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.pos.dialog.BarcodeDialogController;
 import com.swna.javafx.pos.dialog.CashDialogController;
 import com.swna.javafx.pos.dialog.CashoutDialogController;
-import com.swna.javafx.pos.dialog.ConfirmDialogController;
+import com.swna.javafx.pos.dialog.CancelDialogController;
 import com.swna.javafx.pos.dialog.CreditDialogController;
 import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
@@ -49,8 +49,33 @@ public class PosDialogManager {
         }
 
         showDialog(CashDialogController.class, controller ->
-            controller.initData(total, discount, receivedCash -> 
-                viewModel.processCashPayment(total, receivedCash, success -> {
+            controller.initData(total, discount, 
+                // 이 람다식이 CashDialogController의 onPaymentComplete 필드에 저장됨
+                receivedCash -> {
+                    // ★ 이 코드가 나중에 실행됨 ★
+                    viewModel.processCashPayment(total, receivedCash, success -> {
+                        if (Boolean.TRUE.equals(success)) {
+                            callback.accept(DialogResult.success("Change: " + receivedCash.subtract(total)));
+                        } else {
+                            callback.accept(DialogResult.failure("Payment failed"));
+                        }
+                    });
+                }
+            )
+        );
+    }
+
+    public void showCancelDialog(PosViewModel viewModel, Consumer<DialogResult> callback) {
+        BigDecimal total = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
+
+        if (total.compareTo(BigDecimal.ZERO) <= 0) {
+            callback.accept(DialogResult.failure("No items to pay"));
+            return;
+        }
+
+        showDialog(CancelDialogController.class, controller ->
+            controller.initData(total, receivedCash -> 
+                viewModel.processCancelPayment(total, receivedCash, success -> {
                     if (Boolean.TRUE.equals(success)) {
                         DialogResult result = DialogResult.success("Change: " + receivedCash.subtract(total));
                         callback.accept(result);
@@ -141,16 +166,6 @@ public class PosDialogManager {
             })
         );
     }
-
-    /**
-     * 전체 항목 삭제 확인 다이얼로그 표시
-     */
-    public void showConfirmDeleteDialog(Runnable onConfirm, Runnable onCancel) {
-        showDialog(ConfirmDialogController.class, controller ->
-            controller.initData(onConfirm, onCancel)
-        );
-    }
-
 
     /**
      * 가격 변경 다이얼로그 표시

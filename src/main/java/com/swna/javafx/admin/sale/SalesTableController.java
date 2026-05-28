@@ -14,10 +14,12 @@ import com.swna.javafx.common.ui.table.TableColumnUtil;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +68,7 @@ public class SalesTableController implements Initializable {
         setupTableBindings();
         setupSummaryBindings();
         setupSelectionListener();
+        setupRowStyling();
     }
     
     private void setupTableColumns() {
@@ -154,6 +157,22 @@ public class SalesTableController implements Initializable {
         });
     }
     
+    // SalesTableController.java
+    private static final PseudoClass DELETED_PSEUDO_CLASS = PseudoClass.getPseudoClass("deleted-row");
+    private void setupRowStyling() {
+        salesTableView.setRowFactory(tv -> new TableRow<SaleModel>() {
+            @Override
+            protected void updateItem(SaleModel item, boolean empty) {
+                super.updateItem(item, empty);
+                
+                pseudoClassStateChanged(DELETED_PSEUDO_CLASS, false);               
+                if (!empty && item != null && "DELETED".equals(item.getStatus())) {
+                       pseudoClassStateChanged(DELETED_PSEUDO_CLASS, true);
+                }
+            }
+        });
+    }
+
     public TableView<SaleModel> getSalesTableView() {
         return salesTableView;
     }

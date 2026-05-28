@@ -23,5 +23,6 @@ public class SaleDto {
     private String paymentType;
     private String cardNumber;
     private String cashier;
+    private String status;
     private LocalDateTime paymentDateTime;
 }

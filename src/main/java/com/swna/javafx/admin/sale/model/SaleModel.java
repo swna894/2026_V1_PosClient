@@ -32,6 +32,7 @@ public class SaleModel {
     private final StringProperty paymentType = new SimpleStringProperty();
     private final StringProperty cardNumber = new SimpleStringProperty();
     private final StringProperty approvalNo = new SimpleStringProperty();
+    private final StringProperty status = new SimpleStringProperty();
     
     // 판매 아이템 목록
     private final List<SaleItemModel> items = new ArrayList<>();
@@ -41,12 +42,13 @@ public class SaleModel {
     }
     
     public SaleModel(String receiptNo, BigDecimal saleAmount, String paymentType, 
-                     LocalDateTime paymentDateTime, String cashier) {
+                     LocalDateTime paymentDateTime, String cashier, String status) {
         this.receiptNo.set(receiptNo);
         this.saleAmount.set(saleAmount);
         this.paymentType.set(paymentType);
         this.paymentDateTime.set(paymentDateTime);
         this.cashier.set(cashier);
+        this.status.set(status);
     }
     
     // Getters and Properties
@@ -113,6 +115,10 @@ public class SaleModel {
     public String getApprovalNo() { return approvalNo.get(); }
     public StringProperty approvalNoProperty() { return approvalNo; }
     public void setApprovalNo(String approvalNo) { this.approvalNo.set(approvalNo); }
+
+    public String getStatus() { return status.get(); }
+    public StringProperty statusProperty() { return status; }
+    public void setStatus(String status) { this.status.set(status); }
     
     public List<SaleItemModel> getItems() { return items; }
     

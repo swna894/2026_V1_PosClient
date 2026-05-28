@@ -1,5 +1,8 @@
 package com.swna.javafx.pos.dialog;
 
+import java.math.BigDecimal;
+import java.util.function.Consumer;
+
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -14,18 +17,15 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Slf4j
 @Component 
 @Scope("prototype")
-@FxmlView("/view/pos/dialog/ConfirmDialog.fxml")
-public class ConfirmDialogController extends BasePosDialog {
+@FxmlView("/view/pos/dialog/CancelDialog.fxml")
+public class CancelDialogController extends BasePosDialog {
     
-    @FXML
-    private StackPane paneReceiptRow;
-    
-    @FXML
-    private TextField txtReceiptNumber;
-    
-    private Runnable onConfirm;
-    private Runnable onCancel;
-    
+    @FXML private StackPane paneReceiptRow;
+    @FXML private TextField txtReceiptNumber;
+
+    private BigDecimal totalAmount;
+    private Consumer<BigDecimal> onPaymentComplete;
+
     @FXML
     public void initialize() {
         // 전체 창 드래그 기능 활성화
@@ -35,14 +35,11 @@ public class ConfirmDialogController extends BasePosDialog {
         setupGlobalKeyEvents();
     }
     
-    /**
-     * 다이얼로그 초기화 (콜백 설정)
-     */
-    public void initData(Runnable onConfirm, Runnable onCancel) {
-        this.onConfirm = onConfirm;
-        this.onCancel = onCancel;
+    public void initData(BigDecimal total, Consumer<BigDecimal> callback) {
+        this.totalAmount = total;
+        this.onPaymentComplete = callback;
     }
-    
+
     /**
      * 다이얼로그 전체에서 ESC/ENTER 키 처리
      */
@@ -65,9 +62,9 @@ public class ConfirmDialogController extends BasePosDialog {
     @Override
     protected void handleConfirm() {
         log.info("Confirm button clicked - Deleting all items");
-        if (onConfirm != null) {
-            onConfirm.run();
-        }
+
+        if (onPaymentComplete != null) onPaymentComplete.accept(totalAmount);
+
         closeDialog();
     }
     
@@ -75,9 +72,6 @@ public class ConfirmDialogController extends BasePosDialog {
     @Override
     protected void handleCancel() {
         log.info("Cancel button clicked - Delete operation cancelled");
-        if (onCancel != null) {
-            onCancel.run();
-        }
         closeDialog();
     }
     

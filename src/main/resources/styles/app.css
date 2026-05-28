@@ -192,6 +192,38 @@
    -fx-font-weight: bold;
 }
 
+/* ========================================================================= */
+/* 3-1. DELETED ROW STYLES (삭제된 판매 건 스타일)                            */
+/* ========================================================================= */
+/* 
+   [추가된 스타일 규칙 - 2024년 추가]
+   목적: 상태가 DELETED인 판매 건을 시각적으로 구분하기 위한 스타일
+   적용 대상: SalesTableController에서 status가 "DELETED"인 행
+   영향: 기존 테이블 스타일에 영향을 주지 않으며, 별도 CSS 클래스로 분리됨
+*/
+/* DELETED 상태의 일반 행 스타일 - 연한 빨간색 배경 */
+/* 일반 deleted */
+.table-row-cell:deleted-row {
+   -fx-background-color: #ffebee;
+}
+
+.table-row-cell:deleted-row .table-cell,
+.table-row-cell:deleted-row .text {
+   -fx-text-fill: #c62828 !important;
+   -fx-fill: #c62828 !important;
+}
+
+/* 선택된 deleted */
+.table-row-cell:deleted-row:selected {
+   -fx-background-color: #ef9a9a;
+}
+
+.table-row-cell:deleted-row:selected .table-cell,
+.table-row-cell:deleted-row:selected .text {
+   -fx-text-fill: #b71c1c !important;
+   -fx-fill: #b71c1c !important;
+}
+
 /* ------------------------------------------------------------------------- */
 /* 특수 규격 테이블 테마 (기존 테마 구조 유지)                                 */
 /* ------------------------------------------------------------------------- */

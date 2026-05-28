@@ -24,11 +24,15 @@ public final class PosViewModelConstants {
     
     // ========== 결제 타입 ==========
     public static final String PAY_CASH = "CASH";
+    public static final String PAY_CANCEL = "CANCEL";
+    public static final String PAY_DELETE = "DELETE";
     public static final String PAY_CARD = "CARD";
     public static final String PAY_CASHOUT = "CASHOUT";
     
     // ========== 결제 설명 ==========
     public static final String PAYMENT_DESC_CASH = "Cash";
+    public static final String PAYMENT_DESC_CANCEL = "Cancel";
+    public static final String PAYMENT_DESC_DELETE = "Delete";
     public static final String PAYMENT_DESC_CASHOUT = "Cashout";
     public static final String PAYMENT_DESC_MIXED = "Mixed";
     public static final String PAYMENT_DESC_CREDIT = "CREDIT"; 

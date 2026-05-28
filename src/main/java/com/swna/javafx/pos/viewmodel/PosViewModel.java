@@ -247,14 +247,21 @@ public class PosViewModel {
         processCashPayment(totalAmount, receivedCash, (Consumer<Boolean>) null);
     }
     
-    public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash, 
-                                   Consumer<Boolean> onComplete) {
+    public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash,   Consumer<Boolean> onComplete) {
         posProcessor.processCashPayment(totalAmount, receivedCash, 
             processed -> handleProcessedPayment(processed, onComplete),
             createResultHandler()
         );
     }
-    
+
+    // ========== 취소 진행 ==========
+    public void processCancelPayment(BigDecimal totalAmount, BigDecimal receivedCash,  Consumer<Boolean> onComplete) {
+        posProcessor.processCancelPayment(totalAmount, receivedCash, 
+            processed -> handleProcessedPayment(processed, onComplete),
+            createResultHandler()
+        );
+    }
+
     // ========== 현금인출 결제 (카드번호 포함) ==========
     
     public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount) {
