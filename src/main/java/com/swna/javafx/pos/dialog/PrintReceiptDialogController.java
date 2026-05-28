@@ -101,6 +101,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
     private Button[] navButtons;
     
     // 현재 선택된 영수증의 아이템을 저장할 변수
+    @SuppressWarnings("unused")
     private List<SaleItemModel> currentReceiptItems;
 
     @Override
@@ -334,6 +335,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
     /**
      * Summary Date 업데이트
      */
+    @SuppressWarnings("unused")
     private void updateSummaryDate() {
         if (summaryDateLabel != null) {
             String todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -341,32 +343,6 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
         }
     }
     
-    /**
-     * Summary 값들을 강제로 새로고침 (ViewModel 데이터 직접 읽기)
-     */
-    private void refreshSummaryValues() {
-        if (summaryTotalLabel != null) {
-            summaryTotalLabel.setText(formatCurrency(salesViewModel.totalSalesAmountProperty().get()));
-        }
-        if (summaryDiscountLabel != null) {
-            summaryDiscountLabel.setText(formatCurrency(salesViewModel.totalDiscountAmountProperty().get()));
-        }
-        if (summaryCashLabel != null) {
-            summaryCashLabel.setText(formatCurrency(salesViewModel.totalCashAmountProperty().get()));
-        }
-        if (summaryCreditLabel != null) {
-            summaryCreditLabel.setText(formatCurrency(salesViewModel.totalCreditAmountProperty().get()));
-        }
-        if (summaryCashoutLabel != null) {
-            summaryCashoutLabel.setText(formatCurrency(salesViewModel.totalCashoutAmountProperty().get()));
-        }
-        if (totalCountLabel != null) {
-            totalCountLabel.setText(String.format("Total: %d", salesViewModel.totalCountProperty().get()));
-        }
-        
-        log.debug("[Refresh] Summary values refreshed manually");
-    }
-
     private void setupDatePickers() {
         if (startDatePicker != null && startDatePicker.getValue() == null) {
             startDatePicker.setValue(LocalDate.now());
@@ -378,7 +354,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
 
     private void setupTableBindings() {
         if (receiptItemsTableView != null) {
-            receiptItemsTableView.setItems(salesViewModel.getSalesList());
+            receiptItemsTableView.setItems(salesViewModel.getFilteredSalesList());
         }
         if (saleItemsTableView != null) {
             saleItemsTableView.setItems(salesViewModel.getSaleItemsList());
@@ -434,7 +410,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
     private void updateAfterDataLoad() {
         Platform.runLater(() -> {
             // 지연 후 Summary 값들 강제 새로고침
-            new Thread(() -> {
+            Thread.startVirtualThread(() -> {
                 try {
                     Thread.sleep(300); // 데이터 로드 완료 대기
                 } catch (InterruptedException e) {
@@ -445,12 +421,9 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
                     updateStatusMessage(size == 0 ? "No receipts found for selected date range" : "Ready - " + size + " receipts found");
                     if (receiptItemsTableView != null) receiptItemsTableView.refresh();
                     
-                    // Summary 값들 강제 새로고침
-                    //refreshSummaryValues();
-                    
                     selectFirstReceiptAfterLoad();
                 });
-            }).start();
+            });
         });
     }
     

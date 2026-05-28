@@ -83,8 +83,7 @@ public abstract class BasePosDialog {
         // 마우스 이벤트 리스너 추가
         scene.setOnMousePressed(this::handleMousePressed);
         scene.setOnMouseDragged(this::handleMouseDragged);
-        
-        System.out.println("[BasePaymentDialog] Drag listeners enabled for scene");
+
     }
 
     /**
@@ -97,7 +96,6 @@ public abstract class BasePosDialog {
         if (stage != null) {
             xOffset = event.getScreenX() - stage.getX();
             yOffset = event.getScreenY() - stage.getY();
-            System.out.println("[BasePaymentDialog] Mouse pressed - offset: " + xOffset + ", " + yOffset);
         }
     }
 
@@ -111,7 +109,6 @@ public abstract class BasePosDialog {
         if (stage != null) {
             stage.setX(event.getScreenX() - xOffset);
             stage.setY(event.getScreenY() - yOffset);
-            System.out.println("[BasePaymentDialog] Mouse dragged - stage position: " + stage.getX() + ", " + stage.getY());
         }
     }
 
@@ -125,8 +122,8 @@ public abstract class BasePosDialog {
         }
         
         // Scene이 이미 저장되어 있으면 사용
-        if (scene != null && scene.getWindow() instanceof Stage) {
-            return (Stage) scene.getWindow();
+        if (scene != null && scene.getWindow() instanceof Stage stage) {
+            return stage;
         }
         
         return null;

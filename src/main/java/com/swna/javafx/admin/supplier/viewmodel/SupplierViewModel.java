@@ -1,19 +1,27 @@
 package com.swna.javafx.admin.supplier.viewmodel;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.springframework.stereotype.Component;
+
 import com.swna.javafx.admin.supplier.domain.Supplier;
 import com.swna.javafx.admin.supplier.service.SupplierService;
+
 import javafx.application.Platform;
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Slf4j
 @Component
@@ -199,13 +207,12 @@ public class SupplierViewModel {
     }
 
     private boolean matchesKeyword(Supplier supplier, String keyword) {
-        if (supplier.getAbbr() != null && supplier.getAbbr().toLowerCase().contains(keyword)) return true;
-        if (supplier.getName() != null && supplier.getName().toLowerCase().contains(keyword)) return true;
-        if (supplier.getCompany() != null && supplier.getCompany().toLowerCase().contains(keyword)) return true;
-        if (supplier.getPhone() != null && supplier.getPhone().contains(keyword)) return true;
-        if (supplier.getEmail() != null && supplier.getEmail().toLowerCase().contains(keyword)) return true;
-        if (supplier.getAddress() != null && supplier.getAddress().toLowerCase().contains(keyword)) return true;
-        return false;
+        return (supplier.getAbbr() != null && supplier.getAbbr().toLowerCase().contains(keyword))
+            || (supplier.getName() != null && supplier.getName().toLowerCase().contains(keyword))
+            || (supplier.getCompany() != null && supplier.getCompany().toLowerCase().contains(keyword))
+            || (supplier.getPhone() != null && supplier.getPhone().contains(keyword))
+            || (supplier.getEmail() != null && supplier.getEmail().toLowerCase().contains(keyword))
+            || (supplier.getAddress() != null && supplier.getAddress().toLowerCase().contains(keyword));
     }
 
     private void updateCounts() {

@@ -1,9 +1,13 @@
 package com.swna.javafx.admin.supplier.domain;
 
-import javafx.beans.property.*;
-import java.time.LocalDateTime;
-
 import com.swna.javafx.admin.supplier.dto.SupplierResponseRecord;
+
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 /**
  * JavaFX TableView용 Supplier Domain 클래스

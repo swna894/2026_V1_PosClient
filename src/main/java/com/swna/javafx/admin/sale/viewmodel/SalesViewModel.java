@@ -27,6 +27,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -54,6 +55,11 @@ public class SalesViewModel {
 
     private final ObservableList<SaleModel> salesList = FXCollections.observableArrayList();
     private final ObservableList<SaleItemModel> saleItemsList = FXCollections.observableArrayList();
+
+    // PrintReceiptDialog에서 사용하기 위한 FilteredList
+    private final FilteredList<SaleModel> filteredSalesList = new FilteredList<>(salesList, 
+        sale -> !"DELETED".equalsIgnoreCase(sale.getStatus())
+    );
 
     // =========================================================
     // Selection
@@ -123,23 +129,22 @@ public class SalesViewModel {
     // Selected Sale Item Summary
     // =========================================================
 
-    private final ObjectProperty<BigDecimal> itemTotalAmount =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> itemTotalAmount =  new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> itemTotalOriginal =  new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> itemTotalDiscount =  new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> itemTotalCost = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> itemTotalMargin = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final IntegerProperty itemTotalQty =  new SimpleIntegerProperty(0);
 
-    private final ObjectProperty<BigDecimal> itemTotalOriginal =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
 
-    private final ObjectProperty<BigDecimal> itemTotalDiscount =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
+    public FilteredList<SaleModel> getFilteredSalesList() {
+        return filteredSalesList;
+    }
 
-    private final ObjectProperty<BigDecimal> itemTotalCost =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
+    public void refreshFilteredList() {
+        filteredSalesList.setPredicate(sale -> !"DELETED".equalsIgnoreCase(sale.getStatus()));
+    }
 
-    private final ObjectProperty<BigDecimal> itemTotalMargin =
-            new SimpleObjectProperty<>(BigDecimal.ZERO);
-
-    private final IntegerProperty itemTotalQty =
-            new SimpleIntegerProperty(0);
 
     // =========================================================
     // Refresh
@@ -160,9 +165,7 @@ public class SalesViewModel {
         startDate.set(today);
         endDate.set(today);
 
-        executeSalesLoad(
-                saleApiClient.getTodaySales()
-        );
+        executeSalesLoad( saleApiClient.getTodaySales() );
     }
 
     public void loadThisWeekSales() {

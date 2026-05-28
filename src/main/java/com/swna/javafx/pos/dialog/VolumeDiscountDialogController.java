@@ -99,7 +99,7 @@ public class VolumeDiscountDialogController extends BasePosDialog {
         lblTotalAmount.setText(message);
         lblTotalAmount.setStyle("-fx-text-fill: red; -fx-font-size: 14px;");
         
-        new Thread(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 Thread.sleep(3000);
                 Platform.runLater(() -> {
@@ -109,7 +109,7 @@ public class VolumeDiscountDialogController extends BasePosDialog {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-        }).start();
+        });
     }
 
     // ========== BasePaymentDialog 구현 ==========

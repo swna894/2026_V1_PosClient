@@ -3,6 +3,7 @@ package com.swna.javafx.pos.viewmodel;
 import static com.swna.javafx.pos.viewmodel.PosViewModelConstants.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -155,7 +156,7 @@ public class PosViewModel {
             // 할인율 계산 후 DiscountManager에 위임
             BigDecimal discountPercent = currentTotal.subtract(amountAfterDC)
                     .multiply(BigDecimal.valueOf(100))
-                    .divide(currentTotal, 2, BigDecimal.ROUND_HALF_UP);
+                    .divide(currentTotal, 2, RoundingMode.HALF_UP);
             
             discountManager.applyPercentToAll(discountPercent.doubleValue());
             
@@ -374,9 +375,7 @@ public class PosViewModel {
         return new PosProcessor.PaymentResultHandler() {
             @Override
             public void onFailure(String message) {
-                Platform.runLater(() -> {
-                    scanStatus.set(STATUS_PAYMENT_FAIL + ": " + message);
-                });
+                Platform.runLater(() -> scanStatus.set(STATUS_PAYMENT_FAIL + ": " + message));
             }
             
             @Override
@@ -386,9 +385,7 @@ public class PosViewModel {
             
             @Override
             public void handleFailure(String errorMessage) {
-                Platform.runLater(() -> {
-                    scanStatus.set(STATUS_PAYMENT_FAIL + ": " + errorMessage);
-                });
+                Platform.runLater(() ->  scanStatus.set(STATUS_PAYMENT_FAIL + ": " + errorMessage));
             }
         };
     }

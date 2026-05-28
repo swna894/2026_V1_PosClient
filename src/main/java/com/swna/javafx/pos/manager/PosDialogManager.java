@@ -190,6 +190,7 @@ public class PosDialogManager {
      */
     public void showVolumeDiscountDialog(PosViewModel viewModel, Consumer<DialogResult> callback) {
         BigDecimal total = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
+        @SuppressWarnings("unused")
         BigDecimal discount = BigDecimal.valueOf(viewModel.discountProperty().get());
         
         if (total.compareTo(BigDecimal.ZERO) <= 0) {
