@@ -47,7 +47,7 @@ public record SaleRequest(
             return "Cash";
         }
 
-        return "unknown";
+        return "Deleted";
     }
 
 

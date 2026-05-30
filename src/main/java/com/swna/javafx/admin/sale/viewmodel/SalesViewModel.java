@@ -1,6 +1,7 @@
 package com.swna.javafx.admin.sale.viewmodel;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -85,44 +86,13 @@ public class SalesViewModel {
     // Main Summary
     // =========================================================
 
-    /**
-     * Orig. TOTAL
-     */
     private final ObjectProperty<BigDecimal> totalOriginalAmount =  new SimpleObjectProperty<>(BigDecimal.ZERO);
-
-    /**
-     * Final TOTAL
-     */
     private final ObjectProperty<BigDecimal> totalSalesAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
-
-    /**
-     * Dis. TOTAL / D/C
-     */
     private final ObjectProperty<BigDecimal> totalDiscountAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
-
-    /**
-     * COST
-     */
     private final ObjectProperty<BigDecimal> totalCostAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
-
-    /**
-     * CASH
-     */
     private final ObjectProperty<BigDecimal> totalCashAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
-
-    /**
-     * CREDIT
-     */
     private final ObjectProperty<BigDecimal> totalCreditAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
-
-    /**
-     * CASH OUT
-     */
     private final ObjectProperty<BigDecimal> totalCashoutAmount = new SimpleObjectProperty<>(BigDecimal.ZERO);
-
-    /**
-     * 전체 건수
-     */
     private final IntegerProperty totalCount = new SimpleIntegerProperty(0);
 
     // =========================================================
@@ -172,18 +142,13 @@ public class SalesViewModel {
 
         LocalDate now = LocalDate.now();
 
-        LocalDate startOfWeek =
-                now.minusDays(now.getDayOfWeek().getValue() - 1);
-
-        LocalDate endOfWeek =
-                startOfWeek.plusDays(6);
+        LocalDate startOfWeek = now.with(DayOfWeek.MONDAY); // 이번 주의 월요일로 설정
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
 
         startDate.set(startOfWeek);
         endDate.set(endOfWeek);
 
-        executeSalesLoad(
-                saleApiClient.getThisWeekSales()
-        );
+        executeSalesLoad(  saleApiClient.getThisWeekSales() );
     }
 
     public void loadThisMonthSales() {
@@ -193,9 +158,7 @@ public class SalesViewModel {
         startDate.set(now.withDayOfMonth(1));
         endDate.set(now.withDayOfMonth(now.lengthOfMonth()));
 
-        executeSalesLoad(
-                saleApiClient.getThisMonthSales()
-        );
+        executeSalesLoad(  saleApiClient.getThisMonthSales() );
     }
 
     public void loadSalesByDateRange() {
@@ -327,41 +290,21 @@ public class SalesViewModel {
 
     private void calculateSalesTotals() {
 
-        BigDecimal originalTotal =
-                sumSales(SaleModel::getOriginalAmount);
-
-        BigDecimal salesTotal =
-                sumSales(SaleModel::getSaleAmount);
-
-        BigDecimal discountTotal =
-                sumSales(SaleModel::getDiscountAmount);
-
-        BigDecimal costTotal =
-                sumSales(SaleModel::getCostAmount);
-
-        BigDecimal cashTotal =
-                sumSales(SaleModel::getCashAmount);
-
-        BigDecimal creditTotal =
-                sumSales(SaleModel::getCreditAmount);
-
-        BigDecimal cashoutTotal =
-                sumSales(SaleModel::getCashoutAmount);
+        BigDecimal originalTotal = sumSales(SaleModel::getOriginalAmount);
+        BigDecimal salesTotal =  sumSales(SaleModel::getSaleAmount);
+        BigDecimal discountTotal = sumSales(SaleModel::getDiscountAmount);
+        BigDecimal costTotal =  sumSales(SaleModel::getCostAmount);
+        BigDecimal cashTotal = sumSales(SaleModel::getCashAmount);
+        BigDecimal creditTotal = sumSales(SaleModel::getCreditAmount);
+        BigDecimal cashoutTotal = sumSales(SaleModel::getCashoutAmount);
 
         totalOriginalAmount.set(originalTotal);
-
         totalSalesAmount.set(salesTotal);
-
         totalDiscountAmount.set(discountTotal);
-
         totalCostAmount.set(costTotal);
-
         totalCashAmount.set(cashTotal);
-
         totalCreditAmount.set(creditTotal);
-
         totalCashoutAmount.set(cashoutTotal);
-
         totalCount.set(salesList.size());
     }
 
@@ -381,14 +324,9 @@ public class SalesViewModel {
 
     private void calculateItemTotals() {
 
-        BigDecimal totalAmount =
-                sumItems(SaleItemModel::getSaleAmount);
-
-        BigDecimal totalOriginal =
-                sumItems(SaleItemModel::getOriginalAmount);
-
-        BigDecimal totalDiscount =
-                sumItems(SaleItemModel::getDiscountAmount);
+        BigDecimal totalAmount = sumItems(SaleItemModel::getSaleAmount);
+        BigDecimal totalOriginal =  sumItems(SaleItemModel::getOriginalAmount);
+        BigDecimal totalDiscount =  sumItems(SaleItemModel::getDiscountAmount);
 
         BigDecimal totalCost =
                 saleItemsList.stream()
@@ -420,15 +358,10 @@ public class SalesViewModel {
                         .sum();
 
         itemTotalAmount.set(totalAmount);
-
         itemTotalOriginal.set(totalOriginal);
-
         itemTotalDiscount.set(totalDiscount);
-
         itemTotalCost.set(totalCost);
-
         itemTotalMargin.set(totalMargin);
-
         itemTotalQty.set(qty);
     }
 
@@ -449,13 +382,9 @@ public class SalesViewModel {
     private void updateSelectedSale() {
 
         if (salesList.isEmpty()) {
-
             selectedSale.set(null);
-
             saleItemsList.clear();
-
             clearItemTotals();
-
             return;
         }
 
@@ -471,49 +400,32 @@ public class SalesViewModel {
     // =========================================================
 
     private void clearAll() {
-
         salesList.clear();
-
         saleItemsList.clear();
-
         selectedSale.set(null);
-
         clearSalesTotals();
-
         clearItemTotals();
     }
 
     private void clearSalesTotals() {
 
         totalOriginalAmount.set(BigDecimal.ZERO);
-
         totalSalesAmount.set(BigDecimal.ZERO);
-
         totalDiscountAmount.set(BigDecimal.ZERO);
-
         totalCostAmount.set(BigDecimal.ZERO);
-
         totalCashAmount.set(BigDecimal.ZERO);
-
         totalCreditAmount.set(BigDecimal.ZERO);
-
         totalCashoutAmount.set(BigDecimal.ZERO);
-
         totalCount.set(0);
     }
 
     private void clearItemTotals() {
 
         itemTotalAmount.set(BigDecimal.ZERO);
-
         itemTotalOriginal.set(BigDecimal.ZERO);
-
         itemTotalDiscount.set(BigDecimal.ZERO);
-
         itemTotalCost.set(BigDecimal.ZERO);
-
         itemTotalMargin.set(BigDecimal.ZERO);
-
         itemTotalQty.set(0);
     }
 
@@ -562,10 +474,12 @@ public class SalesViewModel {
         BigDecimal salePrice = response.salePrice() != null ? response.salePrice(): BigDecimal.ZERO;
         BigDecimal discountPrice = response.discountPrice() != null ? response.discountPrice() : BigDecimal.ZERO;
         BigDecimal cost = response.cost() != null? response.cost() : BigDecimal.ZERO;
+
         model.salePriceProperty().set(salePrice);
         model.discountPriceProperty().set(discountPrice);
         model.originalPriceProperty().set(salePrice.add(discountPrice));
         model.costProperty().set(cost);
+        
         BigDecimal qty = BigDecimal.valueOf(response.quantity());
         model.saleAmountProperty() .set(salePrice.multiply(qty));
         model.discountAmountProperty().set(discountPrice.multiply(qty));
@@ -580,95 +494,35 @@ public class SalesViewModel {
     // Getters
     // =========================================================
 
-    public ObservableList<SaleModel> getSalesList() {
-        return salesList;
-    }
-
-    public ObservableList<SaleItemModel> getSaleItemsList() {
-        return saleItemsList;
-    }
-
-    public ObjectProperty<SaleModel> selectedSaleProperty() {
-        return selectedSale;
-    }
-
-    public ObjectProperty<LocalDate> startDateProperty() {
-        return startDate;
-    }
-
-    public ObjectProperty<LocalDate> endDateProperty() {
-        return endDate;
-    }
-
-    public BooleanProperty loadingProperty() {
-        return loading;
-    }
-
-    public StringProperty errorMessageProperty() {
-        return errorMessage;
-    }
-
-    public IntegerProperty totalCountProperty() {
-        return totalCount;
-    }
+    public ObservableList<SaleModel> getSalesList() { return salesList; }
+    public ObservableList<SaleItemModel> getSaleItemsList() { return saleItemsList; }
+    public ObjectProperty<SaleModel> selectedSaleProperty() { return selectedSale; }
+    public ObjectProperty<LocalDate> startDateProperty() { return startDate; }
+    public ObjectProperty<LocalDate> endDateProperty() { return endDate; }
+    public BooleanProperty loadingProperty() { return loading; }
+    public StringProperty errorMessageProperty() {  return errorMessage; }
+    public IntegerProperty totalCountProperty() { return totalCount; }
 
     // =========================================================
     // Main Summary Getters
     // =========================================================
 
-    public ObjectProperty<BigDecimal> totalOriginalAmountProperty() {
-        return totalOriginalAmount;
-    }
-
-    public ObjectProperty<BigDecimal> totalSalesAmountProperty() {
-        return totalSalesAmount;
-    }
-
-    public ObjectProperty<BigDecimal> totalDiscountAmountProperty() {
-        return totalDiscountAmount;
-    }
-
-    public ObjectProperty<BigDecimal> totalCostAmountProperty() {
-        return totalCostAmount;
-    }
-
-    public ObjectProperty<BigDecimal> totalCashAmountProperty() {
-        return totalCashAmount;
-    }
-
-    public ObjectProperty<BigDecimal> totalCreditAmountProperty() {
-        return totalCreditAmount;
-    }
-
-    public ObjectProperty<BigDecimal> totalCashoutAmountProperty() {
-        return totalCashoutAmount;
-    }
+    public ObjectProperty<BigDecimal> totalOriginalAmountProperty() { return totalOriginalAmount; }
+    public ObjectProperty<BigDecimal> totalSalesAmountProperty() { return totalSalesAmount; }
+    public ObjectProperty<BigDecimal> totalDiscountAmountProperty() {  return totalDiscountAmount; }
+    public ObjectProperty<BigDecimal> totalCostAmountProperty() {   return totalCostAmount; }
+    public ObjectProperty<BigDecimal> totalCashAmountProperty() {  return totalCashAmount; }
+    public ObjectProperty<BigDecimal> totalCreditAmountProperty() { return totalCreditAmount; }
+    public ObjectProperty<BigDecimal> totalCashoutAmountProperty() { return totalCashoutAmount; }
 
     // =========================================================
     // Item Summary Getters
     // =========================================================
 
-    public ObjectProperty<BigDecimal> itemTotalAmountProperty() {
-        return itemTotalAmount;
-    }
-
-    public ObjectProperty<BigDecimal> itemTotalOriginalProperty() {
-        return itemTotalOriginal;
-    }
-
-    public ObjectProperty<BigDecimal> itemTotalDiscountProperty() {
-        return itemTotalDiscount;
-    }
-
-    public ObjectProperty<BigDecimal> itemTotalCostProperty() {
-        return itemTotalCost;
-    }
-
-    public ObjectProperty<BigDecimal> itemTotalMarginProperty() {
-        return itemTotalMargin;
-    }
-
-    public IntegerProperty itemTotalQtyProperty() {
-        return itemTotalQty;
-    }
+    public ObjectProperty<BigDecimal> itemTotalAmountProperty() { return itemTotalAmount; }
+    public ObjectProperty<BigDecimal> itemTotalOriginalProperty() { return itemTotalOriginal; }
+    public ObjectProperty<BigDecimal> itemTotalDiscountProperty() { return itemTotalDiscount; }
+    public ObjectProperty<BigDecimal> itemTotalCostProperty() { return itemTotalCost;  }
+    public ObjectProperty<BigDecimal> itemTotalMarginProperty() {  return itemTotalMargin; }
+    public IntegerProperty itemTotalQtyProperty() { return itemTotalQty; }
 }
