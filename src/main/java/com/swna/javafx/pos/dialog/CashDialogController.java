@@ -1,6 +1,7 @@
 package com.swna.javafx.pos.dialog;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.function.Consumer;
 
 import org.springframework.context.annotation.Scope;
@@ -25,7 +26,7 @@ public class CashDialogController extends BasePosDialog {
 
     // PaymentDialogManager.PaymentDialogController.initData 참조
     public void initData(BigDecimal total, BigDecimal discount, Consumer<BigDecimal> callback) {
-        this.totalAmount = total;
+        this.totalAmount = total.setScale(0, RoundingMode.HALF_UP);
         this.onPaymentComplete = callback;
 
         lblAmount.setText(CURRENCY_FORMAT.format(total));
@@ -38,7 +39,7 @@ public class CashDialogController extends BasePosDialog {
         applyNumericFilter(txtCash);
         setupKeyEvents(txtCash);
 
-        txtCash.setText(total.toPlainString());
+        txtCash.setText(totalAmount.toPlainString());
         txtCash.selectAll();
         
         txtCash.textProperty().addListener((obs, old, val) -> updateUI(val));
