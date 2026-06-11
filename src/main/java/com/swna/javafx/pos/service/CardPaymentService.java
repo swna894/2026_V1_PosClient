@@ -60,7 +60,6 @@ public class CardPaymentService {
             transactionId, amount, cashOutAmount);
         
         // POS 결제가 OFF인 경우
-        //TODO CardAuthResult.virtualSuccess 결과 확인
         if (!posToggleService.isPosEnabled()) {
             log.info("[CardClient] POS 결제 비활성 상태 - 가상 승인 처리");
             // 가상의 성공 결과 반환 (테스트용)

@@ -77,13 +77,15 @@ public class VaultService {
             String receiptNo = request.transactionId() != null ? 
                 request.transactionId() : UUID.randomUUID().toString();
 
-            //TODO 카드번호 및 종류 기록  -> handleSuccess
+            // 카드번호 및 종류 기록  -> handleSuccess
             PurchaseTransaction purchaseTx = new PurchaseTransaction(receiptNo, request.amount());
             String cardNumber = handleSuccess(purchaseTx);
             purchaseTx.setTransactionCurrency(request.currency());
 
             if (request.hasCashOut()) {
-                purchaseTx.setCashOutAmount(request.cashOutAmount());
+                // 6월 11일 : 카드 송부 금액 오류 : amount에 cashout 포함 되어 있는데, 
+                // 추가로 cashout 금액 추가로 총 요청금액 요류 발생으로 제외함
+                // purchaseTx.setCashOutAmount(request.cashOutAmount());
                 logger.info("[Vault] Cash Out amount: {}", request.cashOutAmount());
             }
 
