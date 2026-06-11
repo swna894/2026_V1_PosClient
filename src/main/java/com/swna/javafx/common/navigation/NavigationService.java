@@ -168,4 +168,31 @@ public class NavigationService {
             }
         });
     }
+
+    /**
+     * 현재 창은 유지하고 별도의 새 창으로 뷰를 엽니다
+     */
+    public <T> void openInNewWindow(Class<T> controllerClass, String title) {
+        try {
+            Stage newStage = new Stage();
+            newStage.getIcons().add(new Image("/images/pos_system.png"));
+            
+            Parent root = fxWeaver.loadView(controllerClass);
+            Scene scene = new Scene(root);
+            
+            newStage.setTitle(title);
+            newStage.setScene(scene);
+            newStage.initStyle(StageStyle.DECORATED);
+            newStage.show();
+            
+        } catch (Exception e) {
+            log.error("Failed to open new window for: {}", controllerClass.getSimpleName(), e);
+        }
+    }
+
+    // 오버로드: 타이틀 자동 설정
+    public <T> void openInNewWindow(Class<T> controllerClass) {
+        String title = controllerClass.getSimpleName().replace("Controller", "");
+        openInNewWindow(controllerClass, title);
+    }
 }

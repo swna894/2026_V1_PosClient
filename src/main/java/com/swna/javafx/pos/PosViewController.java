@@ -389,7 +389,10 @@ public class PosViewController {
     @FXML private void onGenerate(ActionEvent e) { navigationService.navigateStage(LabelController.class); }
 
     @FXML private void onMenu(ActionEvent e) {
-        navigationService.navigateStage(MenuController.class);
+        // 기존 대체
+        // navigationService.navigateStage(MenuController.class);
+        // 현재 창은 그대로 두고 새 창으로 MenuController 실행
+        navigationService.openInNewWindow(MenuController.class, "메뉴 관리");
     }
     @FXML
     private void onPos(ActionEvent e) {
