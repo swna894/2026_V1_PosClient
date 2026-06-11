@@ -47,12 +47,6 @@ public class PrinterService {
         }
     }
 
-    /**
-     * Console에 프린트 내용 출력 (디버깅용)
-     */
-    /**
-     * Console에 프린트 내용 출력 (디버깅용) - Logger 사용
-     */
    /**
      * Console에 프린트 내용 출력 (디버깅용) - 조건부 로깅 사용
      */
