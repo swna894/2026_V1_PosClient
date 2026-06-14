@@ -27,56 +27,56 @@ public class SimpleApiClient {
      * GET
      * ========================================================= */
 
-    public <T> Mono<T> get(String url, @NonNull Class<T> responseType) {
-        return exchangeMono(HttpMethod.GET, url, null, responseType);
+    public <T> Mono<T> get(String url, @NonNull Class<T> responseClass) {
+        return sendRequest(HttpMethod.GET, url, null, responseClass);
     }
 
-    public <T> Mono<T> get(String url, @NonNull ParameterizedTypeReference<T> typeRef) {
-        return exchangeMono(HttpMethod.GET, url, null, typeRef);
+    public <T> Mono<T> get(String url, @NonNull ParameterizedTypeReference<T> responseTypeRef) {
+        return sendRequest(HttpMethod.GET, url, null, responseTypeRef);
     }
 
-    public <T> Flux<T> getFlux(String url, @NonNull Class<T> elementType) {
-        return exchangeFlux(HttpMethod.GET, url, null, elementType);
+    public <T> Flux<T> getFlux(String url, @NonNull Class<T> elementClass) {
+        return sendStreamRequest(HttpMethod.GET, url, null, elementClass);
     }
 
-    public <T> Flux<T> getFlux(String url, Map<String, Object> params, @NonNull Class<T> elementType) {
-        return exchangeFlux(HttpMethod.GET, buildUrl(url, params), null, elementType);
+    public <T> Flux<T> getFlux(String url, Map<String, Object> params, @NonNull Class<T> elementClass) {
+        return sendStreamRequest(HttpMethod.GET, buildUrlWithParams(url, params), null, elementClass);
     }
 
     /* =========================================================
      * POST
      * ========================================================= */
 
-    public <T> Mono<T> post(String url, @Nullable Object requestBody, @NonNull Class<T> responseType) {
-        return exchangeMono(HttpMethod.POST, url, requestBody, responseType);
+    public <T> Mono<T> post(String url, @Nullable Object requestBody, @NonNull Class<T> responseClass) {
+        return sendRequest(HttpMethod.POST, url, requestBody, responseClass);
     }
 
-    public <T> Mono<T> post(String url, @Nullable Object requestBody, @NonNull ParameterizedTypeReference<T> typeRef) {
-        return exchangeMono(HttpMethod.POST, url, requestBody, typeRef);
+    public <T> Mono<T> post(String url, @Nullable Object requestBody, @NonNull ParameterizedTypeReference<T> responseTypeRef) {
+        return sendRequest(HttpMethod.POST, url, requestBody, responseTypeRef);
     }
 
     /* =========================================================
      * PUT
      * ========================================================= */
 
-    public <T> Mono<T> put(String url, @Nullable Object requestBody, @NonNull Class<T> responseType) {
-        return exchangeMono(HttpMethod.PUT, url, requestBody, responseType);
+    public <T> Mono<T> put(String url, @Nullable Object requestBody, @NonNull Class<T> responseClass) {
+        return sendRequest(HttpMethod.PUT, url, requestBody, responseClass);
     }
 
-    public <T> Mono<T> put(String url, @Nullable Object requestBody, @NonNull ParameterizedTypeReference<T> typeRef) {
-        return exchangeMono(HttpMethod.PUT, url, requestBody, typeRef);
+    public <T> Mono<T> put(String url, @Nullable Object requestBody, @NonNull ParameterizedTypeReference<T> responseTypeRef) {
+        return sendRequest(HttpMethod.PUT, url, requestBody, responseTypeRef);
     }
 
     /* =========================================================
      * DELETE
      * ========================================================= */
 
-    public <T> Mono<T> delete(String url, @NonNull Class<T> responseType) {
-        return exchangeMono(HttpMethod.DELETE, url, null, responseType);
+    public <T> Mono<T> delete(String url, @NonNull Class<T> responseClass) {
+        return sendRequest(HttpMethod.DELETE, url, null, responseClass);
     }
 
-    public <T> Mono<T> delete(String url, @NonNull ParameterizedTypeReference<T> typeRef) {
-        return exchangeMono(HttpMethod.DELETE, url, null, typeRef);
+    public <T> Mono<T> delete(String url, @NonNull ParameterizedTypeReference<T> responseTypeRef) {
+        return sendRequest(HttpMethod.DELETE, url, null, responseTypeRef);
     }
 
     /* =========================================================
@@ -86,34 +86,34 @@ public class SimpleApiClient {
     /**
      * Mono 기반의 공통 실행 메서드 (Class용)
      */
-    private <T> Mono<T> exchangeMono(HttpMethod method, String url, @Nullable Object requestBody, Class<T> responseType) {
-        return prepareRequest(method, url, requestBody)
+    private <T> Mono<T> sendRequest(HttpMethod method, String url, @Nullable Object requestBody, Class<T> responseClass) {
+        return createRequestSpec(method, url, requestBody)
                 .retrieve()
-                .bodyToMono(responseType);
+                .bodyToMono(responseClass);
     }
 
     /**
      * Mono 기반의 공통 실행 메서드 (ParameterizedTypeReference용)
      */
-    private <T> Mono<T> exchangeMono(HttpMethod method, String url, @Nullable Object requestBody, ParameterizedTypeReference<T> typeRef) {
-        return prepareRequest(method, url, requestBody)
+    private <T> Mono<T> sendRequest(HttpMethod method, String url, @Nullable Object requestBody, ParameterizedTypeReference<T> responseTypeRef) {
+        return createRequestSpec(method, url, requestBody)
                 .retrieve()
-                .bodyToMono(typeRef);
+                .bodyToMono(responseTypeRef);
     }
 
     /**
      * Flux 기반의 공통 실행 메서드
      */
-    private <T> Flux<T> exchangeFlux(HttpMethod method, String url, @Nullable Object requestBody, Class<T> elementType) {
-        return prepareRequest(method, url, requestBody)
+    private <T> Flux<T> sendStreamRequest(HttpMethod method, String url, @Nullable Object requestBody, Class<T> elementClass) {
+        return createRequestSpec(method, url, requestBody)
                 .retrieve()
-                .bodyToFlux(elementType);
+                .bodyToFlux(elementClass);
     }
 
     /**
      * Request Spec 설정을 위한 공통 로직
      */
-    private WebClient.RequestBodySpec prepareRequest(HttpMethod method, String url, @Nullable Object requestBody) {
+    private WebClient.RequestBodySpec createRequestSpec(HttpMethod method, String url, @Nullable Object requestBody) {
         WebClient.RequestBodySpec spec = webClient.method(method).uri(url);
         if (requestBody != null) {
             spec.bodyValue(requestBody);
@@ -125,10 +125,10 @@ public class SimpleApiClient {
      * URL BUILDER
      * ========================================================= */
 
-    private String buildUrl(@NonNull String path, Map<String, Object> params) {
-        if (params == null || params.isEmpty()) return path;
+    private String buildUrlWithParams(@NonNull String baseUri, Map<String, Object> params) {
+        if (params == null || params.isEmpty()) return baseUri;
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromPath(path);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath(baseUri);
         params.forEach(builder::queryParam);
         return builder.toUriString();
     }
