@@ -7,7 +7,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.barcode.dto.BarcodeLabelDto;
-import com.swna.javafx.common.api.WebClientCommon;
+import com.swna.javafx.common.api.SimpleApiClient;
 import com.swna.javafx.common.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import reactor.core.scheduler.Schedulers;
 @RequiredArgsConstructor
 public class BarcodeLabelApiClient {
 
-    private final WebClientCommon webClientCommon;
+    private final SimpleApiClient webClientCommon;
     
     // API Endpoint 상수
     private static final String API_PRODUCT_LABELS = "/products/labels";

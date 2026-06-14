@@ -4,7 +4,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
 import com.swna.javafx.common.api.ApiResponseException;
-import com.swna.javafx.common.api.WebClientCommon;
+import com.swna.javafx.common.api.SimpleApiClient;
 import com.swna.javafx.common.response.ApiResponse;
 import com.swna.javafx.pos.dto.response.ProductResponse;
 
@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 public class ProductApiService {
-    private final WebClientCommon webClient;
+    private final SimpleApiClient webClient;
 
     public Mono<ProductResponse> getProductByBarcode(String barcode) {
         String url = "/products/barcode/" + barcode;

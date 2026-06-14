@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.sale.dto.SaleDto;
 import com.swna.javafx.admin.sale.dto.SaleItemResponse;
-import com.swna.javafx.common.api.WebClientCommon;
+import com.swna.javafx.common.api.SimpleApiClient;
 import com.swna.javafx.common.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import reactor.core.scheduler.Schedulers;
 @RequiredArgsConstructor
 public class SaleApiClient {
 
-    private final WebClientCommon webClientCommon;
+    private final SimpleApiClient webClientCommon;
     
     // API Endpoint 상수
     private static final String API_SALES_DATE_RANGE = "/sales/date-range";

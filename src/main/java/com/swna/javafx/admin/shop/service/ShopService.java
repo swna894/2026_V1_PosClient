@@ -4,7 +4,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
 import com.swna.javafx.admin.shop.Shop;
-import com.swna.javafx.common.api.WebClientCommon;
+import com.swna.javafx.common.api.SimpleApiClient;
 import com.swna.javafx.common.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ShopService {
 
-    private final WebClientCommon webClientCommon;
+    private final SimpleApiClient webClientCommon;
     
     // API Endpoint 상수 직접 정의
     private static final String API_SHOP_FIRST = "/shops/first";

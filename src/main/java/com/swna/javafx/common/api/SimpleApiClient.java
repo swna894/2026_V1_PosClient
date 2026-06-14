@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
  */
 @Service
 @RequiredArgsConstructor
-public class WebClientCommon {
+public class SimpleApiClient {
 
     private final WebClient webClient;
 

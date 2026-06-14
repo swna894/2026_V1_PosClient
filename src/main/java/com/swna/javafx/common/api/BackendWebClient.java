@@ -24,7 +24,7 @@ import reactor.util.retry.Retry;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CommonApiClient {
+public class BackendWebClient {
     
     private final WebClient webClient;
     
@@ -800,13 +800,13 @@ public class CommonApiClient {
     // =========================
     
     public static class RequestBuilder<T> {
-        private final CommonApiClient client;
+        private final BackendWebClient client;
         private final ApiEndpointMapper.DomainMetadata<ApiResponse<T>> metadata;
         private Map<String, Object> pathVars;
         private Map<String, Object> queryParams;
         private Duration timeout;
         
-        RequestBuilder(CommonApiClient client, ApiEndpointMapper.DomainMetadata<ApiResponse<T>> metadata) {
+        RequestBuilder(BackendWebClient client, ApiEndpointMapper.DomainMetadata<ApiResponse<T>> metadata) {
             this.client = client;
             this.metadata = metadata;
             this.timeout = DEFAULT_TIMEOUT;
@@ -837,14 +837,14 @@ public class CommonApiClient {
     }
     
     public static class PostRequestBuilder<T, R> {
-        private final CommonApiClient client;
+        private final BackendWebClient client;
         private final ApiEndpointMapper.DomainMetadata<ApiResponse<R>> metadata;
         private T requestBody;
         private Map<String, Object> pathVars;
         private Map<String, Object> queryParams;
         private Duration timeout;
         
-        PostRequestBuilder(CommonApiClient client, ApiEndpointMapper.DomainMetadata<ApiResponse<R>> metadata) {
+        PostRequestBuilder(BackendWebClient client, ApiEndpointMapper.DomainMetadata<ApiResponse<R>> metadata) {
             this.client = client;
             this.metadata = metadata;
             this.timeout = DEFAULT_TIMEOUT;

@@ -2,7 +2,7 @@ package com.swna.javafx.admin.supplier.api;
 
 import com.swna.javafx.admin.supplier.dto.SupplierRequestRecord;
 import com.swna.javafx.admin.supplier.dto.SupplierResponseRecord;
-import com.swna.javafx.common.api.WebClientCommon;
+import com.swna.javafx.common.api.SimpleApiClient;
 import com.swna.javafx.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SupplierApiClient {
 
-    private final WebClientCommon webClientCommon;
+    private final SimpleApiClient webClientCommon;
 
     private static final String API_SUPPLIERS = "/suppliers";
 

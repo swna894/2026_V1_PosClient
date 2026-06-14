@@ -1,6 +1,6 @@
 package com.swna.javafx.pos.api;
 
-import com.swna.javafx.common.api.WebClientCommon;
+import com.swna.javafx.common.api.SimpleApiClient;
 import com.swna.javafx.common.response.ApiResponse;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.SaleResponse;
@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 @Service
 public class PosApiService {
 
-    private final WebClientCommon webClientCommon;
+    private final SimpleApiClient webClientCommon;
     
     // API Endpoint 상수 직접 정의
     private static final String API_SALE_CREATE = "/sales";
@@ -27,7 +27,7 @@ public class PosApiService {
     private static final ParameterizedTypeReference<ApiResponse<SaleResponse>> SALE_RESPONSE_TYPE = 
         new ParameterizedTypeReference<ApiResponse<SaleResponse>>() {};
 
-    public PosApiService(WebClientCommon webClientCommon) {
+    public PosApiService(SimpleApiClient webClientCommon) {
         this.webClientCommon = webClientCommon;
     }
 
