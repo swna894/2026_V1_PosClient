@@ -63,7 +63,7 @@ public class ScanService {
                 .map(this::toPosItemWithCache)
                 .onErrorResume(e -> {
                     log.error("Scan failed for barcode: {}", barcode, e);
-                    return Mono.empty();
+                    return Mono.error(e);
                 });
     }
 

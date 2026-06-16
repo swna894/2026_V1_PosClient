@@ -122,6 +122,19 @@ public class PosItem {
         return item;
     }
 
+    public static PosItem createUnknowItem(String manualBarcodePrefix, double amount) {
+        PosItem item = new PosItem();
+        String barcode = "QUICK_" + manualBarcodePrefix;
+
+        item.setBarcode(barcode);
+        item.setDescription(String.format("Unregistered Item : %s-$%.2f", manualBarcodePrefix, amount));
+        item.setOriginalPrice(amount);
+        item.setSellingPrice(amount);
+        item.setDiscountType(DiscountType.NONE);  // ✅ 할인 없음으로 설정
+        item.increaseQty();
+        return item;
+    }
+
     /**
      * 각 계산 필드에 대한 바인딩 로직을 정의합니다.
      * bind()가 호출된 Property는 외부에서 set()을 호출할 경우 예외가 발생하므로 
