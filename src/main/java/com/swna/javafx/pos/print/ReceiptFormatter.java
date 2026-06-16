@@ -41,12 +41,12 @@ public class ReceiptFormatter {
         String shopName = (shop != null && shop.getName() != null) ? shop.getName().toUpperCase() : "MY STORE";
         String shopAddress = (shop != null && shop.getAddress() != null) ? shop.getAddress() : "123 Main Street, Suite 100";
         
-        sb.append(style.center(shopName)).append(NL);
+        sb.append(shopName).append(NL);
         if (!shopAddress.isEmpty()) {
-            sb.append(style.center(shopAddress)).append(NL);
+            sb.append(shopAddress).append(NL);
         }
-        sb.append(style.center("Tel: (123) 456-7890")).append(NL);
-        sb.append(style.center("GST: 1234567890")).append(NL);
+        sb.append("Tel: (123) 456-7890").append(NL);
+        sb.append("GST: 1234567890").append(NL);
         
         sb.append(style.getLine(true)).append(NL); 
         sb.append(style.justify("Date:", date)).append(NL);
@@ -58,8 +58,8 @@ public class ReceiptFormatter {
     private void buildBody(StringBuilder sb, List<PosItem> posItems, ReceiptStyle style) {
         int totalWidth = style.getWidth();
         int qtyWidth = 4;    
-        int priceWidth = 8;  
-        int amountWidth = 9; 
+        int priceWidth = 9;  
+        int amountWidth = 11; 
         int itemWidth = totalWidth - (qtyWidth + priceWidth + amountWidth + 3); 
 
         String formatPattern = String.format("%%-%ds %%%ds %%%ds %%%ds", itemWidth, qtyWidth, priceWidth, amountWidth);
@@ -79,26 +79,56 @@ public class ReceiptFormatter {
             String description = (item.getDescription() != null) ? item.getDescription() : item.getCode();
             
             String fullDesc = number + ". " + description;
-            String truncatedDesc = truncate(fullDesc, itemWidth);
+            sb.append(fullDesc).append(NL); 
             
             String qtyStr = String.valueOf(item.getQty());
             String priceStr = formatCurrency(item.getSellingPrice());
             String amountStr = formatCurrency(item.getFinalAmount());
             
-            String rowPattern = String.format("%%-%ds %%%ds %%%ds %%%ds", itemWidth, qtyWidth, priceWidth, amountWidth);
-            String itemRow = String.format(rowPattern, truncatedDesc, qtyStr, priceStr, amountStr);
-            sb.append(itemRow).append(NL);
+            // [수정] 각 데이터에 고정 폭(qtyWidth, priceWidth, amountWidth)을 적용하여 포맷팅
+            // 각 필드 간에 1칸씩 공백을 둔다고 가정합니다.
+            String infoFormat = String.format("%%%ds %%%ds %%%ds", qtyWidth, priceWidth, amountWidth);
+            String formattedInfo = String.format(infoFormat, qtyStr, priceStr, amountStr);
             
+            // 전체 폭(style.getWidth())에 맞춰 오른쪽 정렬
+            String infoRow = String.format("%" + style.getWidth() + "s", formattedInfo);
+            sb.append(infoRow).append(NL);
+            
+            // 할인 정보 처리 (기존과 동일)
             boolean isDiscounted = item.getOriginalPrice() != item.getSellingPrice();
             if (isDiscounted) {
                 double discountPerItem = (item.getOriginalPrice() - item.getSellingPrice()) * item.getQty();
                 if (discountPerItem > 0) {
-                    String discountLabel = "  Discount";
-                    String discountAmountStr = "-" + formatCurrency(discountPerItem);
-                    sb.append(style.justify(discountLabel, discountAmountStr)).append(NL);
+                    sb.append(style.justify("  Discount", "-" + formatCurrency(discountPerItem))).append(NL);
                 }
             }
         }
+
+        // for (PosItem item : posItems) {
+        //     int number = counter.getAndIncrement();
+        //     String description = (item.getDescription() != null) ? item.getDescription() : item.getCode();
+            
+        //     String fullDesc = number + ". " + description;
+        //     String truncatedDesc = truncate(fullDesc, itemWidth);
+            
+        //     String qtyStr = String.valueOf(item.getQty());
+        //     String priceStr = formatCurrency(item.getSellingPrice());
+        //     String amountStr = formatCurrency(item.getFinalAmount());
+            
+        //     String rowPattern = String.format("%%-%ds %%%ds %%%ds %%%ds", itemWidth, qtyWidth, priceWidth, amountWidth);
+        //     String itemRow = String.format(rowPattern, truncatedDesc, qtyStr, priceStr, amountStr);
+        //     sb.append(itemRow).append(NL);
+            
+        //     boolean isDiscounted = item.getOriginalPrice() != item.getSellingPrice();
+        //     if (isDiscounted) {
+        //         double discountPerItem = (item.getOriginalPrice() - item.getSellingPrice()) * item.getQty();
+        //         if (discountPerItem > 0) {
+        //             String discountLabel = "  Discount";
+        //             String discountAmountStr = "-" + formatCurrency(discountPerItem);
+        //             sb.append(style.justify(discountLabel, discountAmountStr)).append(NL);
+        //         }
+        //     }
+        // }
         sb.append(style.getLine(true)).append(NL); 
     }
 
@@ -150,14 +180,11 @@ public class ReceiptFormatter {
         // 문자열 상태에서 인코딩을 타면 유니코드 깨짐 현상이 일어나므로 하드웨어 제어 명령을 전부 걷어냈습니다.
         
         // 바코드 하단에 정렬되어 출력될 텍스트만 포맷터에 남겨둡니다.
-        sb.append(style.center("* " + receiptNo + " *")).append(NL);
     }
 
     // ========== Notice Builder ==========
     private void buildNotice(StringBuilder sb, ReceiptStyle style, String inform) {
-        sb.append(style.center("** Tax Invoice **")).append(NL);
-        sb.append(style.getLine(false)).append(NL);
-        sb.append(style.center("Thank you for your visit!")).append(NL);
+        //sb.append(style.center("Thank you for your visit!")).append(NL);
         sb.append(style.center("Goods sold are not refundable")).append(NL);
         sb.append(style.center("For exchange, please bring receipt")).append(NL);
         

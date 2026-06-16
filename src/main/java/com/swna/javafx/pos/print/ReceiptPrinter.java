@@ -23,7 +23,7 @@ public class ReceiptPrinter {
     private static final byte[] CMD_ALIGN_CENTER = { 0x1B, 0x61, 0x01 }; 
     private static final byte[] CMD_ALIGN_LEFT = { 0x1B, 0x61, 0x00 };    
     private static final byte[] FONT_58MM = { 0x1B, 0x21, 0x06 };     
-    private static final byte[] FONT_80MM = { 0x1B, 0x21, 0x03 };     
+    private static final byte[] FONT_80MM = { 0x1B, 0x21, 0x06 };     
     private static final byte[] CR_LF = { 0x0D, 0x0A };               
 
     private final PrinterService printerService;
@@ -58,7 +58,7 @@ public class ReceiptPrinter {
         
         parts.add(CMD_INIT);
         parts.add((style == ReceiptStyle.SIZE_80MM) ? FONT_80MM : FONT_58MM);
-        parts.add(CMD_ALIGN_CENTER);
+        //parts.add(CMD_ALIGN_CENTER);
         parts.add(content.getBytes(StandardCharsets.UTF_8));
         
         parts.add(CR_LF);
