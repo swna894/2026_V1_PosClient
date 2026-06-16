@@ -20,6 +20,7 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.print.PrinterJob;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -823,6 +824,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
 
     @FXML
     private void handlePrint() {
+        // 1. 현재 선택된 영수증 건이 있는지 검증
         SaleModel selectedSale = salesViewModel.selectedSaleProperty().get();
         if (selectedSale == null) {
             updateStatusMessage("Please select a receipt to print");
@@ -830,12 +832,43 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
         }
         
         String receiptNo = selectedSale.getReceiptNo();
-        log.info("[PrintReceiptDialog] Printing receipt: {}", receiptNo);
-        
-        if (callback != null) callback.onPrint(receiptNo);
-        updateStatusMessage("Printing receipt: " + receiptNo);
-    }
+        log.info("[PrintReceiptDialog] Direct WebView Printing Started for receipt: {}", receiptNo);
 
+        // 2. 프리뷰용 WebView 컴포넌트와 그 내부의 WebEngine이 유효한지 확인
+        if (receiptWebView != null && receiptWebView.getEngine() != null) {
+            
+            // 3. 시스템 기본 프린터로 인쇄 작업을 생성
+            PrinterJob job = PrinterJob.createPrinterJob();
+            
+            if (job != null) {
+                updateStatusMessage("Sending to printer... : " + receiptNo);
+                
+                /* 
+                * [선택사항] 만약 OS 인쇄 대화상자(설정창)를 띄우고 싶다면 아래 2줄 주석을 해제하세요.
+                * boolean proceed = job.showPrintDialog(receiptWebView.getScene().getWindow());
+                * if (!proceed) return; 
+                */
+
+                // 4. WebView에 렌더링된 HTML 내용을 프린터 출력 스트림으로 직접 전송
+                receiptWebView.getEngine().print(job);
+                
+                // 5. 인쇄 전송 완료 및 성공 여부 확인
+                boolean success = job.endJob();
+                if (success) {
+                    updateStatusMessage("Print completed successfully: " + receiptNo);
+                } else {
+                    updateStatusMessage("Print failed or canceled: " + receiptNo);
+                }
+            } else {
+                updateStatusMessage("Error: No default printer setup found on this PC.");
+            }
+        } else {
+            updateStatusMessage("Error: Receipt preview component is not ready.");
+        }
+
+        // (선택) 기존에 설정되어 있던 콜백도 유지하고 싶다면 그대로 두셔도 무방합니다.
+        if (callback != null) callback.onPrint(receiptNo);
+    }
     @FXML
     private void handlePreviewPrint() {
         SaleModel selectedSale = salesViewModel.selectedSaleProperty().get();

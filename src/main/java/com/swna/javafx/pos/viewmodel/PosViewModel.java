@@ -363,7 +363,7 @@ public class PosViewModel {
     
     private void updateUIBeforeComplete(PosProcessor.ProcessedPayment processed) {
         Platform.runLater(() -> {
-            System.out.println("Payment Success: " + processed.saleRequest().getPaymentTypeCode());
+            log.info("Payment Success: " + processed.saleRequest().getPaymentTypeCode());
             scanStatus.set(processed.saleRequest().getPaymentTypeCode() + " " + STATUS_PAYMENT_SUCCESS   );
             clear();
         });
