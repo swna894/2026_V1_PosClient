@@ -484,66 +484,73 @@ public class PosViewController {
     private void setupHotkeys() {
         // 1. rootPane에 키 이벤트 필터 등록
         rootPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            KeyCode code = event.getCode();
             
             // 화살표 키(UP, DOWN)는 TableView의 기본 행 이동 기능을 사용해야 하므로
             // 별도의 처리를 하지 않고 이벤트를 통과시킵니다.
-            if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.DOWN) {
+            if (code == KeyCode.UP || code == KeyCode.DOWN) {
                 return; 
             }
 
-            switch (event.getCode()) {
+            // ====== 좌/우 방향키 수량 변경 로직 (별도 메서드로 추출) ======
+            if (adjustQuantityWithArrowKeys(code)) {
+                event.consume();
+                return; // 처리 완료 시 리턴
+            }
+            
+            switch (code) {
                 case F1 -> {
-                    // 현금함 열기 [cite: 46, 48]
+                    // 현금함 열기
                     buttonDrawer.fire(); 
                     event.consume(); // 이벤트가 다른 컨트롤로 전파되는 것을 방지
                 }
                 case F2 -> {
-                    // 장바구니 1번 액션 [cite: 22, 23]
+                    // 장바구니 1번 액션
                     buttonCart1.fire();
                     event.consume();
                 }
                 case F3 -> {
-                    // 영수증 검색
-                    buttonReceipt.fire();  // buttonReceipt 필드가 필요함
+                    // 영수증 검색[cite: 1]
+                    buttonReceipt.fire(); 
                     event.consume();
                 }
                 case F5 -> {
-                    // 장바구니 3번 액션 [cite: 26, 27]
+                    // 장바구니 3번 액션[cite: 1]
                     buttonDiscountVolumn.fire();
                     event.consume();
                 }
                 case F6 -> {
-                    // 장바구니 3번 액션 [cite: 26, 27]
+                    // 장바구니 3번 액션[cite: 1]
                     buttonBarcode.fire();
                     event.consume();
                 }
                 case F7 -> {
-                    // 장바구니 3번 액션 [cite: 26, 27]
+                    // 장바구니 3번 액션[cite: 1]
                     buttonCancel.fire();
                     event.consume();
                 }
                 case F8 -> {
-                    // 프린트 설정 토글 [cite: 35, 51]
+                    // 프린트 설정 토글[cite: 1]
                     buttonOnPrint.fire();
                     event.consume();
                 }
                 case F9 -> {
-                    // 프린트 설정 토글 [cite: 35, 51]
+                    // 프린트 설정 토글[cite: 1]
                     buttonQty.fire();
                     event.consume();
                 }
                 case F10 -> {
-                    // 현금 결제 실행 [cite: 39, 41]
+                    // 현금 결제 실행[cite: 1]
                     buttonCash.fire();
                     event.consume();
                 }
                 case F11 -> {
-                    // 신용카드/혼합 결제 실행 [cite: 42, 43]
+                    // 신용카드/혼합 결제 실행[cite: 1]
                     buttonCredit.fire();
                     event.consume();
                 }
                 case F12 -> {
-                    // 캐시아웃 결제 실행 [cite: 44, 45]
+                    // 캐시아웃 결제 실행[cite: 1]
                     buttonCashout.fire();
                     event.consume();
                 }
@@ -552,5 +559,29 @@ public class PosViewController {
                 }
             }
         });
+    }
+
+    /**
+     * 좌/우 방향키 입력을 감지하여 선택된 행의 수량을 조절합니다.
+     * @return 이벤트를 처리했으면 true, 아니면 false
+     */
+    private boolean adjustQuantityWithArrowKeys(KeyCode code) {
+        if (code != KeyCode.LEFT && code != KeyCode.RIGHT) {
+            return false;
+        }
+
+        PosItem selectedItem = table.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) {
+            return false;
+        }
+
+        if (code == KeyCode.LEFT) {
+            viewModel.decreaseQty(selectedItem); // 왼쪽 키: 수량 감소[cite: 1, 2]
+        } else {
+            viewModel.increaseQty(selectedItem);  // 오른쪽 키: 수량 증가[cite: 1, 2]
+        }
+
+        table.refresh(); // 테이블 UI 갱신[cite: 1]
+        return true;
     }
 }
