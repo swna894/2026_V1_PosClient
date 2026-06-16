@@ -248,9 +248,10 @@ public class PosViewModel {
         processCashPayment(totalAmount, receivedCash, (Consumer<Boolean>) null);
     }
     
+    // 프린터 출력 조정을 위해 handleProcessedPayment에 boolean을 추가 
     public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash,   Consumer<Boolean> onComplete) {
         posProcessor.processCashPayment(totalAmount, receivedCash, 
-            processed -> handleProcessedPayment(processed, onComplete),
+            processed -> handleProcessedPayment(processed, onComplete, false),
             createResultHandler()
         );
     }
@@ -258,7 +259,7 @@ public class PosViewModel {
     // ========== 취소 진행 ==========
     public void processCancelPayment(BigDecimal totalAmount, BigDecimal receivedCash,  Consumer<Boolean> onComplete) {
         posProcessor.processCancelPayment(totalAmount, receivedCash, 
-            processed -> handleProcessedPayment(processed, onComplete),
+            processed -> handleProcessedPayment(processed, onComplete, true),
             createResultHandler()
         );
     }
@@ -282,7 +283,7 @@ public class PosViewModel {
     public void processCashoutPayment(BigDecimal cashoutAmount, BigDecimal totalCardAmount,
                                       String cardNumber, Consumer<Boolean> onComplete) {
         posProcessor.processCashoutPayment(cashoutAmount, totalCardAmount, cardNumber,
-            processed -> handleProcessedPayment(processed, onComplete),
+            processed -> handleProcessedPayment(processed, onComplete, false),
             createResultHandler()
         );
     }
@@ -304,7 +305,7 @@ public class PosViewModel {
     public void processCreditPayment(BigDecimal cardAmount, String cardNumber, 
                                      Consumer<Boolean> onComplete) {
         posProcessor.processCreditPayment(cardAmount, cardNumber,
-            processed -> handleProcessedPayment(processed, onComplete),
+            processed -> handleProcessedPayment(processed, onComplete, false),
             createResultHandler()
         );
     }
@@ -325,7 +326,7 @@ public class PosViewModel {
     
     public void processMixedPayment(BigDecimal cashPart, BigDecimal creditPart,  String cardNumber, Consumer<Boolean> onComplete) {
         posProcessor.processMixedPayment(cashPart, creditPart, cardNumber,
-            processed -> handleProcessedPayment(processed, onComplete),
+            processed -> handleProcessedPayment(processed, onComplete, false),
             createResultHandler()
         );
     }
@@ -336,17 +337,22 @@ public class PosViewModel {
      * ProcessedPayment 결과 처리
      */
     private void handleProcessedPayment(PosProcessor.ProcessedPayment processed, 
-                                        Consumer<Boolean> onComplete) {
+                                        Consumer<Boolean> onComplete,
+                                        boolean skipPrinting) {
         List<PosItem> itemsSnapshot = List.copyOf(getPosItems());
 
         if (processed.success()) {
             // SaleRequest를 이벤트로 발행
-            eventPublisher.publishEvent(new PaymentSuccessEvent(
-                this, 
-                processed.saleRequest(), 
-                processed.paymentResult(),
-                itemsSnapshot
-            ));
+            // ✨ skipPrinting이 false 일 때만 프린트 이벤트를 발행하여 출력을 원천 차단합니다.
+            // Canecl( CAEAR ALL ) 경우에 print 방지위해 추가 함
+            if (!skipPrinting) {
+                eventPublisher.publishEvent(new PaymentSuccessEvent(
+                    this, 
+                    processed.saleRequest(), 
+                    processed.paymentResult(),
+                    itemsSnapshot
+                ));
+            }
             
             updateUIBeforeComplete(processed);
             

@@ -26,7 +26,7 @@ public class CashDialogController extends BasePosDialog {
     private Consumer<BigDecimal> onPaymentComplete;
 
     // 2. 소수점 두 자리를 강제하는 포맷터 선언 (천 단위 콤마 + 소수점 두 자리 고정)
-    private static final DecimalFormat DECIMAL_2_FORMAT = new DecimalFormat("#,##0.00");
+    private static final DecimalFormat DECIMAL_2_FORMAT = new DecimalFormat("$#,##0.00");
 
     // PaymentDialogManager.PaymentDialogController.initData 참조
     public void initData(BigDecimal total, BigDecimal discount, Consumer<BigDecimal> callback) {
