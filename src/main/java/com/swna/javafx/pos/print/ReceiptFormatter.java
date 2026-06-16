@@ -24,9 +24,6 @@ public class ReceiptFormatter {
     private static final DecimalFormat CURRENCY_DF = new DecimalFormat("#,##0.00");
     private static final DateTimeFormatter SRC_DTF = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private static final DateTimeFormatter DST_DTF = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-    
-    // ESC/POS 바코드 제어 명령어
-    private static final char GS = 0x1D;   // Group Separator
 
     private String formatCurrency(double amount) {
         return "$" + CURRENCY_DF.format(amount);
@@ -38,10 +35,9 @@ public class ReceiptFormatter {
         return text.substring(0, maxLength - 3) + "...";
     }
 
-    // ========== Header Builder (HTML 폼의 대문자 및 레이아웃 반영) ==========
+    // ========== Header Builder ==========
     private void buildHeader(StringBuilder sb, ReceiptStyle style, 
                              String receiptNo, String date, Shop shop) {
-        // HTML 폼의 대문자 상호명 반영
         String shopName = (shop != null && shop.getName() != null) ? shop.getName().toUpperCase() : "MY STORE";
         String shopAddress = (shop != null && shop.getAddress() != null) ? shop.getAddress() : "123 Main Street, Suite 100";
         
@@ -49,31 +45,28 @@ public class ReceiptFormatter {
         if (!shopAddress.isEmpty()) {
             sb.append(style.center(shopAddress)).append(NL);
         }
-        // HTML의 고정된 기본 정보 추가 레이아웃 반영
         sb.append(style.center("Tel: (123) 456-7890")).append(NL);
         sb.append(style.center("GST: 1234567890")).append(NL);
         
-        sb.append(style.getLine(false)).append(NL); // divider-solid 역할
+        sb.append(style.getLine(true)).append(NL); 
         sb.append(style.justify("Date:", date)).append(NL);
         sb.append(style.justify("Receipt No:", receiptNo)).append(NL);
-        sb.append(style.getLine(false)).append(NL);
+        sb.append(style.getLine(true)).append(NL);
     }
 
-    // ========== Body Builder (★핵심 리팩토링: HTML처럼 가로 1줄 레이아웃으로 변경) ==========
+    // ========== Body Builder ==========
     private void buildBody(StringBuilder sb, List<PosItem> posItems, ReceiptStyle style) {
-        // 1. HTML의 4컬럼 헤더 레이아웃 재현 (Item, Qty, Price, Amount)
-        // 총 가로폭(예: 42자) 내에서 우측 3개 컬럼의 폭을 고정하고 나머지를 상품명에 배분
         int totalWidth = style.getWidth();
-        int qtyWidth = 4;    // Qty 폭
-        int priceWidth = 8;  // Price 폭
-        int amountWidth = 9; // Amount 폭
-        int itemWidth = totalWidth - (qtyWidth + priceWidth + amountWidth + 3); // 공백 포함 계산
+        int qtyWidth = 4;    
+        int priceWidth = 8;  
+        int amountWidth = 9; 
+        int itemWidth = totalWidth - (qtyWidth + priceWidth + amountWidth + 3); 
 
-        // 헤더 타이틀 한 줄 배치
-        String itemHeader = String.format("%-" + itemWidth + "s %" + qtyWidth + "s %" + priceWidth + "s %" + amountWidth + "s", 
-            "Item", "Qty", "Price", "Amount");
+        String formatPattern = String.format("%%-%ds %%%ds %%%ds %%%ds", itemWidth, qtyWidth, priceWidth, amountWidth);
+        String itemHeader = String.format(formatPattern, "Item", "Qty", "Price", "Amount");
+
         sb.append(itemHeader).append(NL);
-        sb.append(style.getLine(true)).append(NL); // divider-dash 역할
+        sb.append(style.getLine(false)).append(NL); 
 
         if (posItems == null || posItems.isEmpty()) {
             sb.append(style.center("No items found for this receipt")).append(NL);
@@ -85,7 +78,6 @@ public class ReceiptFormatter {
             int number = counter.getAndIncrement();
             String description = (item.getDescription() != null) ? item.getDescription() : item.getCode();
             
-            // "번호. 상품명" 형태로 합친 뒤 컬럼 너비에 맞춰 자르기
             String fullDesc = number + ". " + description;
             String truncatedDesc = truncate(fullDesc, itemWidth);
             
@@ -93,35 +85,30 @@ public class ReceiptFormatter {
             String priceStr = formatCurrency(item.getSellingPrice());
             String amountStr = formatCurrency(item.getFinalAmount());
             
-            // ★ HTML 폼처럼 4개 데이터가 가로로 완벽히 정렬된 1줄 레이아웃 완성
-            String itemRow = String.format("%-" + itemWidth + "s %" + qtyWidth + "s %" + priceWidth + "s %" + amountWidth + "s", 
-                truncatedDesc, qtyStr, priceStr, amountStr);
+            String rowPattern = String.format("%%-%ds %%%ds %%%ds %%%ds", itemWidth, qtyWidth, priceWidth, amountWidth);
+            String itemRow = String.format(rowPattern, truncatedDesc, qtyStr, priceStr, amountStr);
             sb.append(itemRow).append(NL);
             
-            // 할인 정보 레이아웃 반영 (HTML의 discount-row 스타일 적용)
             boolean isDiscounted = item.getOriginalPrice() != item.getSellingPrice();
             if (isDiscounted) {
                 double discountPerItem = (item.getOriginalPrice() - item.getSellingPrice()) * item.getQty();
                 if (discountPerItem > 0) {
                     String discountLabel = "  Discount";
                     String discountAmountStr = "-" + formatCurrency(discountPerItem);
-                    // 우측 정렬 형태로 맞춤
                     sb.append(style.justify(discountLabel, discountAmountStr)).append(NL);
                 }
             }
         }
-        sb.append(style.getLine(true)).append(NL); // divider-dash
+        sb.append(style.getLine(true)).append(NL); 
     }
 
-    // ========== Footer Builder (HTML의 영문 타이틀 일치) ==========
+    // ========== Footer Builder ==========
     private void buildFooter(StringBuilder sb, ReceiptStyle style, 
                              double subtotal, double discountAmount, double finalAmount) {
-        
-        // HTML 폼의 대문자 타이틀 텍스트와 완벽 일치 ("TOTAL AMOUNT", "ORIGINAL AMOUNT")
         if (discountAmount > 0) {
             sb.append(style.justify("ORIGINAL AMOUNT", formatCurrency(subtotal))).append(NL);
             sb.append(style.justify("DISCOUNT", "-" + formatCurrency(discountAmount))).append(NL);
-            sb.append(style.getLine(true)).append(NL);
+            sb.append(style.getLine(false)).append(NL);
             sb.append(style.justify("TOTAL AMOUNT", formatCurrency(finalAmount))).append(NL);
         } else {
             sb.append(style.justify("TOTAL AMOUNT", formatCurrency(finalAmount))).append(NL);
@@ -129,7 +116,7 @@ public class ReceiptFormatter {
         sb.append(style.getLine(true)).append(NL);
     }
 
-    // ========== Payment Builder (HTML 타이틀 매핑) ==========
+    // ========== Payment Builder ==========
     private void buildPaymentInfo(StringBuilder sb, SaleRequest saleRequest, ReceiptStyle style) {
         if (saleRequest == null || saleRequest.payments() == null || saleRequest.payments().isEmpty()) {
             return;
@@ -139,7 +126,6 @@ public class ReceiptFormatter {
             double amount = p.amount().doubleValue();
             double cashout = p.cashoutAmount() != null ? p.cashoutAmount().doubleValue() : 0.0;
             
-            // HTML 폼의 명칭 문구("CASH PAID", "CARD PAID")로 1:1 매칭 수정
             if ("CASH".equals(p.type())) {
                 sb.append(style.justify("CASH PAID", formatCurrency(amount))).append(NL);
             } else if ("CARD".equals(p.type())) {
@@ -149,10 +135,10 @@ public class ReceiptFormatter {
                 }
             }
         }
-        sb.append(style.getLine(false)).append(NL); // divider-solid 역할
+        sb.append(style.getLine(false)).append(NL); 
     }
 
-    // ========== Barcode Builder (명령어는 유지하되 하단 텍스트 양식 일치) ==========
+    // ========== Barcode Builder (★수정됨: 문자열 깨짐 원인 제거) ==========
     private void buildBarcode(StringBuilder sb, String receiptNo, ReceiptStyle style) {
         if (receiptNo == null || receiptNo.isBlank()) {
             return;
@@ -160,33 +146,23 @@ public class ReceiptFormatter {
         
         sb.append(NL);
         
-        // 하드웨어 바코드 인쇄 명령어 시퀀스는 기계 출력을 위해 원본 유지
-        sb.append(GS).append('h').append((char)162);
-        sb.append(GS).append('w').append((char)3);
-        sb.append(GS).append('H').append((char)2);  
-        sb.append(GS).append('k').append((char)73);  
-        sb.append((char)receiptNo.length());          
-        sb.append(receiptNo);                         
-        sb.append((char)0);                           
+        // [❌ 기존 변경 기계어 삭제됨] sb.append(GS).append('h').append((char)162); ... 
+        // 문자열 상태에서 인코딩을 타면 유니코드 깨짐 현상이 일어나므로 하드웨어 제어 명령을 전부 걷어냈습니다.
         
-        sb.append(NL);
-        
-        // ★ HTML 폼 레이아웃의 바코드 대체 텍스트 포맷인 "* 영수증번호 *" 형태로 중앙 정렬 반영
+        // 바코드 하단에 정렬되어 출력될 텍스트만 포맷터에 남겨둡니다.
         sb.append(style.center("* " + receiptNo + " *")).append(NL);
     }
 
-    // ========== Notice Builder (HTML 고정 푸터 문구 반영) ==========
+    // ========== Notice Builder ==========
     private void buildNotice(StringBuilder sb, ReceiptStyle style, String inform) {
-        // HTML의 고정 하단 텍스트 레이아웃 구조 반영
         sb.append(style.center("** Tax Invoice **")).append(NL);
-        sb.append(style.getLine(true)).append(NL);
+        sb.append(style.getLine(false)).append(NL);
         sb.append(style.center("Thank you for your visit!")).append(NL);
         sb.append(style.center("Goods sold are not refundable")).append(NL);
         sb.append(style.center("For exchange, please bring receipt")).append(NL);
         
-        // 사용자 정의 메시지가 추가로 전송된 경우 하단에 래핑하여 추가 출력
         if (inform != null && !inform.isBlank()) {
-            sb.append(style.getLine(true)).append(NL);
+            sb.append(style.getLine(false)).append(NL);
             String truncatedInform = truncate(inform, style.getWidth() * 2);
             sb.append(wrapText(truncatedInform, style.getWidth())).append(NL);
         }
@@ -207,20 +183,17 @@ public class ReceiptFormatter {
         double discountAmount = extractDiscountAmount(paymentResult, saleRequest);
         double finalAmount = extractFinalAmount(paymentResult, subtotal, discountAmount);
         
-        // 변경된 레이아웃 순서대로 빌드
         buildHeader(sb, style, receiptNo, date, shop);
         buildBody(sb, posItems, style);
         buildFooter(sb, style, subtotal, discountAmount, finalAmount);
         buildPaymentInfo(sb, saleRequest, style);
         
-        // 바코드와 알림 문구 레이아웃 처리
         buildBarcode(sb, receiptNo, style);
         buildNotice(sb, style, inform);
         
         return sb.toString();
     }
     
-    // Helper Methods (원본 유지)
     private String extractReceiptNo(PaymentResult paymentResult) {
         if (paymentResult == null || paymentResult.getSaleResponse() == null) return "N/A";
         return paymentResult.getSaleResponse().receiptNo();
