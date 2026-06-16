@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.pos.api.PosApiService;
 import com.swna.javafx.pos.event.PaymentSuccessEvent;
 import com.swna.javafx.pos.event.PrintFailureEvent;
+import com.swna.javafx.pos.manager.PosDialogManager;
 import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.service.ScanService;
 import com.swna.javafx.pos.viewmodel.handler.ScanHandler;
@@ -41,6 +42,7 @@ public class PosViewModel {
     private final HoldManager holdManager;
     private final ScanHandler scanHandler;
     private final PosProcessor posProcessor;
+    private final PosDialogManager posDialogManager;
     
     // ========== UI 상태 ==========
     private final StringProperty scannedCode = new SimpleStringProperty("");
@@ -48,12 +50,13 @@ public class PosViewModel {
     
     public PosViewModel(ApplicationEventPublisher eventPublisher, 
                         ScanService posService, 
-                        PosApiService posApiService) {
+                        PosApiService posApiService, PosDialogManager posDialogManager) {
         this.eventPublisher = eventPublisher;
         this.cartManager = new CartManager();
         this.discountManager = new DiscountManager(cartManager);
         this.holdManager = new HoldManager(cartManager);
-        this.scanHandler = new ScanHandler(posService, cartManager);
+        this.posDialogManager = posDialogManager;
+        this.scanHandler = new ScanHandler(posService, cartManager, posDialogManager);
         this.posProcessor = new PosProcessor(cartManager, posApiService);
         
         setupScanCallbacks();

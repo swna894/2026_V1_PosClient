@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="20" styleClass="dialog-container" stylesheets="@../../../styles/pos_dialog.css"
+   xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.swna.javafx.pos.dialog.ItemUnregisteredDialogController">
+
+   <padding>
+      <Insets bottom="25" left="30" right="30" top="25" />
+   </padding>
+
+   <!-- Header -->
+   <VBox alignment="CENTER" spacing="10">
+      <Label styleClass="title-label" text="Register Unregistered Item" />
+      <Separator prefWidth="200.0" />
+      <HBox alignment="CENTER" spacing="8">
+         <Label styleClass="info-header" text="Barcode:" />
+         <Label fx:id="lblItemBarcode" styleClass="info-value" text="-" />
+      </HBox>
+   </VBox>
+
+   <!-- Input Area -->
+   <GridPane hgap="15" vgap="15">
+      <columnConstraints>
+         <ColumnConstraints percentWidth="40" halignment="RIGHT" />
+         <ColumnConstraints percentWidth="60" />
+      </columnConstraints>
+
+      <Label styleClass="field-label" text="Price ($) : " GridPane.columnIndex="0"
+         GridPane.rowIndex="0" />
+      <TextField fx:id="txtNewPrice" promptText="0.00" styleClass="text-field"
+         GridPane.columnIndex="1" GridPane.rowIndex="0" />
+   </GridPane>
+
+   <!-- Buttons -->
+   <VBox spacing="10" alignment="CENTER">
+      <Separator prefWidth="250.0" style="-fx-opacity: 0.5;" />
+      <HBox alignment="CENTER" spacing="15">
+         <Button onAction="#handleConfirm" styleClass="btn-confirm" text="CONFIRM [ENTER]" />
+         <Button onAction="#handleCancel" styleClass="btn-cancel" text="CANCEL [ESC]" />
+      </HBox>
+   </VBox>
+</VBox>

@@ -2,12 +2,12 @@ package com.swna.javafx.pos.viewmodel.handler;
 
 import java.util.Optional;
 
+import com.swna.javafx.pos.manager.PosDialogManager;
 import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.service.ScanService;
 import com.swna.javafx.pos.viewmodel.manager.CartManager;
 
 import javafx.application.Platform;
-import javafx.scene.control.TextInputDialog;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -15,6 +15,7 @@ public class ScanHandler {
     
     private final ScanService posService;
     private final CartManager cartManager;
+    private final PosDialogManager posDialogManager;
 
     public static final String QUICK_ITEM_PREFIX = "QUICK";
     
@@ -24,9 +25,10 @@ public class ScanHandler {
     private Runnable onNotFound;
     private Runnable onError;
     
-    public ScanHandler(ScanService posService, CartManager cartManager) {
+    public ScanHandler(ScanService posService, CartManager cartManager, PosDialogManager posDialogManager) {
         this.posService = posService;
         this.cartManager = cartManager;
+        this.posDialogManager = posDialogManager;
     }
     
     public void setCallbacks(Runnable onScanning, 
@@ -50,16 +52,21 @@ public class ScanHandler {
                 if (onSuccess != null) onSuccess.accept(barcode);
             }),
             error -> Platform.runLater(() -> {
-                // ScanService가 던진 ApiException이 이제 여기로 정상 도달합니다.
-                log.error("[ScanHandler] 에러 감지 - 메시지: {}", error.getMessage());
-
+                log.error("[ScanHandler] 에러 감지: {}", error.getMessage());
                 String msg = error.getMessage();
-                // 미등록 상품 에러인 경우 팝업 오픈
+                
                 if (msg != null && (msg.contains("Product not found") || msg.contains("ApiException"))) {
-                    showManualInputDialog(barcode);
-                } else {
-                    // 진짜 네트워크 다운 등 시스템 에러 발생 시
-                    if (onError != null) onError.run();
+                    // PosDialogManager를 통해 다이얼로그 호출
+                    posDialogManager.showManualRegisterDialog(barcode, amount -> {
+                        PosItem manualItem = PosItem.createUnknowItem(barcode, amount);
+                        manualItem.setQty(1);
+                        cartManager.addItem(manualItem);
+                        
+                        log.info("[Scan] 미등록 바코드({}) 수동 금액(${}) 추가", barcode, amount);
+                        if (onSuccess != null) onSuccess.accept(barcode);
+                    });
+                } else if (onError != null) {
+                    onError.run();
                 }
             }),
             () -> Platform.runLater(() -> {
@@ -69,42 +76,6 @@ public class ScanHandler {
         );
     }
 
-    /**
-     * [신규 메서드] 미등록 바코드 감지 시 수동 금액 입력 창을 띄웁니다.
-     */
-    private void showManualInputDialog(String barcode) {
-        TextInputDialog dialog = new TextInputDialog("");
-        dialog.setTitle("미등록 상품 등록");
-        dialog.setHeaderText("시스템에 등록되지 않은 바코드입니다.\n바코드: " + barcode);
-        dialog.setContentText("판매 금액(숫자만)을 입력하세요:");
-
-        // 사용자가 입력을 마치고 OK를 누를 때까지 UI 스레드가 블록킹(대기)됩니다.
-        Optional<String> result = dialog.showAndWait();
-        
-        result.ifPresent(amountStr -> {
-            try {
-                double amount = Double.parseDouble(amountStr.trim());
-                if (amount <= 0) {
-                    throw new NumberFormatException("금액은 0보다 커야 합니다.");
-                }
-                
-                // 임시 상품 생성 (기존 제공되었던 임시 상품 추가 로직 활용)
-                PosItem manualItem = PosItem.createUnknowItem(barcode, amount);
-                manualItem.setQty(1);
-            
-                cartManager.addItem(manualItem);
-                
-                log.info("[Scan] 미등록 바코드({}) 수동 금액(${})으로 장바구니 추가 완료", barcode, amount);
-                if (onSuccess != null) onSuccess.accept(barcode);
-                
-            } catch (NumberFormatException e) {
-                // 잘못된 금액 입력 시 경고창 처리 등을 여기에 추가할 수 있습니다.
-                log.error("[Scan] 수동 금액 입력 오류: {}", amountStr);
-                if (onError != null) onError.run();
-            }
-        });
-    }
-    
     public void addQuickAmountItem(double amount) {
         Optional<PosItem> existing = cartManager.findQuickItemByAmount(amount);
         

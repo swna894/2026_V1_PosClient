@@ -12,6 +12,7 @@ import com.swna.javafx.pos.dialog.CancelDialogController;
 import com.swna.javafx.pos.dialog.CreditDialogController;
 import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
+import com.swna.javafx.pos.dialog.ItemUnregisteredDialogController;
 import com.swna.javafx.pos.dialog.PrintReceiptDialogController;
 import com.swna.javafx.pos.dialog.ReceiptDialogController;
 import com.swna.javafx.pos.dialog.VolumeDiscountDialogController;
@@ -264,6 +265,21 @@ public class PosDialogManager {
     public void showPrintReceiptDialog(PrintReceiptDialogController.PrintReceiptCallback callback) {
         showDialog(PrintReceiptDialogController.class, controller -> {
             controller.initData(callback);
+        });
+    }
+
+    /**
+     * 미등록 상품 수동 등록 다이얼로그 표시
+     */
+    public void showManualRegisterDialog(String barcode, Consumer<Double> onRegister) {
+        // 기존의 ItemPriceChangeDialogController를 재사용하여 팝업을 띄웁니다.
+        showDialog(ItemUnregisteredDialogController.class, controller -> {
+            // 컨트롤러에 있는 미등록 상품용 초기화 메서드를 호출합니다[cite: 2, 5].
+            controller.initUnregisteredItem(barcode, amount -> {
+                if (onRegister != null) {
+                    onRegister.accept(amount);
+                }
+            });
         });
     }
 
