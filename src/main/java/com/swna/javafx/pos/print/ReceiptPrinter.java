@@ -58,18 +58,13 @@ public class ReceiptPrinter {
         
         parts.add(CMD_INIT);
         parts.add((style == ReceiptStyle.SIZE_80MM) ? FONT_80MM : FONT_58MM);
-        //parts.add(CMD_ALIGN_CENTER);
         parts.add(content.getBytes(StandardCharsets.UTF_8));
-        
-        parts.add(CR_LF);
-        parts.add(CR_LF);
-        
+           
         String receiptNo = (result != null && result.getSaleResponse() != null) 
             ? result.getSaleResponse().receiptNo() : null;
             
         if (receiptNo != null && !receiptNo.isBlank()) {
             parts.add(CMD_ALIGN_CENTER);
-            parts.add(CR_LF);
             
             // ✨ [안전장치 하드웨어 명령어 추가] 바코드의 자체 폰트 겹침을 방지하고 모양을 견고하게 정렬합니다.
             parts.add(new byte[] { 0x1D, 0x48, 0x00 }); // GS H 0 : 바코드 기본 내장 HRI 글자 숨김 (포맷터 글자와 이중 겹침 방지)

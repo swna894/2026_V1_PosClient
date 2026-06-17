@@ -58,12 +58,13 @@ public class ReceiptFormatter {
     private void buildBody(StringBuilder sb, List<PosItem> posItems, ReceiptStyle style) {
         int totalWidth = style.getWidth();
         int qtyWidth = 4;    
-        int priceWidth = 9;  
-        int amountWidth = 11; 
-        int itemWidth = totalWidth - (qtyWidth + priceWidth + amountWidth + 3); 
+        int priceWidth = 7;  
+        int discountWidth = 7;  
+        int amountWidth = 9; 
+        int itemWidth = totalWidth - (qtyWidth + priceWidth + discountWidth + amountWidth + 4); 
 
-        String formatPattern = String.format("%%-%ds %%%ds %%%ds %%%ds", itemWidth, qtyWidth, priceWidth, amountWidth);
-        String itemHeader = String.format(formatPattern, "Item", "Qty", "Price", "Amount");
+        String formatPattern = String.format("%%-%ds %%%ds %%%ds %%%ds %%%ds", itemWidth, priceWidth, discountWidth, qtyWidth, amountWidth);
+        String itemHeader = String.format(formatPattern, "Item", "Price", "DC", "Qty",  "Amount");
 
         sb.append(itemHeader).append(NL);
         sb.append(style.getLine(false)).append(NL); 
@@ -104,31 +105,6 @@ public class ReceiptFormatter {
             }
         }
 
-        // for (PosItem item : posItems) {
-        //     int number = counter.getAndIncrement();
-        //     String description = (item.getDescription() != null) ? item.getDescription() : item.getCode();
-            
-        //     String fullDesc = number + ". " + description;
-        //     String truncatedDesc = truncate(fullDesc, itemWidth);
-            
-        //     String qtyStr = String.valueOf(item.getQty());
-        //     String priceStr = formatCurrency(item.getSellingPrice());
-        //     String amountStr = formatCurrency(item.getFinalAmount());
-            
-        //     String rowPattern = String.format("%%-%ds %%%ds %%%ds %%%ds", itemWidth, qtyWidth, priceWidth, amountWidth);
-        //     String itemRow = String.format(rowPattern, truncatedDesc, qtyStr, priceStr, amountStr);
-        //     sb.append(itemRow).append(NL);
-            
-        //     boolean isDiscounted = item.getOriginalPrice() != item.getSellingPrice();
-        //     if (isDiscounted) {
-        //         double discountPerItem = (item.getOriginalPrice() - item.getSellingPrice()) * item.getQty();
-        //         if (discountPerItem > 0) {
-        //             String discountLabel = "  Discount";
-        //             String discountAmountStr = "-" + formatCurrency(discountPerItem);
-        //             sb.append(style.justify(discountLabel, discountAmountStr)).append(NL);
-        //         }
-        //     }
-        // }
         sb.append(style.getLine(true)).append(NL); 
     }
 
@@ -174,7 +150,7 @@ public class ReceiptFormatter {
             return;
         }
         
-        sb.append(NL);
+        //sb.append(NL);
         
         // [❌ 기존 변경 기계어 삭제됨] sb.append(GS).append('h').append((char)162); ... 
         // 문자열 상태에서 인코딩을 타면 유니코드 깨짐 현상이 일어나므로 하드웨어 제어 명령을 전부 걷어냈습니다.
@@ -184,14 +160,20 @@ public class ReceiptFormatter {
 
     // ========== Notice Builder ==========
     private void buildNotice(StringBuilder sb, ReceiptStyle style, String inform) {
-        //sb.append(style.center("Thank you for your visit!")).append(NL);
         sb.append(style.center("Goods sold are not refundable")).append(NL);
         sb.append(style.center("For exchange, please bring receipt")).append(NL);
         
         if (inform != null && !inform.isBlank()) {
             sb.append(style.getLine(false)).append(NL);
             String truncatedInform = truncate(inform, style.getWidth() * 2);
-            sb.append(wrapText(truncatedInform, style.getWidth())).append(NL);
+            // 1. wrapText로 줄바꿈된 텍스트를 가져옵니다.
+            String wrappedText = wrapText(truncatedInform, style.getWidth());
+            
+            // 2. 줄바꿈 기준(\n)으로 텍스트를 나누어 각각 중앙 정렬합니다.
+            String[] lines = wrappedText.split(NL);
+            for (String line : lines) {
+                sb.append(style.center(line)).append(NL);
+            }
         }
     }
 

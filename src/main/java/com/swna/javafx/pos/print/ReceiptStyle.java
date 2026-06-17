@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum ReceiptStyle {
     SIZE_58MM(32, "-", "-"), // 2인치 프린터 (보통 32자)
-    SIZE_80MM(48, "-", "-"); // 3인치 프린터 (보통 42~48자)
+    SIZE_80MM(46, "-", "-"); // 3인치 프린터 (보통 42~48자)
 
     private final int width;
     private final String dashChar;
