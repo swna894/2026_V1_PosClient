@@ -97,7 +97,10 @@ public class ReceiptPrintListener {
             "My Store",
             "Store Address",
             "000-0000-0000",
-            "000-00-00000"
+            "000-00-00000",
+            "company",
+            "email",
+            "000-0000-0000"
         );
     }
 

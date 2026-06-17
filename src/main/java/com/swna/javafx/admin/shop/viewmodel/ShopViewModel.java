@@ -119,10 +119,13 @@ public class ShopViewModel {
     private Shop createDefaultShop() {
         log.debug("Creating default shop using factory method");
         return Shop.create(
-            "My Store",           // name
-            "Store Address",      // address
-            "000-0000-0000",      // phone
-            "000-00-00000"        // businessNo
+            "My Store",
+            "Store Address",
+            "000-0000-0000",
+            "000-00-00000",
+            "company",
+            "email",
+            "000-0000-0000"
         );
     }
 }

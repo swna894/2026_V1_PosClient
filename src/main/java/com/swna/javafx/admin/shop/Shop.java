@@ -11,13 +11,12 @@ import lombok.ToString;
 public class Shop {
 
     private Long id;
-
     private String name;
-
     private String address;
-
+    private String company;
     private String phone;
-
+    private String email;
+    private String cellphone;
     private String businessNo;
 
     private boolean active = true;
@@ -25,7 +24,7 @@ public class Shop {
     // =========================
     // Factory
     // =========================
-    public static Shop create(String name, String address, String phone, String businessNo) {
+    public static Shop create(String name, String address, String phone, String businessNo, String company, String email, String cellphone) {
 
         Shop shop = new Shop();
 
@@ -33,6 +32,9 @@ public class Shop {
         shop.address = address;
         shop.phone = phone;
         shop.businessNo = businessNo;
+        shop.company = company;
+        shop.email = email;
+        shop.cellphone = cellphone;
         shop.active = true;
 
         return shop;

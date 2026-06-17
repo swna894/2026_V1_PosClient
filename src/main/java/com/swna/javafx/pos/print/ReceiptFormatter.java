@@ -1,10 +1,11 @@
 package com.swna.javafx.pos.print;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.stereotype.Component;
 
@@ -20,10 +21,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 public class ReceiptFormatter {
+    // 제어 코드 상수 정의
+    private static final String ESC = "\u001B";
+    private static final String BOLD_ON = ESC + "E" + (char) 1; // 굵게 시작: ESC E 1
+    private static final String BOLD_OFF = ESC + "E" + (char) 0; // 굵게 종료: ESC E 0
     private static final String NL = "\n";
+
     private static final DecimalFormat CURRENCY_DF = new DecimalFormat("#,##0.00");
-    private static final DateTimeFormatter SRC_DTF = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-    private static final DateTimeFormatter DST_DTF = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static final DateTimeFormatter SRC_DTF = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+    private static final DateTimeFormatter DST_DTF = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private String formatCurrency(double amount) {
         return "$" + CURRENCY_DF.format(amount);
@@ -38,74 +44,74 @@ public class ReceiptFormatter {
     // ========== Header Builder ==========
     private void buildHeader(StringBuilder sb, ReceiptStyle style, 
                              String receiptNo, String date, Shop shop) {
-        String shopName = (shop != null && shop.getName() != null) ? shop.getName().toUpperCase() : "MY STORE";
+        String shopName = (shop != null && shop.getCompany() != null) ? shop.getCompany().toUpperCase() : "MY STORE";
         String shopAddress = (shop != null && shop.getAddress() != null) ? shop.getAddress() : "123 Main Street, Suite 100";
+        String phone = (shop != null && shop.getPhone() != null) ? shop.getPhone() : "";
+        String bussinessNo = (shop != null && shop.getBusinessNo() != null) ? shop.getBusinessNo() : "123 Main Street, Suite 100";
+
         
+        // 1. 굵게 + 크게 설정 적용
+        sb.append(BOLD_ON);
         sb.append(shopName).append(NL);
+        
+        // 2. 스타일 원복 (다음 라인부터는 기본 폰트로 출력되도록)
+        sb.append(BOLD_OFF);
         if (!shopAddress.isEmpty()) {
             sb.append(shopAddress).append(NL);
         }
-        sb.append("Tel: (123) 456-7890").append(NL);
-        sb.append("GST: 1234567890").append(NL);
+        sb.append("Tel: " + phone).append(NL);
+        sb.append("GST: " + bussinessNo).append(NL);
         
         sb.append(style.getLine(true)).append(NL); 
         sb.append(style.justify("Date:", date)).append(NL);
         sb.append(style.justify("Receipt No:", receiptNo)).append(NL);
-        sb.append(style.getLine(true)).append(NL);
+        sb.append(style.getLine(false)).append(NL);
     }
 
     // ========== Body Builder ==========
     private void buildBody(StringBuilder sb, List<PosItem> posItems, ReceiptStyle style) {
         int totalWidth = style.getWidth();
-        int qtyWidth = 4;    
-        int priceWidth = 7;  
-        int discountWidth = 7;  
-        int amountWidth = 9; 
-        int itemWidth = totalWidth - (qtyWidth + priceWidth + discountWidth + amountWidth + 4); 
+        int qtyWidth = 4;
+        int priceWidth = 7;
+        int discountWidth = 7;
+        int amountWidth = 7;
+        int itemWidth = totalWidth - (qtyWidth + priceWidth + discountWidth + amountWidth + 4);
 
-        String formatPattern = String.format("%%-%ds %%%ds %%%ds %%%ds %%%ds", itemWidth, priceWidth, discountWidth, qtyWidth, amountWidth);
-        String itemHeader = String.format(formatPattern, "Item", "Price", "DC", "Qty",  "Amount");
-
-        sb.append(itemHeader).append(NL);
-        sb.append(style.getLine(false)).append(NL); 
+        // 헤더 패턴 정의 (재사용 가능하게 변수화)
+        String rowFormat = String.format("%%-%ds %%%ds %%%ds %%%ds  %%%ds", itemWidth, priceWidth, qtyWidth, discountWidth,  amountWidth);
+        
+        sb.append(String.format(rowFormat, "Item", "Price", "Qty", "D/C",  "Amount")).append(NL);
+        sb.append(style.getLine(false)).append(NL);
 
         if (posItems == null || posItems.isEmpty()) {
             sb.append(style.center("No items found for this receipt")).append(NL);
             return;
         }
-        
-        AtomicInteger counter = new AtomicInteger(1);
-        for (PosItem item : posItems) {
-            int number = counter.getAndIncrement();
-            String description = (item.getDescription() != null) ? item.getDescription() : item.getCode();
-            
-            String fullDesc = number + ". " + description;
-            sb.append(fullDesc).append(NL); 
-            
-            String qtyStr = String.valueOf(item.getQty());
-            String priceStr = formatCurrency(item.getSellingPrice());
-            String amountStr = formatCurrency(item.getFinalAmount());
-            
-            // [수정] 각 데이터에 고정 폭(qtyWidth, priceWidth, amountWidth)을 적용하여 포맷팅
-            // 각 필드 간에 1칸씩 공백을 둔다고 가정합니다.
-            String infoFormat = String.format("%%%ds %%%ds %%%ds", qtyWidth, priceWidth, amountWidth);
-            String formattedInfo = String.format(infoFormat, qtyStr, priceStr, amountStr);
-            
-            // 전체 폭(style.getWidth())에 맞춰 오른쪽 정렬
-            String infoRow = String.format("%" + style.getWidth() + "s", formattedInfo);
-            sb.append(infoRow).append(NL);
-            
-            // 할인 정보 처리 (기존과 동일)
-            boolean isDiscounted = item.getOriginalPrice() != item.getSellingPrice();
-            if (isDiscounted) {
-                double discountPerItem = (item.getOriginalPrice() - item.getSellingPrice()) * item.getQty();
-                if (discountPerItem > 0) {
-                    sb.append(style.justify("  Discount", "-" + formatCurrency(discountPerItem))).append(NL);
-                }
-            }
-        }
 
-        sb.append(style.getLine(true)).append(NL); 
+        int index = 1;
+
+        for (PosItem item : posItems) {
+            // 1. 항목명 출력
+            String headerRow = String.format("%2d. %s", index++, item.getDescription());
+            sb.append(headerRow).append(NL);
+
+            // 2. 할인 계산 (할인이 없으면 "-", 있으면 금액 표시)
+            double discount = (item.getOriginalPrice() - item.getSellingPrice()) * item.getQty();
+            String dcStr = (discount > 0) ? formatCurrency(discount) : "-";
+            
+            // 3. 한 줄로 데이터 포맷팅
+            // rowFormat은 상단에서 정의한: String.format
+            String infoRow = String.format(rowFormat, 
+                "",                                     // Item 자리는 비움
+                formatCurrency(item.getSellingPrice()), // Price
+                String.valueOf(item.getQty()),          // Qty
+                dcStr,                                  // DC ("-" 또는 금액)
+                formatCurrency(item.getFinalAmount())   // Amount
+            );
+            
+            sb.append(infoRow).append(NL);
+        }
+        sb.append(style.getLine(false)).append(NL);
     }
 
     // ========== Footer Builder ==========
@@ -114,49 +120,72 @@ public class ReceiptFormatter {
         if (discountAmount > 0) {
             sb.append(style.justify("ORIGINAL AMOUNT", formatCurrency(subtotal))).append(NL);
             sb.append(style.justify("DISCOUNT", "-" + formatCurrency(discountAmount))).append(NL);
-            sb.append(style.getLine(false)).append(NL);
-            sb.append(style.justify("TOTAL AMOUNT", formatCurrency(finalAmount))).append(NL);
         } else {
             sb.append(style.justify("TOTAL AMOUNT", formatCurrency(finalAmount))).append(NL);
         }
-        sb.append(style.getLine(true)).append(NL);
+        sb.append(style.getLine(false)).append(NL);
     }
 
     // ========== Payment Builder ==========
-    private void buildPaymentInfo(StringBuilder sb, SaleRequest saleRequest, ReceiptStyle style) {
-        if (saleRequest == null || saleRequest.payments() == null || saleRequest.payments().isEmpty()) {
-            return;
-        }
-        
-        for (PaymentRequest p : saleRequest.payments()) {
-            double amount = p.amount().doubleValue();
-            double cashout = p.cashoutAmount() != null ? p.cashoutAmount().doubleValue() : 0.0;
-            
-            if ("CASH".equals(p.type())) {
-                sb.append(style.justify("CASH PAID", formatCurrency(amount))).append(NL);
-            } else if ("CARD".equals(p.type())) {
-                sb.append(style.justify("CARD PAID", formatCurrency(amount))).append(NL);
-                if (cashout > 0) {
-                    sb.append(style.justify("CASHOUT", formatCurrency(cashout))).append(NL);
-                }
-            }
-        }
-        sb.append(style.getLine(false)).append(NL); 
+private void buildPaymentInfo(StringBuilder sb, SaleRequest saleRequest, ReceiptStyle style) {
+    if (saleRequest == null || saleRequest.payments() == null || saleRequest.payments().isEmpty()) {
+        return;
     }
+  
+    int width = style.getWidth();
+    // 왼쪽 칸(항목)은 우측 정렬(15자), 오른쪽 칸(금액)은 좌측 정렬(나머지 너비)
+    String rowFormat = "%20s %-" + (width - 21) + "s";
 
-    // ========== Barcode Builder (★수정됨: 문자열 깨짐 원인 제거) ==========
-    private void buildBarcode(StringBuilder sb, String receiptNo, ReceiptStyle style) {
-        if (receiptNo == null || receiptNo.isBlank()) {
-            return;
-        }
-        
-        //sb.append(NL);
-        
-        // [❌ 기존 변경 기계어 삭제됨] sb.append(GS).append('h').append((char)162); ... 
-        // 문자열 상태에서 인코딩을 타면 유니코드 깨짐 현상이 일어나므로 하드웨어 제어 명령을 전부 걷어냈습니다.
-        
-        // 바코드 하단에 정렬되어 출력될 텍스트만 포맷터에 남겨둡니다.
+    // 1. 계산 로직
+    BigDecimal totalAmount = saleRequest.payments().stream()
+            .map(PaymentRequest::amount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    log.info("========================================= {}", saleRequest);
+    BigDecimal totalReceived = saleRequest.payments().stream()
+            .map(p -> p.receivedAmount() != null ? p.receivedAmount() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal balance = totalReceived.subtract(totalAmount);
+
+    // GST 추출 (15% 포함 시: 총액 / 1.15 * 0.15)
+    BigDecimal gst = totalAmount.subtract(totalAmount.divide(BigDecimal.valueOf(1.15), 2, RoundingMode.HALF_UP));
+
+    
+    // Final Amount에 GST 포함하여 한 줄로 표시
+    String finalAmountStr = String.format("%s (GST: %s)", 
+                                         formatCurrency(totalAmount.doubleValue()), 
+                                         formatCurrency(gst.doubleValue()));
+    sb.append(String.format(rowFormat, "Final Amount : ", finalAmountStr)).append(NL);
+    
+    // 3. 결제 상세 출력
+    for (PaymentRequest p : saleRequest.payments()) {
+        String type = p.type().toUpperCase();
+        double amount = p.amount().doubleValue();
+        double cashoutAmount = p.cashoutAmount().doubleValue();
+
+        if(saleRequest.payments().size() == 1) {
+                if ("CASH".equalsIgnoreCase(type)) {
+                    sb.append(String.format(rowFormat, "Received : ", formatCurrency(p.receivedAmount().doubleValue()))).append(NL);
+                    sb.append(String.format(rowFormat, "Cash Paid : ", formatCurrency(p.amount().doubleValue()))).append(NL);
+                    sb.append(String.format(rowFormat, "Balance : ", formatCurrency(balance.doubleValue()))).append(NL);
+                } 
+                if ("CASHOUT".equalsIgnoreCase(type)) {
+                    sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NL);
+                    sb.append(String.format(rowFormat, "Cash Out : ", formatCurrency(cashoutAmount))).append(NL);
+                }
+
+        } else {
+                if ("CARD".equals(type)) {
+                    sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NL);
+                }
+                if ("CASH".equals(type)) {
+                    sb.append(String.format(rowFormat, "Cash Paid :", formatCurrency(amount))).append(NL);
+                } 
+        } 
     }
+    sb.append(style.getLine(true)).append(NL);
+}
 
     // ========== Notice Builder ==========
     private void buildNotice(StringBuilder sb, ReceiptStyle style, String inform) {
@@ -197,7 +226,6 @@ public class ReceiptFormatter {
         buildFooter(sb, style, subtotal, discountAmount, finalAmount);
         buildPaymentInfo(sb, saleRequest, style);
         
-        buildBarcode(sb, receiptNo, style);
         buildNotice(sb, style, inform);
         
         return sb.toString();
@@ -256,4 +284,5 @@ public class ReceiptFormatter {
         }
         return sb.toString().trim();
     }
+    
 }
