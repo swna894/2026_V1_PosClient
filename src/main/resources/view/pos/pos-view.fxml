@@ -240,7 +240,7 @@
          <!-- CART -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonCart1" focusTraversable="false" onAction="#onActionCart"
+         <Button fx:id="buttonCart1" focusTraversable="false" onAction="#onActionCart1"
             styleClass="btn,btn-lg" text="[F2]">
             <tooltip>
                <Tooltip text="ADD TO CART" />
@@ -254,7 +254,7 @@
             </graphic>
          </Button>
 
-         <Button fx:id="buttonCart2" focusTraversable="false" onAction="#onActionCart"
+         <Button fx:id="buttonCart2" focusTraversable="false" onAction="#onActionCart2"
             styleClass="btn,btn-lg" text="[F3]">
             <tooltip>
                <Tooltip text="ADD TO CART" />
@@ -268,7 +268,7 @@
             </graphic>
          </Button>
 
-         <Button fx:id="buttonCart3" focusTraversable="false" onAction="#onActionCart"
+         <Button fx:id="buttonCart3" focusTraversable="false" onAction="#onActionCart3"
             styleClass="btn,btn-lg" text="[F4]">
             <tooltip>
                <Tooltip text="ADD TO CART" />

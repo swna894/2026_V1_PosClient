@@ -1,54 +1,40 @@
 package com.swna.javafx.pos.viewmodel.manager;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.swna.javafx.pos.model.PosItem;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class HoldManager {
-    
     private final CartManager cartManager;
-    private final ObservableList<PosItem> holdItems = FXCollections.observableArrayList();
+    // Map: 카트 번호(Key) -> 해당 카트의 아이템 목록(Value)
+    private final Map<Integer, List<PosItem>> holdCarts = new HashMap<>();
     
-    public HoldManager(CartManager cartManager) {
-        this.cartManager = cartManager;
-    }
+    public HoldManager(CartManager cartManager) { this.cartManager = cartManager; }
     
-    public boolean save() {
-        if (cartManager.isEmpty()) {
-            return false;
-        }
-        
-        holdItems.clear();
-        for (PosItem item : cartManager.getItems()) {
-            holdItems.add(new PosItem(item)); // Deep copy
-        }
-        
+    // 카트 저장
+    public void save(int cartId) {
+        if (cartManager.isEmpty()) return;
+        List<PosItem> savedItems = cartManager.getItems().stream().map(PosItem::new).toList();
+        holdCarts.put(cartId, savedItems);
         cartManager.clear();
-        log.info("[Hold] Saved {} items", holdItems.size());
-        return true;
     }
     
-    public boolean resume() {
-        if (holdItems.isEmpty()) {
-            return false;
+    // 카트 불러오기
+    public void resume(int cartId) {
+        List<PosItem> itemsToResume = holdCarts.remove(cartId);
+        if (itemsToResume != null) {
+            cartManager.clear();
+            cartManager.getItems().addAll(itemsToResume);
         }
-        
-        cartManager.clear();
-        cartManager.getItems().addAll(holdItems);
-        holdItems.clear();
-        
-        log.info("[Hold] Resumed cart");
-        return true;
     }
-    
-    public boolean hasHoldItems() {
-        return !holdItems.isEmpty();
-    }
-    
-    public int getHoldCount() {
-        return holdItems.size();
+
+    // 카트에 물건이 있는지 확인 (버튼 색상 제어용)
+    public boolean hasItems(int cartId) {
+        return holdCarts.containsKey(cartId) && !holdCarts.get(cartId).isEmpty();
     }
 }

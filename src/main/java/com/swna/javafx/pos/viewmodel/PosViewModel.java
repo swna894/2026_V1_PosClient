@@ -197,26 +197,34 @@ public class PosViewModel {
     }
 
     // ========== HoldManager Delegate ==========
-    public void holdCart() {
-        if (holdManager.save()) {
-            scanStatus.set(STATUS_HOLD_SAVED);
-        } else {
-            scanStatus.set(STATUS_HOLD_NO_ITEMS);
-        }
+    public void saveCart(int cartId) {
+        holdManager.save(cartId); // 수정된 HoldManager의 save(int) 호출
+        log.info("Cart {} saved.", cartId);
     }
-    
-    public void resumeCart() {
-        if (holdManager.resume()) {
-            scanStatus.set(STATUS_HOLD_RESUMED);
-        } else {
-            scanStatus.set(STATUS_HOLD_NO_CART);
-        }
+
+    public void resumeCart(int cartId) {
+        holdManager.resume(cartId); // 수정된 HoldManager의 resume(int) 호출
+        log.info("Cart {} resumed.", cartId);
     }
-    
-    public boolean hasHoldItems() { 
-        return holdManager.hasHoldItems(); 
+
+    // UI 버튼 상태 체크용 (버튼 색상 변경 시 필요)
+    public boolean isCartHoldingItems(int cartId) {
+        return holdManager.hasItems(cartId);
     }
+
+    // 기존 단일 save/resume 메서드가 있다면 삭제하거나, 
+    // 혹은 호환성을 위해 아래와 같이 기본값(1번 카트)으로 리다이렉트
+    public void holdCart() { saveCart(1); }
+    public void resumeCart() { resumeCart(1); }
     
+    public CartManager getCartManager() {
+        return this.cartManager;
+    }
+
+    public HoldManager getHoldManager() {
+        return this.holdManager;
+    }
+
     // ========== ScanHandler Delegate ==========
     public void scan(String barcode) { 
         scanHandler.scan(barcode); 

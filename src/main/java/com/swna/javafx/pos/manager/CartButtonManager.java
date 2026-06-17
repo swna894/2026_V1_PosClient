@@ -14,19 +14,16 @@ public class CartButtonManager {
         }
     }
 
-    public void handleCartAction(PosViewModel viewModel, Button source, Runnable onUpdate) {
-        if (viewModel.hasItems()) {
-            // 현재 상품 있음 → HOLD 저장
-            viewModel.holdCart();
-            onUpdate.run();
-            source.getStyleClass().add("cart-held");
-        } else if (viewModel.hasHoldItems()) {
-            // 비어있고 HOLD 존재 → 복원
-            viewModel.resumeCart();
-            onUpdate.run();
-            source.getStyleClass().remove("cart-held");
-        } else {
-            viewModel.scanStatusProperty().set("No hold cart");
+    public void handleCartAction(PosViewModel viewModel, int targetCartId, Button source, Runnable onUpdate) {
+        // 1. 현재 화면에 물건이 있다면 -> 현재 카트 번호(혹은 로직상 필요한 번호)로 저장
+        if (!viewModel.getCartManager().isEmpty()) {
+            viewModel.getHoldManager().save(targetCartId); 
+        } 
+        // 2. 해당 카트에 저장된 물건이 있다면 -> 불러오기
+        else if (viewModel.getHoldManager().hasItems(targetCartId)) {
+            viewModel.getHoldManager().resume(targetCartId);
         }
+        
+        onUpdate.run();
     }
 }

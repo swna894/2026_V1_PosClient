@@ -141,7 +141,7 @@ public class PosViewController {
         scannerManager.setup(table, safeBarcodeScanner, this::handleBarcode);
         
         // 6. 장바구니 버튼 숨김 처리
-        cartButtonManager.hideUnused(buttonCart2, buttonCart3);
+        cartButtonManager.hideUnused(buttonCart3);
         
         // 7. 테이블 포커스
         table.requestFocus();
@@ -225,12 +225,57 @@ public class PosViewController {
         }
     }
 
-    @FXML private void onActionCart(ActionEvent event) {
-        cartButtonManager.handleCartAction(viewModel, (Button) event.getSource(), () -> {
-            table.refresh();
-            if (!table.getItems().isEmpty()) table.getSelectionModel().select(0);
-            table.requestFocus();
-        });
+    // 버튼 1 클릭 시
+    @FXML private void onActionCart1(ActionEvent event) {
+        cartButtonManager.handleCartAction(viewModel, 1, buttonCart1, () -> refreshTable());
+        refreshCartButtonStyles();
+    }
+
+    // 버튼 2 클릭 시
+    @FXML private void onActionCart2(ActionEvent event) {
+        cartButtonManager.handleCartAction(viewModel, 2, buttonCart2, () -> refreshTable());
+        refreshCartButtonStyles();
+    }
+
+    @FXML private void onActionCart3(ActionEvent event) {
+        log.info("cart2");
+    }
+
+    // 버튼 스타일 전체 갱신 (물건 유무에 따른 색상 구분)
+    private void refreshCartButtonStyles() {
+        updateButtonStyle(buttonCart1, 1);
+        updateButtonStyle(buttonCart2, 2);
+    }
+
+    private void updateButtonStyle(Button btn, int cartId) {
+        boolean hasItems = viewModel.getHoldManager().hasItems(cartId);
+        String styleClass = "cart-held";
+
+        if (hasItems) {
+            // 없으면 추가 (중복 방지)
+            if (!btn.getStyleClass().contains(styleClass)) {
+                btn.getStyleClass().add(styleClass);
+            }
+        } else {
+            // 있으면 제거
+            btn.getStyleClass().remove(styleClass);
+        }
+    }
+
+    /**
+     * 테이블 뷰의 데이터를 새로고침하고 UI 상태를 최적화합니다.
+     */
+    private void refreshTable() {
+        // 1. 테이블의 데이터를 새로고침 (데이터 소스가 변경되었을 때 필수)
+        table.refresh();
+        
+        // 2. 테이블에 아이템이 있다면 첫 번째 행을 선택 (사용자 편의성)
+        if (!table.getItems().isEmpty()) {
+            table.getSelectionModel().select(0);
+        }
+        
+        // 3. 테이블에 포커스를 주어 즉시 바코드 스캔이 가능하도록 함
+        table.requestFocus();
     }
 
     // [사용자] → [PosViewController] → [PosDialogManager] → [CashDialogController]
