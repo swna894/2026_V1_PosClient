@@ -116,6 +116,23 @@ public class PosViewModel {
         return !cartManager.isEmpty(); 
     }
     
+    /**
+     * 장바구니의 모든 아이템 가격(판매가 * 수량)의 합계를 BigDecimal로 안전하게 계산합니다.
+     */
+    public BigDecimal calculateActualTotal() {
+        return getPosItems().stream()
+            .map(item -> {
+                // 1. Double을 BigDecimal로 명확히 변환
+                BigDecimal price = BigDecimal.valueOf(item.getOriginalPrice());
+                BigDecimal qty = BigDecimal.valueOf(item.getQty());
+                
+                // 2. 연산 수행 후 반환
+                return price.multiply(qty);
+            })
+            // 3. 초기값을 BigDecimal.ZERO로 명시하여 타입 추론 오류 방지
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     // ========== DiscountManager Delegate ==========
     public void discountItemPrice(PosItem item, double newPrice) { 
         discountManager.discountItemPrice(item, newPrice); 
