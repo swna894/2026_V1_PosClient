@@ -2,9 +2,11 @@ package com.swna.javafx.pos.manager;
 
 import java.math.BigDecimal;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.pos.dialog.BalanceDialogController;
 import com.swna.javafx.pos.dialog.BarcodeDialogController;
 import com.swna.javafx.pos.dialog.CashDialogController;
 import com.swna.javafx.pos.dialog.CashoutDialogController;
@@ -271,10 +273,8 @@ public class PosDialogManager {
     /**
      * 미등록 상품 수동 등록 다이얼로그 표시
      */
-    public void showManualRegisterDialog(String barcode, Consumer<Double> onRegister) {
-        // 기존의 ItemPriceChangeDialogController를 재사용하여 팝업을 띄웁니다.
+    public void showManualRegisterDialog(String barcode, DoubleConsumer onRegister) {
         showDialog(ItemUnregisteredDialogController.class, controller -> {
-            // 컨트롤러에 있는 미등록 상품용 초기화 메서드를 호출합니다[cite: 2, 5].
             controller.initUnregisteredItem(barcode, amount -> {
                 if (onRegister != null) {
                     onRegister.accept(amount);
@@ -293,6 +293,15 @@ public class PosDialogManager {
         return "****-" + cardNumber.substring(cardNumber.length() - 4);
     }
 
+    /**
+     * 잔액 확인 및 영수증 선택 다이얼로그 표시
+     */
+    public void showBalanceDialog(BigDecimal balance, Consumer<BalanceDialogController.BalanceResult> callback) {
+        showDialog(BalanceDialogController.class, controller -> {
+            controller.initData(balance, callback);
+        });
+        
+    }
     /**
      * 공통 다이얼로그 표시 메서드
      */

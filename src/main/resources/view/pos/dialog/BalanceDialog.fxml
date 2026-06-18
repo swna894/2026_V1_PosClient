@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+   stylesheets="@../../../styles/pos_dialog.css"
+   fx:controller="com.swna.javafx.pos.dialog.BalanceDialogController"
+   styleClass="dialog-container" spacing="20">
+   <padding>
+      <Insets bottom="25" left="30" right="30" top="25" />
+   </padding>
+
+   <TextField fx:id="dummyField" managed="false" visible="false" />
+
+   <VBox alignment="CENTER" spacing="10">
+      <Label fx:id="lblBalance" styleClass="title-label"
+         style="-fx-font-size: 64px; -fx-font-weight: bold;" />
+   </VBox>
+
+   <Separator />
+   <HBox alignment="CENTER" spacing="15">
+      <Button text="Complete [Enter]" fx:id="btnComplete" onAction="#handleComplete"
+         styleClass="btn-confirm"
+         prefWidth="150" />
+      <Button text="Print [F8]" onAction="#handlePrint"
+         styleClass="btn-cancel" prefWidth="140" />
+      <Button text="Cancel [ESC]" onAction="#handleCancel"
+         styleClass="btn-cancel" prefWidth="140" />
+   </HBox>
+</VBox>

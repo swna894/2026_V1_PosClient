@@ -12,6 +12,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.pos.api.PosApiService;
+import com.swna.javafx.pos.dialog.BalanceDialogController;
 import com.swna.javafx.pos.event.PaymentSuccessEvent;
 import com.swna.javafx.pos.event.PrintFailureEvent;
 import com.swna.javafx.pos.manager.PosDialogManager;
@@ -272,15 +273,38 @@ public class PosViewModel {
     public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash) {
         processCashPayment(totalAmount, receivedCash, (Consumer<Boolean>) null);
     }
+
+    
     
     // 프린터 출력 조정을 위해 handleProcessedPayment에 boolean을 추가 
-    public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash,   Consumer<Boolean> onComplete) {
+    public void processCashPayment(BigDecimal totalAmount, BigDecimal receivedCash, Consumer<Boolean> onComplete) {
         posProcessor.processCashPayment(totalAmount, receivedCash, 
-            processed -> handleProcessedPayment(processed, onComplete, false),
+            processed -> {
+                BigDecimal balance = receivedCash.subtract(totalAmount);
+                
+                // 잔액이 있을 경우 다이얼로그 호출
+                if (balance.compareTo(BigDecimal.ZERO) > 0) {
+                    Platform.runLater(() -> {
+                        // BalanceDialogController.BalanceResult 타입을 명시하여 타입 에러 방지
+                        posDialogManager.showBalanceDialog(balance, (BalanceDialogController.BalanceResult result) -> {
+                            if (result.isPrint()) {
+                                // [Print] 선택: 영수증 출력(true)
+                                handleProcessedPayment(processed, onComplete, true);
+                            } else if (result.isComplete()) {
+                                // [Complete] 선택: 출력 없이 완료(false)
+                                handleProcessedPayment(processed, onComplete, false);
+                            }
+                            // [Cancel] 시에는 결제 단계가 이미 처리된 후이므로 별도 로직 없음
+                        });
+                    });
+                } else {
+                    // 잔액이 없으면 즉시 완료
+                    handleProcessedPayment(processed, onComplete, false);
+                }
+            },
             createResultHandler()
         );
     }
-
     // ========== 취소 진행 ==========
     public void processCancelPayment(BigDecimal totalAmount, BigDecimal receivedCash,  Consumer<Boolean> onComplete) {
         posProcessor.processCancelPayment(totalAmount, receivedCash, 
