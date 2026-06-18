@@ -289,10 +289,10 @@ public class PosViewModel {
                         posDialogManager.showBalanceDialog(balance, (BalanceDialogController.BalanceResult result) -> {
                             if (result.isPrint()) {
                                 // [Print] 선택: 영수증 출력(true)
-                                handleProcessedPayment(processed, onComplete, true);
+                                handleProcessedPayment(processed, onComplete, false);
                             } else if (result.isComplete()) {
                                 // [Complete] 선택: 출력 없이 완료(false)
-                                handleProcessedPayment(processed, onComplete, false);
+                                handleProcessedPayment(processed, onComplete, true);
                             }
                             // [Cancel] 시에는 결제 단계가 이미 처리된 후이므로 별도 로직 없음
                         });
