@@ -123,33 +123,42 @@ public class VolumeDiscountDialogController extends BasePosDialog {
         }
 
         try {
-            BigDecimal finalAmount;
             if (rbPrice.isSelected()) {
-                finalAmount = new BigDecimal(txtPrice.getText().isEmpty() ? "0" : txtPrice.getText())
+                // 1. [금액 모드] 입력값은 '할인 후 최종 결제 금액'입니다.
+                BigDecimal finalAmount = new BigDecimal(txtPrice.getText().isEmpty() ? "0" : txtPrice.getText())
                     .setScale(2, RoundingMode.HALF_UP);
+
+                // 유효성 검사: 최종 금액은 0보다 커야 하며, 기존 총액보다 작아야 함(할인이 발생해야 하므로)
+                if (finalAmount.compareTo(BigDecimal.ZERO) <= 0 || finalAmount.compareTo(totalAmount) >= 0) {
+                    log.warn("[VolumeDiscountDialog] Invalid final amount: {}", finalAmount);
+                    showValidationError("Invalid final amount. Must be less than original total.");
+                    return;
+                }
+
+                log.info("[VolumeDiscountDialog] Setting final amount to: {}", finalAmount);
+                // '최종 금액'을 전달하여 로직 처리
+                handler.onVolumeDiscount(finalAmount, null); 
+
             } else {
+                // 2. [퍼센트 모드] 입력값은 '할인율(%)'입니다.
                 BigDecimal percent = new BigDecimal(txtPercent.getText().isEmpty() ? "0" : txtPercent.getText())
                     .setScale(2, RoundingMode.HALF_UP);
-                finalAmount = totalAmount.multiply(BigDecimal.ONE.subtract(
-                    percent.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)))
-                    .setScale(2, RoundingMode.HALF_UP);
+
+                if (percent.compareTo(BigDecimal.ZERO) < 0 || percent.compareTo(BigDecimal.valueOf(100)) >= 0) {
+                    log.warn("[VolumeDiscountDialog] Invalid percent: {}", percent);
+                    showValidationError("Invalid percent value (0-100)");
+                    return;
+                }
+
+                log.info("[VolumeDiscountDialog] Applying {}% discount", percent);
+                // 퍼센트 값을 전달 (첫 번째 인자를 null로 하여 구분)
+                handler.onVolumeDiscount(null, percent); 
             }
             
-            // 유효성 검사
-            if (finalAmount.compareTo(BigDecimal.ZERO) <= 0 || finalAmount.compareTo(totalAmount) >= 0) {
-                log.warn("[VolumeDiscountDialog] Invalid discount amount: {}", finalAmount);
-                showValidationError("Invalid discount amount");
-                return;
-            }
-            
-            log.info("[VolumeDiscountDialog] Amount mode: {}", finalAmount);
-            handler.onVolumeDiscount(finalAmount, null);
             closeDialog();
             
         } catch (NumberFormatException e) {
-            log.error("Error converting discount value: input={}, error={}", 
-                      rbPrice.isSelected() ? txtPrice.getText() : txtPercent.getText(), 
-                      e.getMessage());
+            log.error("Error converting input: {}", e.getMessage());
             showValidationError("Invalid number format");
         }
     }

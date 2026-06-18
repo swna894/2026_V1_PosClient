@@ -190,7 +190,7 @@ public class PosDialogManager {
      * 볼륨 할인 다이얼로그 표시
      */
     public void showVolumeDiscountDialog(PosViewModel viewModel, Consumer<DialogResult> callback) {
-        BigDecimal total = BigDecimal.valueOf(viewModel.totalAmountProperty().get());
+        BigDecimal total = viewModel.calculateActualTotal();
         @SuppressWarnings("unused")
         BigDecimal discount = BigDecimal.valueOf(viewModel.discountProperty().get());
         

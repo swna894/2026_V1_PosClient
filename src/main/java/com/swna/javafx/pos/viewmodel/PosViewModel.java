@@ -137,6 +137,23 @@ public class PosViewModel {
         discountManager.applyUnitDiscountToSelected(unitDiscountAmount); 
     }
     
+    /**
+     * 장바구니의 모든 아이템 가격(판매가 * 수량)의 합계를 BigDecimal로 안전하게 계산합니다.
+     */
+    public BigDecimal calculateActualTotal() {
+        return getPosItems().stream()
+            .map(item -> {
+                // 1. Double을 BigDecimal로 명확히 변환
+                BigDecimal price = BigDecimal.valueOf(item.getOriginalPrice());
+                BigDecimal qty = BigDecimal.valueOf(item.getQty());
+                
+                // 2. 연산 수행 후 반환
+                return price.multiply(qty);
+            })
+            // 3. 초기값을 BigDecimal.ZERO로 명시하여 타입 추론 오류 방지
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     // ========== Volume Discount Methods ==========
 
     /**
@@ -144,23 +161,20 @@ public class PosViewModel {
      */
     public void applyVolumeDiscountByAmount(BigDecimal amountAfterDC, Consumer<Boolean> callback) {
         try {
-            BigDecimal currentTotal = BigDecimal.valueOf(totalAmountProperty().get());
+            // [중요] 현재 총액이 아닌, 할인 전의 '진짜 원금'을 가져와야 합니다.
+            BigDecimal originalTotal = calculateActualTotal(); 
             
-            if (currentTotal.compareTo(BigDecimal.ZERO) <= 0) {
+            if (originalTotal.compareTo(BigDecimal.ZERO) <= 0) {
                 callback.accept(false);
                 return;
             }
             
-            if (amountAfterDC.compareTo(currentTotal) >= 0) {
-                callback.accept(false);
-                return;
-            }
-            
-            // 할인율 계산 후 DiscountManager에 위임
-            BigDecimal discountPercent = currentTotal.subtract(amountAfterDC)
+            // 역산 로직 수정
+            BigDecimal discountPercent = originalTotal.subtract(amountAfterDC)
                     .multiply(BigDecimal.valueOf(100))
-                    .divide(currentTotal, 2, RoundingMode.HALF_UP);
+                    .divide(originalTotal, 4, RoundingMode.HALF_UP); // 정밀도 상향
             
+            // 적용 전 기존 할인 초기화 로직이 DiscountManager에 있는지 확인 필요
             discountManager.applyPercentToAll(discountPercent.doubleValue());
             
             callback.accept(true);
