@@ -6,6 +6,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Function;
 
 import org.springframework.stereotype.Component;
 
@@ -71,11 +72,11 @@ public class ReceiptFormatter {
     // ========== Body Builder ==========
     private void buildBody(StringBuilder sb, List<PosItem> posItems, ReceiptStyle style) {
         int totalWidth = style.getWidth();
-        int qtyWidth = 4;
-        int priceWidth = 7;
-        int discountWidth = 7;
-        int amountWidth = 7;
-        int itemWidth = totalWidth - (qtyWidth + priceWidth + discountWidth + amountWidth + 4);
+        int qtyWidth = 9;
+        int priceWidth = 6;
+        int discountWidth = 9;
+        int amountWidth =9;
+        int itemWidth = totalWidth - (qtyWidth + priceWidth + discountWidth + amountWidth + 5);
 
         // 헤더 패턴 정의 (재사용 가능하게 변수화)
         String rowFormat = String.format("%%-%ds %%%ds %%%ds %%%ds  %%%ds", itemWidth, priceWidth, qtyWidth, discountWidth,  amountWidth);
@@ -127,65 +128,58 @@ public class ReceiptFormatter {
     }
 
     // ========== Payment Builder ==========
-private void buildPaymentInfo(StringBuilder sb, SaleRequest saleRequest, ReceiptStyle style) {
-    if (saleRequest == null || saleRequest.payments() == null || saleRequest.payments().isEmpty()) {
-        return;
+    private void buildPaymentInfo(StringBuilder sb, SaleRequest saleRequest, ReceiptStyle style) {
+        if (saleRequest == null || saleRequest.payments() == null || saleRequest.payments().isEmpty()) {
+            return;
+        }
+
+        // 1. Calculate totals and balances
+        BigDecimal totalAmount = calculateTotal(saleRequest, PaymentRequest::amount);
+        BigDecimal totalReceived = calculateTotal(saleRequest, p -> p.receivedAmount() != null ? p.receivedAmount() : BigDecimal.ZERO);
+        BigDecimal balance = totalReceived.subtract(totalAmount);
+        BigDecimal gst = calculateGst(totalAmount);
+
+        // 2. Append Header
+        int width = style.getWidth();
+        String rowFormat = "%20s %-" + (width - 21) + "s";
+        
+        String finalAmountStr = String.format("%s (GST: %s)", formatCurrency(totalAmount.doubleValue()), formatCurrency(gst.doubleValue()));
+        sb.append(String.format(rowFormat, "Final Amount : ", finalAmountStr)).append(NL);
+
+        // 3. Process Payments
+        for (PaymentRequest p : saleRequest.payments()) {
+            appendPaymentDetails(sb, p, balance, rowFormat);
+        }
+        
+        sb.append(style.getLine(true)).append(NL);
     }
-  
-    int width = style.getWidth();
-    // 왼쪽 칸(항목)은 우측 정렬(15자), 오른쪽 칸(금액)은 좌측 정렬(나머지 너비)
-    String rowFormat = "%20s %-" + (width - 21) + "s";
 
-    // 1. 계산 로직
-    BigDecimal totalAmount = saleRequest.payments().stream()
-            .map(PaymentRequest::amount)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private BigDecimal calculateTotal(SaleRequest saleRequest, Function<PaymentRequest, BigDecimal> mapper) {
+        return saleRequest.payments().stream().map(mapper).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
-    log.info("========================================= {}", saleRequest);
-    BigDecimal totalReceived = saleRequest.payments().stream()
-            .map(p -> p.receivedAmount() != null ? p.receivedAmount() : BigDecimal.ZERO)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private BigDecimal calculateGst(BigDecimal totalAmount) {
+        return totalAmount.subtract(totalAmount.divide(BigDecimal.valueOf(1.15), 2, RoundingMode.HALF_UP));
+    }
 
-    BigDecimal balance = totalReceived.subtract(totalAmount);
-
-    // GST 추출 (15% 포함 시: 총액 / 1.15 * 0.15)
-    BigDecimal gst = totalAmount.subtract(totalAmount.divide(BigDecimal.valueOf(1.15), 2, RoundingMode.HALF_UP));
-
-    
-    // Final Amount에 GST 포함하여 한 줄로 표시
-    String finalAmountStr = String.format("%s (GST: %s)", 
-                                         formatCurrency(totalAmount.doubleValue()), 
-                                         formatCurrency(gst.doubleValue()));
-    sb.append(String.format(rowFormat, "Final Amount : ", finalAmountStr)).append(NL);
-    
-    // 3. 결제 상세 출력
-    for (PaymentRequest p : saleRequest.payments()) {
+    private void appendPaymentDetails(StringBuilder sb, PaymentRequest p, BigDecimal balance, String rowFormat) {
         String type = p.type().toUpperCase();
         double amount = p.amount().doubleValue();
-        double cashoutAmount = p.cashoutAmount().doubleValue();
 
-        if(saleRequest.payments().size() == 1) {
-                if ("CASH".equalsIgnoreCase(type)) {
-                    sb.append(String.format(rowFormat, "Received : ", formatCurrency(p.receivedAmount().doubleValue()))).append(NL);
-                    sb.append(String.format(rowFormat, "Cash Paid : ", formatCurrency(p.amount().doubleValue()))).append(NL);
-                    sb.append(String.format(rowFormat, "Balance : ", formatCurrency(balance.doubleValue()))).append(NL);
-                } 
-                if ("CASHOUT".equalsIgnoreCase(type)) {
-                    sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NL);
-                    sb.append(String.format(rowFormat, "Cash Out : ", formatCurrency(cashoutAmount))).append(NL);
-                }
-
-        } else {
-                if ("CARD".equals(type)) {
-                    sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NL);
-                }
-                if ("CASH".equals(type)) {
-                    sb.append(String.format(rowFormat, "Cash Paid :", formatCurrency(amount))).append(NL);
-                } 
-        } 
+        if ("CARD".equals(type)) {
+            sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NL);
+        } else if ("CASH".equalsIgnoreCase(type)) {
+            sb.append(String.format(rowFormat, "Cash Paid : ", formatCurrency(p.receivedAmount().doubleValue()))).append(NL);
+            if (balance.doubleValue() > 0) {
+                sb.append(String.format(rowFormat, "Balance : ", formatCurrency(balance.doubleValue()))).append(NL);
+            }
+        } else if ("CASHOUT".equalsIgnoreCase(type)) {
+            sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NL);
+            if (p.cashoutAmount().doubleValue() > 0) {
+                sb.append(String.format(rowFormat, "Cash Out : ", formatCurrency(p.cashoutAmount().doubleValue()))).append(NL);
+            }
+        }
     }
-    sb.append(style.getLine(true)).append(NL);
-}
 
     // ========== Notice Builder ==========
     private void buildNotice(StringBuilder sb, ReceiptStyle style, String inform) {

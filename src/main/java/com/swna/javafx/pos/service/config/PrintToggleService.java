@@ -14,21 +14,22 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class PrintToggleService {
     
-    private final BooleanProperty printEnabled = new SimpleBooleanProperty(false);
+    private final BooleanProperty printEnabled = new SimpleBooleanProperty(true);
+    private final BooleanProperty barcodeEnabled = new SimpleBooleanProperty(false); // 기본값 설정
+
+    public boolean isBarcodeEnabled() { return barcodeEnabled.get(); }
+    public void setBarcodeEnabled(boolean enabled) { barcodeEnabled.set(enabled); }
+    public BooleanProperty barcodeEnabledProperty() { return barcodeEnabled; }
     
     /**
      * 프린트 활성화 여부 확인
      */
-    public boolean isPrintEnabled() {
-        return printEnabled.get();
-    }
+    public boolean isPrintEnabled() {return printEnabled.get();}
     
     /**
      * 프린트 활성화 설정
      */
-    public void setPrintEnabled(boolean enabled) {
-        printEnabled.set(enabled);
-    }
+    public void setPrintEnabled(boolean enabled) { printEnabled.set(enabled);}
     
     /**
      * 프린트 상태 Property (바인딩용)

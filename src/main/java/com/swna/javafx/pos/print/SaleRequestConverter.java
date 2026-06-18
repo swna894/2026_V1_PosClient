@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SaleRequestConverter {
 
+    private SaleRequestConverter() {}
     /**
      * SaleResponse와 List<SaleItemRequest>를 조합하여 
      * 최신 규격의 클라이언트 SaleRequest 객체를 역변환 생성합니다.

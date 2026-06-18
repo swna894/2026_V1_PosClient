@@ -7,6 +7,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.swna.javafx.pos.dto.response.SaleResponse;
+
 /**
  * 판매 데이터 모델 (JavaFX Property 적용)
  */
@@ -51,6 +53,19 @@ public class SaleModel {
         this.status.set(status);
     }
     
+
+    public SaleResponse toResponse() {
+        return new SaleResponse(
+            this.getId(),
+            this.getReceiptNo(),
+            this.getStatus(),
+            this.getSaleAmount(),       // 또는 originalAmount
+            this.getDiscountAmount(),
+            this.getSaleAmount(),       // 필요에 따라 finalAmount 계산 로직 적용
+            this.getCostAmount()
+        );
+    }
+
     // Getters and Properties
     public long getId() { return id.get(); }
     public LongProperty idProperty() { return id; }

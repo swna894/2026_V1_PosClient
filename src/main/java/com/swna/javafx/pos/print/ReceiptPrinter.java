@@ -10,6 +10,7 @@ import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.PaymentResult;
 import com.swna.javafx.pos.model.PosItem;
+import com.swna.javafx.pos.service.config.PrintToggleService;
 
 import javafx.print.Printer;
 import lombok.extern.slf4j.Slf4j;
@@ -26,11 +27,13 @@ public class ReceiptPrinter {
     private static final byte[] FONT_80MM = { 0x1B, 0x21, 0x06 };     
     private static final byte[] CR_LF = { 0x0D, 0x0A };               
 
+    private final PrintToggleService printToggleService;
     private final PrinterService printerService;
     private final ReceiptFormatter formatter;
     private String printerName;
 
-    public ReceiptPrinter(PrinterService printerService, ReceiptFormatter formatter) {
+    public ReceiptPrinter(PrinterService printerService, ReceiptFormatter formatter, PrintToggleService printToggleService) {
+        this.printToggleService = printToggleService;
         this.printerService = printerService;
         this.formatter = formatter;
     }
@@ -63,7 +66,7 @@ public class ReceiptPrinter {
         String receiptNo = (result != null && result.getSaleResponse() != null) 
             ? result.getSaleResponse().receiptNo() : null;
             
-        if (receiptNo != null && !receiptNo.isBlank()) {
+        if (receiptNo != null && !receiptNo.isBlank() && printToggleService.isBarcodeEnabled()) {
             parts.add(CMD_ALIGN_CENTER);
             
             // ✨ [안전장치 하드웨어 명령어 추가] 바코드의 자체 폰트 겹침을 방지하고 모양을 견고하게 정렬합니다.
@@ -80,6 +83,10 @@ public class ReceiptPrinter {
         parts.add(CR_LF);
         parts.add(CR_LF);
         parts.add(CR_LF);
+         if (!printToggleService.isBarcodeEnabled()) {
+            parts.add(CR_LF);
+            parts.add(CR_LF);
+        }
         parts.add(CMD_CUT);
         
         byte[] resultData = combine(parts);

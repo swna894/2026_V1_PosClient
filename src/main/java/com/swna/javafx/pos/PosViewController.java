@@ -142,6 +142,9 @@ public class PosViewController {
         
         // 6. 장바구니 버튼 숨김 처리
         cartButtonManager.hideUnused(buttonCart3);
+        if(!printToggleService.isBarcodeEnabled()) {
+            cartButtonManager.hideUnused(buttonReceipt);
+        }
         
         // 7. 테이블 포커스
         table.requestFocus();

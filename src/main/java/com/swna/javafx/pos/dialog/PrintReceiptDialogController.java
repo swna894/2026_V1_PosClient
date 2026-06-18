@@ -1,6 +1,7 @@
 package com.swna.javafx.pos.dialog;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -13,7 +14,14 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.admin.sale.model.SaleItemModel;
 import com.swna.javafx.admin.sale.model.SaleModel;
 import com.swna.javafx.admin.sale.viewmodel.SalesViewModel;
+import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
+import com.swna.javafx.pos.dto.request.DiscountType;
+import com.swna.javafx.pos.dto.request.PaymentRequest;
+import com.swna.javafx.pos.dto.request.SaleItemRequest;
+import com.swna.javafx.pos.dto.request.SaleRequest;
+import com.swna.javafx.pos.dto.response.SaleResponse;
+import com.swna.javafx.pos.print.SaleRequestConverter;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -43,6 +51,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 public class PrintReceiptDialogController extends BasePosDialog implements Initializable {
 
     private final SalesViewModel salesViewModel;
+    private final Shop shop;
 
     // ========== ToolBar Controls ==========
     @FXML private DatePicker startDatePicker;
@@ -604,188 +613,137 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
      * @param sale 영수증 정보
      * @param items 해당 영수증의 아이템 리스트
      */
+/**
+     * ReceiptFormatter와 동일한 로직(헤더, 가격, 결제 정보)을 따르는 HTML 생성기
+     */
     private String generateReceiptHTML(SaleModel sale, List<SaleItemModel> items) {
         StringBuilder sb = new StringBuilder();
-        
-        sb.append("<!DOCTYPE html>\n");
-        sb.append("<html>\n");
-        sb.append("<head>\n");
-        sb.append("<meta charset='UTF-8'>\n");
-        sb.append("<style>\n");
-        sb.append("* { margin: 0; padding: 0; box-sizing: border-box; }\n");
-        sb.append("body {\n");
-        sb.append("  font-family: 'Courier New', 'Monaco', monospace;\n");
-        sb.append("  font-size: 11px;\n");
-        sb.append("  width: 280px;\n");
-        sb.append("  margin: 0 auto;\n");
-        sb.append("  padding: 8px;\n");
-        sb.append("  background: white;\n");
-        sb.append("}\n");
-        sb.append(".header { text-align: center; margin-bottom: 8px; }\n");
-        sb.append(".shop-name { font-size: 14px; font-weight: bold; margin-bottom: 3px; }\n");
-        sb.append(".shop-info { font-size: 9px; color: #555; }\n");
-        sb.append(".divider-dash { border-top: 1px dashed #000; margin: 5px 0; }\n");
-        sb.append(".divider-solid { border-top: 1px solid #000; margin: 5px 0; }\n");
-        sb.append(".receipt-info { display: flex; justify-content: space-between; margin: 3px 0; font-size: 10px; }\n");
-        sb.append(".items-header { display: flex; justify-content: space-between; margin: 5px 0 2px 0; font-weight: bold; font-size: 10px; }\n");
-        sb.append(".item-row { display: flex; justify-content: space-between; margin: 2px 0; }\n");
-        sb.append(".item-desc { flex: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n");
-        sb.append(".item-qty { width: 35px; text-align: right; }\n");
-        sb.append(".item-price { width: 55px; text-align: right; }\n");
-        sb.append(".item-amount { width: 55px; text-align: right; }\n");
-        sb.append(".discount-row { font-size: 9px; color: #e74c3c; display: flex; justify-content: flex-end; margin: 1px 0; }\n");
-        sb.append(".total-row { display: flex; justify-content: space-between; margin: 5px 0; font-weight: bold; font-size: 12px; }\n");
-        sb.append(".summary-row { display: flex; justify-content: space-between; margin: 2px 0; font-size: 10px; }\n");
-        sb.append(".footer { text-align: center; margin-top: 8px; }\n");
-        sb.append(".barcode { text-align: center; margin: 8px 0 5px 0; font-size: 14px; letter-spacing: 2px; font-family: 'Courier New', monospace; }\n");
-        sb.append(".notice { text-align: center; font-size: 9px; margin-top: 8px; }\n");
-        sb.append(".thankyou { font-size: 10px; font-weight: bold; margin-top: 5px; }\n");
-        sb.append(".empty-message { text-align: center; color: #999; padding: 20px; }\n");
-        sb.append("</style>\n");
-        sb.append("</head>\n");
-        sb.append("<body>\n");
-        
-        // ========== Header ==========
+
+        SaleResponse saleResponse = sale.toResponse();
+        List<SaleItemRequest> saleItemRequests = items.stream()
+            .map(model -> new SaleItemRequest(
+                model.getBarcode(),
+                model.getQuantity(),
+                model.getOriginalPrice(),
+                model.getSalePrice(),
+                model.getDiscountPrice(),
+                DiscountType.AMOUNT, // 필요에 따라 로직 적용
+                model.getComment()
+            )).toList();
+        SaleRequest saleRequest = SaleRequestConverter.toSaleRequest(saleResponse, saleItemRequests);
+
+        // 1. Shop 데이터 처리 (Null 체크 및 기본값 설정)
+        String shopName = (shop != null && shop.getCompany() != null) ? shop.getCompany().toUpperCase() : "MY STORE";
+        String shopAddress = (shop != null && shop.getAddress() != null) ? shop.getAddress() : "123 Main Street, Suite 100";
+        String phone = (shop != null && shop.getPhone() != null) ? shop.getPhone() : "(123) 456-7890";
+        String businessNo = (shop != null && shop.getBusinessNo() != null) ? shop.getBusinessNo() : "1234567890";
+
+        // 1. 스타일 설정 (ReceiptFormatter의 레이아웃 유지)
+        sb.append("<!DOCTYPE html>\n<html>\n<head>\n<meta charset='UTF-8'>\n<style>\n");
+        sb.append("body { font-family: 'Courier New', monospace; font-size: 11px; width: 280px; margin: 0 auto; padding: 5px; }\n");
+        sb.append(".header { text-align: left; margin-bottom: 5px; }\n");
+        sb.append(".shop-name { font-size: 16px; font-weight: bold; }\n");
+        sb.append(".divider { border-top: 1px solid #000; margin: 4px 0; }\n");
+        sb.append(".row { display: flex; justify-content: space-between; margin: 1px 0; }\n");
+        sb.append(".item-row { display: flex; justify-content: space-between; margin: 2px 0; font-size: 10px; }\n");
+        sb.append(".items-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 10px; border-bottom: 1px dashed #000; padding: 2px 0; }\n");
+        sb.append("</style>\n</head>\n<body>\n");
+
+        // 2. Header (ReceiptFormatter.buildHeader)
         sb.append("<div class='header'>\n");
-        sb.append("<div class='shop-name'>MY STORE</div>\n");
-        sb.append("<div class='shop-info'>123 Main Street, Suite 100</div>\n");
-        sb.append("<div class='shop-info'>Tel: (123) 456-7890</div>\n");
-        sb.append("<div class='shop-info'>GST: 1234567890</div>\n");
-        sb.append("<div class='divider-solid'></div>\n");
+        sb.append("<div class='shop-name'>").append(escapeHtml(shopName)).append("</div>\n");
+        sb.append("<div>").append(escapeHtml(shopAddress)).append("</div>\n");
+        sb.append("<div>Tel: ").append(escapeHtml(phone)).append("</div>\n");
+        sb.append("<div>GST: ").append(escapeHtml(businessNo)).append("</div>\n");
+        sb.append("</div>\n<div class='divider'></div>\n");
+
+        String date = sale.getPaymentDateTime() != null ? sale.getPaymentDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "";
+        sb.append("<div class='row'><span>Date:</span><span>").append(escapeHtml(date)).append("</span></div>\n");
+        sb.append("<div class='row'><span>Receipt No:</span><span>").append(escapeHtml(sale.getReceiptNo())).append("</span></div>\n");
+        sb.append("<div class='divider'></div>\n");
+
+        // 3. Body (ReceiptFormatter.buildBody)
+        sb.append("<div class='items-header'><span>Item</span><span>Price</span><span>Qty</span><span>D/C</span><span>Amount</span></div>\n");
         
-        // 영수증 정보
-        String receiptNo = sale.getReceiptNo() != null ? sale.getReceiptNo() : "N/A";
-        String date = sale.getPaymentDateTime() != null ? 
-            sale.getPaymentDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : 
-            LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
-        
-        sb.append("<div class='receipt-info'><span>Date:</span><span>").append(escapeHtml(date)).append("</span></div>\n");
-        sb.append("<div class='receipt-info'><span>Receipt No:</span><span>").append(escapeHtml(receiptNo)).append("</span></div>\n");
-        sb.append("<div class='divider-solid'></div>\n");
-        sb.append("</div>\n");
-        
-        // ========== Items Header ==========
-        sb.append("<div class='items-header'>\n");
-        sb.append("<span>Item</span>\n");
-        sb.append("<span style='width:35px;text-align:right'>Qty</span>\n");
-        sb.append("<span style='width:55px;text-align:right'>Price</span>\n");
-        sb.append("<span style='width:55px;text-align:right'>Amount</span>\n");
-        sb.append("</div>\n");
-        sb.append("<div class='divider-dash'></div>\n");
-        
-        // ========== Items (파라미터로 받은 items 사용) ==========
-        double subtotal = 0;
-        
-        if (items != null && !items.isEmpty()) {
-            for (SaleItemModel item : items) {
-                int qty = item.getQuantity();
+        if (items != null) {
+            for (int i = 0; i < items.size(); i++) {
+                SaleItemModel item = items.get(i);
                 double price = item.getSalePrice() != null ? item.getSalePrice().doubleValue() : 0;
-                double amount = item.getSaleAmount() != null ? item.getSaleAmount().doubleValue() : 0;
                 double discount = item.getDiscountAmount() != null ? item.getDiscountAmount().doubleValue() : 0;
-                double finalAmount = amount;
-                
-                subtotal += amount;
-                
-                String desc = item.getDescription() != null ? item.getDescription() : (item.getBarcode() != null ? item.getBarcode() : "Item");
-                if (desc.length() > 22) desc = desc.substring(0, 19) + "...";
-                
+                double amount = item.getSaleAmount() != null ? item.getSaleAmount().doubleValue() : 0;
+
+                sb.append("<div style='margin-top:4px'>").append((i + 1)).append(". ").append(escapeHtml(item.getDescription())).append("</div>\n");
                 sb.append("<div class='item-row'>\n");
-                sb.append("<span class='item-desc'>").append(escapeHtml(desc)).append("</span>\n");
-                sb.append("<span class='item-qty'>").append(qty).append("</span>\n");
-                sb.append("<span class='item-price'>").append(formatMoney(price)).append("</span>\n");
-                sb.append("<span class='item-amount'>").append(formatMoney(finalAmount)).append("</span>\n");
+                sb.append("<span></span><span>").append(formatCurrency(price)).append("</span>");
+                sb.append("<span>").append(item.getQuantity()).append("</span>");
+                sb.append("<span>").append(discount > 0 ? formatCurrency(discount) : "-").append("</span>");
+                sb.append("<span>").append(formatCurrency(amount)).append("</span>\n");
                 sb.append("</div>\n");
-                
-                // 할인 정보
-                if (discount > 0) {
-                    sb.append("<div class='discount-row'>\n");
-                    sb.append("<span>  Discount</span>\n");
-                    sb.append("<span>-").append(formatMoney(discount)).append("</span>\n");
-                    sb.append("</div>\n");
+            }
+        }
+        sb.append("<div class='divider'></div>\n");
+
+        //===========================================================================
+        // 4. Footer & Payment (ReceiptFormatter.buildFooter & buildPaymentInfo)
+        //===========================================================================
+        int width = 40;
+        String rowFormat = "%20s %-" + (width - 21) + "s";
+        String NL = "\n";
+        log.info("salseRequest {} ", saleRequest);
+        BigDecimal totalAmount = saleRequest.payments().stream()
+                .map(PaymentRequest::amount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalReceived = saleRequest.payments().stream()
+                .map(p -> p.receivedAmount() != null ? p.receivedAmount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal balance = totalReceived.subtract(totalAmount);
+        BigDecimal gst = totalAmount.subtract(totalAmount.divide(BigDecimal.valueOf(1.15), 2, RoundingMode.HALF_UP));
+
+        // 3. HTML 출력
+        sb.append("<div style='font-family: monospace; white-space: pre; font-size: 12px;'>");
+
+        // Final Amount 출력
+        String finalAmountStr = String.format("%s (GST: %s)", 
+                formatCurrency(totalAmount.doubleValue()), formatCurrency(gst.doubleValue()));
+        sb.append(String.format(rowFormat, "Final Amount : ", finalAmountStr)).append(NL);
+
+        // 결제 상세 출력 (for loop 활용)
+        for (PaymentRequest p : saleRequest.payments()) {
+            String type = p.type().toUpperCase();
+            double amount = p.amount().doubleValue();
+            double cashoutAmount = p.cashoutAmount().doubleValue();
+
+            if (saleRequest.payments().size() == 1) {
+                if ("CASH".equalsIgnoreCase(type)) {
+                    sb.append(String.format(rowFormat, "Cash Paid : ", formatCurrency(p.receivedAmount().doubleValue()))).append(NL);
+                    if (balance.doubleValue() > 0) {
+                        sb.append(String.format(rowFormat, "Balance : ", formatCurrency(balance.doubleValue()))).append(NL);
+                    }
+                } else if ("CASHOUT".equalsIgnoreCase(type) || "CARD".equalsIgnoreCase(type)) {
+                    sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NL);
+                    if (cashoutAmount > 0) {
+                        sb.append(String.format(rowFormat, "Cash Out : ", formatCurrency(cashoutAmount))).append(NL);
+                    }
+                }
+            } else {
+                // 복합 결제
+                if ("CARD".equals(type) || "EFT".equals(type)) {
+                    sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NL);
+                } else if ("CASH".equals(type)) {
+                    sb.append(String.format(rowFormat, "Cash Paid : ", formatCurrency(amount))).append(NL);
                 }
             }
-        } else {
-            sb.append("<div class='empty-message'>No items found for this receipt</div>\n");
         }
-        
-        sb.append("<div class='divider-dash'></div>\n");
-        
-        // ========== Totals ==========
-        double totalDiscount = sale.getDiscountAmount() != null ? sale.getDiscountAmount().doubleValue() : 0;
-        double finalTotal = sale.getSaleAmount() != null ? sale.getSaleAmount().doubleValue() : 0;
-        
-        if (totalDiscount > 0) {
-            sb.append("<div class='summary-row'>\n");
-            sb.append("<span>ORIGINAL AMOUNT</span>\n");
-            sb.append("<span>").append(formatMoney(subtotal)).append("</span>\n");
-            sb.append("</div>\n");
-            sb.append("<div class='summary-row'>\n");
-            sb.append("<span>DISCOUNT</span>\n");
-            sb.append("<span>-").append(formatMoney(totalDiscount)).append("</span>\n");
-            sb.append("</div>\n");
-            sb.append("<div class='divider-dash'></div>\n");
-            sb.append("<div class='total-row'>\n");
-            sb.append("<span>TOTAL AMOUNT</span>\n");
-            sb.append("<span>").append(formatMoney(finalTotal)).append("</span>\n");
-            sb.append("</div>\n");
-        } else {
-            sb.append("<div class='total-row'>\n");
-            sb.append("<span>TOTAL AMOUNT</span>\n");
-            sb.append("<span>").append(formatMoney(finalTotal)).append("</span>\n");
-            sb.append("</div>\n");
-        }
-        
-        sb.append("<div class='divider-dash'></div>\n");
-        
-        // ========== Payment Info ==========
-        double cashAmount = sale.getCashAmount() != null ? sale.getCashAmount().doubleValue() : 0;
-        double creditAmount = sale.getCreditAmount() != null ? sale.getCreditAmount().doubleValue() : 0;
-        double cashoutAmount = sale.getCashoutAmount() != null ? sale.getCashoutAmount().doubleValue() : 0;
-        
-        if (cashAmount > 0) {
-            sb.append("<div class='summary-row'>\n");
-            sb.append("<span>CASH PAID</span>\n");
-            sb.append("<span>").append(formatMoney(cashAmount)).append("</span>\n");
-            sb.append("</div>\n");
-        }
-        
-        if (creditAmount > 0) {
-            sb.append("<div class='summary-row'>\n");
-            sb.append("<span>CARD PAID</span>\n");
-            sb.append("<span>").append(formatMoney(creditAmount)).append("</span>\n");
-            sb.append("</div>\n");
-        }
-        
-        if (cashoutAmount > 0) {
-            sb.append("<div class='summary-row'>\n");
-            sb.append("<span>CASHOUT</span>\n");
-            sb.append("<span>").append(formatMoney(cashoutAmount)).append("</span>\n");
-            sb.append("</div>\n");
-        }
-        
-        sb.append("<div class='divider-solid'></div>\n");
-        
-        // ========== Barcode ==========
-        sb.append("<div class='barcode'>\n");
-        sb.append("* ").append(escapeHtml(receiptNo)).append(" *\n");
         sb.append("</div>\n");
-        
-        // ========== Footer ==========
-        sb.append("<div class='footer'>\n");
-        sb.append("<div class='notice'>** Tax Invoice **</div>\n");
-        sb.append("<div class='divider-dash'></div>\n");
-        sb.append("<div class='thankyou'>Thank you for your visit!</div>\n");
-        sb.append("<div class='notice'>Goods sold are not refundable</div>\n");
-        sb.append("<div class='notice'>For exchange, please bring receipt</div>\n");
-        sb.append("</div>\n");
-        
-        sb.append("</body>\n");
-        sb.append("</html>\n");
-        
+        sb.append("<div class='divider'></div>\n");
+
+        sb.append("<div style='text-align:center; font-size:9px;'>Goods sold are not refundable</div>\n");
         return sb.toString();
     }
     
-    private String formatMoney(double amount) {
+    private String formatCurrency(double amount) {
         return String.format("$%,.2f", amount);
     }
     
