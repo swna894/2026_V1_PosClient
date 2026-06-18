@@ -1,4 +1,4 @@
-package com.swna.javafx.pos.manager;
+package com.swna.javafx.pos.factory;
 
 import com.swna.javafx.common.constant.IconPaths;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
@@ -9,10 +9,11 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.function.Consumer;
 
 @Component
-public class PosTableSetup {
+public class PosTableFactory {
 
     // ========== Layout Constants ==========
     private static final int BUTTON_COLUMN_WIDTH = 50;
@@ -97,8 +98,8 @@ public class PosTableSetup {
             public Builder colQty(TableColumn<PosItem, Integer> colQty) { this.colQty = colQty; return this; }
             public Builder colStock(TableColumn<PosItem, Integer> colStock) { this.colStock = colStock; return this; }
             public Builder colPrice(TableColumn<PosItem, Double> colPrice) { this.colPrice = colPrice; return this; }
-            public Builder colTotal(TableColumn<PosItem, Double> colTotal) { this.colTotal = colTotal; return this; }
             public Builder colDiscount(TableColumn<PosItem, Double> colDiscount) { this.colDiscount = colDiscount; return this; }
+            public Builder colTotal(TableColumn<PosItem, Double> colTotal) { this.colTotal = colTotal; return this; }
             public Builder colDelete(TableColumn<PosItem, Void> colDelete) { this.colDelete = colDelete; return this; }
             public Builder colMinus(TableColumn<PosItem, Void> colMinus) { this.colMinus = colMinus; return this; }
             public Builder colPlus(TableColumn<PosItem, Void> colPlus) { this.colPlus = colPlus; return this; }
@@ -210,13 +211,28 @@ public class PosTableSetup {
         TableColumnUtil.makeIntegerColumn(columns.colStock, PosItem::stockProperty, PosItem::setStock, READ_ONLY, true,ALIGN_CENTER, null);
         
         // 단가 - 오른쪽 정렬, 읽기 전용
-        TableColumnUtil.makeCurrencyColumn(columns.colPrice,  PosItem::sellingPriceProperty, READ_ONLY, true,ALIGN_RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(columns.colPrice,  PosItem::originalPriceProperty, READ_ONLY, true,ALIGN_RIGHT, null);
         
         // 총액 - 오른쪽 정렬, 읽기 전용
         TableColumnUtil.makeCurrencyColumn(columns.colTotal,  PosItem::finalAmountProperty, READ_ONLY, true,ALIGN_RIGHT, null);
         
         // 할인 - 오른쪽 정렬, 읽기 전용
         TableColumnUtil.makeCurrencyColumn(columns.colDiscount,  PosItem::discountTotalProperty, READ_ONLY, true,ALIGN_RIGHT, null);
+
+        columns.colDiscount.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) { // Double 타입 확인 필요
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else if (item == 0.0) {
+                    setText("-");
+                } else {
+                    // CURRENCY_FORMAT은 프로젝트 내 정의된 것을 사용하세요
+                   setText(TableColumnUtil.formatCurrency(item)); 
+                }
+            }
+        });
     }
     
     /**

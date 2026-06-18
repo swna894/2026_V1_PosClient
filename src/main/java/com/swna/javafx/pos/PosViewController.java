@@ -14,11 +14,11 @@ import com.swna.javafx.common.util.StatusLabel;
 import com.swna.javafx.common.util.StatusLabelManager;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
 import com.swna.javafx.pos.dialog.PrintReceiptDialogController;
+import com.swna.javafx.pos.factory.PosTableFactory;
 import com.swna.javafx.pos.manager.BarcodeScannerManager;
 import com.swna.javafx.pos.manager.CartButtonManager;
 import com.swna.javafx.pos.manager.ClockManager;
 import com.swna.javafx.pos.manager.PosDialogManager;
-import com.swna.javafx.pos.manager.PosTableSetup;
 import com.swna.javafx.pos.manager.UiNotifier;
 import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.service.config.PosToggleService;
@@ -59,7 +59,7 @@ public class PosViewController {
     private final PosViewModel viewModel;
     private final SafeBarcodeScanner safeBarcodeScanner;
     private final BarcodeScannerManager scannerManager;
-    private final PosTableSetup tableSetup;
+    private final PosTableFactory tableSetup;
     private final PosDialogManager posDialogManager;
     private final UiNotifier uiNotifier;
     private final ClockManager clockManager;
@@ -159,7 +159,7 @@ public class PosViewController {
     // ========== Setup Methods ==========
 
     private void setupTable() {
-        PosTableSetup.TableColumns columns = PosTableSetup.TableColumns.builder()
+        PosTableFactory.TableColumns columns = PosTableFactory.TableColumns.builder()
             .colNo(colNo)
             .colBarcode(colBarcode)
             .colDesc(colDesc)
@@ -167,8 +167,8 @@ public class PosViewController {
             .colQty(colQty)
             .colStock(colStock)
             .colPrice(colPrice)
-            .colTotal(colTotal)
             .colDiscount(colDiscount)
+            .colTotal(colTotal)
             .colDelete(colDelete)
             .colMinus(colMinus)
             .colPlus(colPlus)
@@ -176,7 +176,7 @@ public class PosViewController {
             .colChangePrice(colChangePrice)
             .build();
         
-        PosTableSetup.Callbacks callbacks = PosTableSetup.Callbacks.builder()
+        PosTableFactory.Callbacks callbacks = PosTableFactory.Callbacks.builder()
             .onDiscount(this::showDiscountDialog)
             .onChangePrice(this::showPriceChangeDialog)
             .build();

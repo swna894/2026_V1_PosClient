@@ -62,7 +62,15 @@ public class TableColumnUtil {
 
 
     // ========== Public API - Number Column ==========
-    
+
+
+    public static String formatCurrency(double amount) {
+        NumberFormat format = NumberFormat.getCurrencyInstance();
+        // 소수점 자릿수를 2자리로 고정
+        format.setMinimumFractionDigits(2);
+        format.setMaximumFractionDigits(2);
+        return format.format(amount);
+    }
     /**
      * 테이블 행 번호를 표시하는 컬럼을 생성합니다.
      * 각 행의 순번(1부터 시작)을 자동으로 표시하며, 정렬 및 편집이 불가능합니다.
