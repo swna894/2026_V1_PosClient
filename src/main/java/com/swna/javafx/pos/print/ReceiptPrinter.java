@@ -46,7 +46,7 @@ public class ReceiptPrinter {
         
         initializePrinterName();
 
-        String content = formatter.buildContent(saleRequest, result, posItems, shop, style, inform);
+        String content = formatter.buildReceiptContent(saleRequest, result, posItems, shop, style, inform);
         byte[] allPrintData = buildFullPrintData(content, style, result);
         printerService.printBytes(printerName, allPrintData);
         
