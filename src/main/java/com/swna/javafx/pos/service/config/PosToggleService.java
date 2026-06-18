@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class PosToggleService {
     // 기본값은 true (결제 활성)
-    private final BooleanProperty posEnabled = new SimpleBooleanProperty(false);
+    private final BooleanProperty posEnabled = new SimpleBooleanProperty(true);
 
     public boolean isPosEnabled() {
         return posEnabled.get();
