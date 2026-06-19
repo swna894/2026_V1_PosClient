@@ -15,6 +15,7 @@ import com.swna.javafx.admin.sale.model.SaleItemModel;
 import com.swna.javafx.admin.sale.model.SaleModel;
 import com.swna.javafx.admin.sale.viewmodel.SalesViewModel;
 import com.swna.javafx.admin.shop.Shop;
+import com.swna.javafx.admin.shop.viewmodel.ShopViewModel;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
 import com.swna.javafx.pos.dto.request.DiscountType;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
@@ -51,7 +52,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 public class PrintReceiptDialogController extends BasePosDialog implements Initializable {
 
     private final SalesViewModel salesViewModel;
-    private final Shop shop;
+    private final ShopViewModel shopViewModel;
 
     // ========== ToolBar Controls ==========
     @FXML private DatePicker startDatePicker;
@@ -127,7 +128,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
         setupButtonActions();
         setupSelectionListener();
         setupSaleItemsListener();
-
+ setupSalesListListener();
         enableFullWindowDrag();
         // Scene에 키 이벤트 추가 (가장 간단함)
         Platform.runLater(() -> {
@@ -143,6 +144,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
         });
 
         loadInitialData();
+        shopViewModel.loadInitialData();
         
         log.info("[PrintReceiptDialog] initialize() completed");
     }
@@ -200,9 +202,6 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
             int size = salesViewModel.getSalesList().size();
             updateStatusMessage(size == 0 ? "No sales data found for today: " + today : "Ready - " + size + " receipts found");
             if (receiptItemsTableView != null) receiptItemsTableView.refresh();
-            
-            // 첫 번째 영수증 자동 선택
-            selectFirstReceiptAfterLoad();
         });
     }
 
@@ -376,28 +375,28 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
             todayBtn.setOnAction(e -> {
                 updateButtonSelection(todayBtn);
                 salesViewModel.loadTodaySales();
-                updateAfterDataLoad();
+              //  updateAfterDataLoad();
             });
         }
         if (weekBtn != null) {
             weekBtn.setOnAction(e -> {
                 updateButtonSelection(weekBtn);
                 salesViewModel.loadThisWeekSales();
-                updateAfterDataLoad();
+               // updateAfterDataLoad();
             });
         }
         if (monthBtn != null) {
             monthBtn.setOnAction(e -> {
                 updateButtonSelection(monthBtn);
                 salesViewModel.loadThisMonthSales();
-                updateAfterDataLoad();
+               // updateAfterDataLoad();
             });
         }
         if (searchButton != null) {
             searchButton.setOnAction(e -> {
                 updateButtonSelection(searchButton);
                 salesViewModel.loadSalesByDateRange();
-                updateAfterDataLoad();
+               // updateAfterDataLoad();
                 if (callback != null && startDatePicker != null && endDatePicker != null) {
                     callback.onSearch(startDatePicker.getValue(), endDatePicker.getValue());
                 }
@@ -407,7 +406,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
         if (refreshButton != null) {
             refreshButton.setOnAction(e -> {
                 salesViewModel.refresh();
-                updateAfterDataLoad();
+                //updateAfterDataLoad();
             });
         }
         if (closeButton != null) closeButton.setOnAction(e -> handleCancel());
@@ -417,48 +416,34 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
     /**
      * 데이터 로드 후 UI 업데이트를 처리하는 통합 메서드
      */
-    private void updateAfterDataLoad() {
-        Platform.runLater(() -> {
-            // 지연 후 Summary 값들 강제 새로고침
-            Thread.startVirtualThread(() -> {
-                try {
-                    Thread.sleep(300); // 데이터 로드 완료 대기
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-                Platform.runLater(() -> {
-                    int size = salesViewModel.getSalesList().size();
-                    updateStatusMessage(size == 0 ? "No receipts found for selected date range" : "Ready - " + size + " receipts found");
-                    if (receiptItemsTableView != null) receiptItemsTableView.refresh();
-                    
-                    selectFirstReceiptAfterLoad();
-                });
-            });
-        });
+
+     private void setupSalesListListener() {
+
+        salesViewModel.getSalesList()
+                .addListener((ListChangeListener<SaleModel>) change ->
+                        Platform.runLater(this::refreshSalesView));
     }
-    
-    private void selectFirstReceiptAfterLoad() {
-        Platform.runLater(() -> {
-            // 약간의 지연을 주어 데이터가 완전히 로드되도록 함
-            new Thread(() -> {
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-                Platform.runLater(() -> {
-                    int size = salesViewModel.getSalesList().size();
-                    if (size > 0 && receiptItemsTableView != null) {
-                        SaleModel firstSale = salesViewModel.getSalesList().get(0);
-                        receiptItemsTableView.getSelectionModel().select(firstSale);
-                        salesViewModel.selectedSaleProperty().set(firstSale);
-                        salesViewModel.onSelectedSaleChanged(firstSale);
-                        updateReceiptPreview(firstSale);
-                    }
-                });
-            }).start();
-        });
+
+    private void refreshSalesView() {
+
+        int size = salesViewModel.getSalesList().size();
+
+        updateStatusMessage(
+                size == 0
+                        ? "No receipts found for selected date range"
+                        : "Ready - " + size + " receipts found");
+
+        receiptItemsTableView.refresh();
+
+        if (!salesViewModel.getSalesList().isEmpty()) {
+
+            SaleModel firstSale = salesViewModel.getSalesList().getFirst();
+
+            receiptItemsTableView.getSelectionModel().select(firstSale);
+        }
     }
+
+
     
     private void updateStatusMessage(String message) {
         if (lblStatus != null) {
@@ -558,10 +543,10 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
      * 영수증 프리뷰를 HTML 형식으로 WebView에 표시
      * 현재 선택된 영수증의 아이템을 직접 사용
      */
-    private void updateReceiptPreview(SaleModel sale) {
-        if (sale == null) return;
+    private void updateReceiptPreview(SaleModel saleModel) {
+        if (saleModel == null) return;
         
-        log.info("[PrintReceiptDialog] updateReceiptPreview for receipt: {}", sale.getReceiptNo());
+        log.info("[PrintReceiptDialog] updateReceiptPreview for receipt: {}", saleModel.getReceiptNo());
         
         // 현재 선택된 영수증의 아이템 가져오기
         List<SaleItemModel> items = salesViewModel.getSaleItemsList();
@@ -574,36 +559,36 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
                     item.getDescription(), item.getQuantity(), item.getSaleAmount());
             }
         } else {
-            log.warn("[PrintReceiptDialog] No items found for receipt: {}", sale.getReceiptNo());
+            log.warn("[PrintReceiptDialog] No items found for receipt: {}", saleModel.getReceiptNo());
         }
         
-        updatePreviewLabels(sale);
+        updatePreviewLabels(saleModel);
         
         // WebView에 HTML 영수증 표시 (현재 선택된 아이템 전달)
         if (receiptWebView != null) {
-            String htmlReceipt = generateReceiptHTML(sale, items);
+            String htmlReceipt = generateReceiptHTML(saleModel, items);
             receiptWebView.getEngine().loadContent(htmlReceipt);
-            log.info("[PrintReceiptDialog] Receipt preview loaded for: {}", sale.getReceiptNo());
+            log.info("[PrintReceiptDialog] Receipt preview loaded for: {}", saleModel.getReceiptNo());
         }
     }
     
     /**
      * 프리뷰 라벨 업데이트 (코드 중복 제거)
      */
-    private void updatePreviewLabels(SaleModel sale) {
+    private void updatePreviewLabels(SaleModel saleModel) {
         if (previewReceiptNo != null) {
-            previewReceiptNo.setText("Receipt #: " + sale.getReceiptNo());
+            previewReceiptNo.setText("Receipt #: " + saleModel.getReceiptNo());
         }
 
         if (previewDate != null) {
-            String date = sale.getPaymentDateTime() != null
-                    ? sale.getPaymentDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            String date = saleModel.getPaymentDateTime() != null
+                    ? saleModel.getPaymentDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                     : "";
             previewDate.setText("Date : " + date);
         }
 
         if (previewTotalLabel != null) {
-            double total = sale.getSaleAmount() != null ? sale.getSaleAmount().doubleValue() : 0;
+            double total = saleModel.getSaleAmount() != null ? saleModel.getSaleAmount().doubleValue() : 0;
             previewTotalLabel.setText(String.format("$%.2f", total));
         }
     }
@@ -616,21 +601,9 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
 /**
      * ReceiptFormatter와 동일한 로직(헤더, 가격, 결제 정보)을 따르는 HTML 생성기
      */
-    private String generateReceiptHTML(SaleModel sale, List<SaleItemModel> items) {
+    private String generateReceiptHTML(SaleModel saleModel, List<SaleItemModel> items) {
         StringBuilder sb = new StringBuilder();
-
-        SaleResponse saleResponse = sale.toResponse();
-        List<SaleItemRequest> saleItemRequests = items.stream()
-            .map(model -> new SaleItemRequest(
-                model.getBarcode(),
-                model.getQuantity(),
-                model.getOriginalPrice(),
-                model.getSalePrice(),
-                model.getDiscountPrice(),
-                DiscountType.AMOUNT, // 필요에 따라 로직 적용
-                model.getComment()
-            )).toList();
-        SaleRequest saleRequest = SaleRequestConverter.toSaleRequest(saleResponse, saleItemRequests);
+        Shop shop = shopViewModel.getCachedShop();
 
         // 1. Shop 데이터 처리 (Null 체크 및 기본값 설정)
         String shopName = (shop != null && shop.getCompany() != null) ? shop.getCompany().toUpperCase() : "MY STORE";
@@ -657,9 +630,9 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
         sb.append("<div>GST: ").append(escapeHtml(businessNo)).append("</div>\n");
         sb.append("</div>\n<div class='divider'></div>\n");
 
-        String date = sale.getPaymentDateTime() != null ? sale.getPaymentDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "";
+        String date = saleModel.getPaymentDateTime() != null ? saleModel.getPaymentDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "";
         sb.append("<div class='row'><span>Date:</span><span>").append(escapeHtml(date)).append("</span></div>\n");
-        sb.append("<div class='row'><span>Receipt No:</span><span>").append(escapeHtml(sale.getReceiptNo())).append("</span></div>\n");
+        sb.append("<div class='row'><span>Receipt No:</span><span>").append(escapeHtml(saleModel.getReceiptNo())).append("</span></div>\n");
         sb.append("<div class='divider'></div>\n");
 
         // 3. Body (ReceiptFormatter.buildBody)
@@ -689,57 +662,60 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
         int width = 40;
         String rowFormat = "%20s %-" + (width - 21) + "s";
         String NL = "\n";
-        log.info("salseRequest {} ", saleRequest);
-        BigDecimal totalAmount = saleRequest.payments().stream()
-                .map(PaymentRequest::amount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        log.info("salseRequest {} ", saleModel);
+        BigDecimal cashAmount = saleModel.getCashAmount();
+        BigDecimal cashoutAmount = saleModel.getCashoutAmount();
+        BigDecimal creditAmount = saleModel.getCreditAmount();
+        BigDecimal discountAmount = saleModel.getDiscountAmount();
+        BigDecimal saleAmount = saleModel.getSaleAmount();
+        BigDecimal receivedAmount = saleModel.getReceivedAmount();
+        BigDecimal changeAmount = saleModel.getChangeAmount();
 
-        BigDecimal totalReceived = saleRequest.payments().stream()
-                .map(p -> p.receivedAmount() != null ? p.receivedAmount() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal balance = totalReceived.subtract(totalAmount);
-        BigDecimal gst = totalAmount.subtract(totalAmount.divide(BigDecimal.valueOf(1.15), 2, RoundingMode.HALF_UP));
+        String paymentType = saleModel.getPaymentType();
+      
+      
+        BigDecimal balance = changeAmount;
+        BigDecimal gst = saleAmount.subtract(saleAmount.divide(BigDecimal.valueOf(1.15), 2, RoundingMode.HALF_UP));
 
         // 3. HTML 출력
         sb.append("<div style='font-family: monospace; white-space: pre; font-size: 12px;'>");
 
         // Final Amount 출력
         String finalAmountStr = String.format("%s (GST: %s)", 
-                formatCurrency(totalAmount.doubleValue()), formatCurrency(gst.doubleValue()));
+                formatCurrency(saleAmount.doubleValue()), formatCurrency(gst.doubleValue()));
         sb.append(String.format(rowFormat, "Final Amount : ", finalAmountStr)).append(NL);
+        if (discountAmount.compareTo(BigDecimal.ZERO) > 0) {
+            sb.append(String.format(rowFormat, "D/C : ", formatCurrency(discountAmount))).append(NL);
+        }
 
-        // 결제 상세 출력 (for loop 활용)
-        for (PaymentRequest p : saleRequest.payments()) {
-            String type = p.type().toUpperCase();
-            double amount = p.amount().doubleValue();
-            double cashoutAmount = p.cashoutAmount().doubleValue();
-
-            if (saleRequest.payments().size() == 1) {
-                if ("CASH".equalsIgnoreCase(type)) {
-                    sb.append(String.format(rowFormat, "Cash Paid : ", formatCurrency(p.receivedAmount().doubleValue()))).append(NL);
-                    if (balance.doubleValue() > 0) {
-                        sb.append(String.format(rowFormat, "Balance : ", formatCurrency(balance.doubleValue()))).append(NL);
-                    }
-                } else if ("CASHOUT".equalsIgnoreCase(type) || "CARD".equalsIgnoreCase(type)) {
-                    sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NL);
-                    if (cashoutAmount > 0) {
-                        sb.append(String.format(rowFormat, "Cash Out : ", formatCurrency(cashoutAmount))).append(NL);
-                    }
-                }
-            } else {
-                // 복합 결제
-                if ("CARD".equals(type) || "EFT".equals(type)) {
-                    sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NL);
-                } else if ("CASH".equals(type)) {
-                    sb.append(String.format(rowFormat, "Cash Paid : ", formatCurrency(amount))).append(NL);
-                }
+ 
+        if ("CASH".equalsIgnoreCase(paymentType)) {
+            sb.append(String.format(rowFormat, "Cash Paid : ", formatCurrency(receivedAmount))).append(NL);
+            if (balance.doubleValue() > 0) {
+                sb.append(String.format(rowFormat, "Balance : ", formatCurrency(balance.doubleValue()))).append(NL);
             }
         }
+        if (paymentType.contains("CASHOUT")) {
+            sb.append(String.format(rowFormat, "EFT : ", formatCurrency(creditAmount))).append(NL);
+            if (cashoutAmount.compareTo(BigDecimal.ZERO) > 0) {
+                sb.append(String.format(rowFormat, "Cash Out : ", formatCurrency(cashoutAmount))).append(NL);
+            }
+        }
+        if (paymentType.contains("CARD")) {
+            sb.append(String.format(rowFormat, "EFT : ", formatCurrency(receivedAmount))).append(NL);
+            if (cashAmount.compareTo(BigDecimal.ZERO) > 0) {
+                sb.append(String.format(rowFormat, "Cash Paid : ", formatCurrency(cashAmount))).append(NL);
+            }
+        }
+       
+   
         sb.append("</div>\n");
         sb.append("<div class='divider'></div>\n");
-
+        
         sb.append("<div style='text-align:center; font-size:9px;'>Goods sold are not refundable</div>\n");
+        sb.append("<div style='text-align:center; font-size:9px;'>For exchange, please bring receipt</div>\n");
+        sb.append("<div class='divider'></div>\n");
+        sb.append("<div style='text-align:center; font-size:9px;'>Thank you for your visit!</div>\n");
         return sb.toString();
     }
     

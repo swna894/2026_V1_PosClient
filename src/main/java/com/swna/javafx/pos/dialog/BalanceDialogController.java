@@ -3,16 +3,17 @@ package com.swna.javafx.pos.dialog;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.function.Consumer;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import net.rgielen.fxweaver.core.FxmlView;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 @Component 
 @Scope("prototype")

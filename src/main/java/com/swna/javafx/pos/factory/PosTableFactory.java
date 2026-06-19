@@ -1,16 +1,17 @@
 package com.swna.javafx.pos.factory;
 
+import java.util.function.Consumer;
+
+import org.springframework.stereotype.Component;
+
 import com.swna.javafx.common.constant.IconPaths;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
 import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
+
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.util.function.Consumer;
 
 @Component
 public class PosTableFactory {

@@ -5,13 +5,11 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.admin.shop.service.ShopService;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ShopViewModel {
 
     private final ShopService shopService;
@@ -20,6 +18,10 @@ public class ShopViewModel {
     private Shop cachedShop;
     private boolean isLoading = false;
     private Mono<Shop> loadingMono = null;
+
+    public ShopViewModel(ShopService shopService) {
+        this.shopService = shopService;
+    }
 
     /**
      * 앱 초기화 시 호출하여 데이터를 로컬 캐시에 저장
@@ -44,7 +46,7 @@ public class ShopViewModel {
                     isLoading = false;
                     log.error("Failed to load shop information: {}", error.getMessage());
                 }
-            );
+        );
     }
 
     /**

@@ -437,6 +437,8 @@ public class ReceiptFormatter {
                                      BigDecimal balance, String rowFormat) {
         String paymentType = payment.type().toUpperCase();
         double amount = payment.amount().doubleValue();
+        double cashoutAmount = payment.cashoutAmount().doubleValue();
+
 
         switch (paymentType) {
             case "CARD":
@@ -454,9 +456,9 @@ public class ReceiptFormatter {
                 
             case "CASHOUT":
                 sb.append(String.format(rowFormat, "EFT : ", formatCurrency(amount))).append(NEW_LINE);
-                if (payment.cashoutAmount().doubleValue() > 0) {
+                if (cashoutAmount > 0) {
                     sb.append(String.format(rowFormat, "Cash Out : ", 
-                            formatCurrency(payment.cashoutAmount().doubleValue()))).append(NEW_LINE);
+                            formatCurrency(cashoutAmount))).append(NEW_LINE);
                 }
                 break;
                 
