@@ -6,6 +6,7 @@ import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.PaymentResult;
 import com.swna.javafx.pos.event.PaymentSuccessEvent;
 import com.swna.javafx.pos.event.PrintFailureEvent;
+import com.swna.javafx.pos.event.ReceiptPrintEvent;
 import com.swna.javafx.pos.model.PosItem;
 import com.swna.javafx.pos.print.ReceiptPrinter;
 import com.swna.javafx.pos.print.ReceiptStyle;
@@ -69,6 +70,35 @@ public class ReceiptPrintListener {
         }
     }
 
+    @Async("printExecutor")
+    @EventListener
+    public void printReceipt(ReceiptPrintEvent event) {
+        String receiptNo = event.getSaleModel().getReceiptNo();
+        if (!printToggleService.isPrintEnabled()) {
+            log.info("Print is DISABLED. Skipping receipt: {}", receiptNo);
+            return;
+        }
+
+        Shop shop = getShopInfo(); // 기존 공통 메서드 재사용
+        log.info("Starting receipt printing (Event-based) - Receipt No: {}", receiptNo);
+        
+        try {
+            // 새로운 모델 기반 출력 호출
+            receiptPrinter.printInvoice(
+                event.getSaleModel(), 
+                event.getItems(), 
+                shop, // 공통 메서드로 가져온 상점 정보 전달
+                ReceiptStyle.SIZE_80MM, 
+                "Thank you for your visit!"
+            );
+            log.info("Print success - Receipt No: {}",receiptNo);
+        } catch (Exception e) {
+            log.error("Printing failed - Receipt No: {}", receiptNo, e);
+            publishPrintFailure(receiptNo, "Printing Failed: " + e.getMessage());
+            
+        }
+    }
+    
     private Shop getShopInfo() {
         // 1. 먼저 캐시 확인
         Shop cachedShop = shopViewModel.getCachedShop();

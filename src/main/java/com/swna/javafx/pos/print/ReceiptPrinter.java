@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.sale.model.SaleItemModel;
+import com.swna.javafx.admin.sale.model.SaleModel;
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.PaymentResult;
@@ -38,33 +40,53 @@ public class ReceiptPrinter {
         this.formatter = formatter;
     }
 
+
+    // Pos 에서 프린트 요청
     public void printInvoice(SaleRequest saleRequest, PaymentResult result, 
                             List<PosItem> posItems, Shop shop, 
                             ReceiptStyle style, String inform) {
         
+      String receiptNo = (result != null && result.getSaleResponse() != null) 
+            ? result.getSaleResponse().receiptNo() : null;
+            
         log.info("=== ReceiptPrinter.printInvoice() START ===");
         
         initializePrinterName();
 
         String content = formatter.buildReceiptContent(saleRequest, result, posItems, shop, style, inform);
-        byte[] allPrintData = buildFullPrintData(content, style, result);
+        byte[] allPrintData = buildFullPrintData(content, style, receiptNo);
         printerService.printBytes(printerName, allPrintData);
         
         log.info("=== ReceiptPrinter.printInvoice() END ===");
     }
     
+
+    //  Receipt 확인에서 프리트 요청
+    public void printInvoice(SaleModel saleModel, List<SaleItemModel> itemModels, Shop shop, ReceiptStyle style, String inform) {
+        String receiptNo = saleModel.getReceiptNo();
+
+        initializePrinterName();
+
+        String content = formatter.buildReceiptContent(saleModel, itemModels, shop, style, inform);
+        byte[] allPrintData = buildFullPrintData(content, style, receiptNo);
+        printerService.printBytes(printerName, allPrintData);
+
+        log.info("=== Dialog requset : ReceiptPrinter.printInvoice() START ===");
+    }
+
+
+
+
+
     /**
      * 전체 인쇄 데이터를 하나의 바이트 배열로 구성 (★수정됨: 하드웨어 바코드 환경설정 집합 추가)
      */
-    private byte[] buildFullPrintData(String content, ReceiptStyle style, PaymentResult result) {
+    private byte[] buildFullPrintData(String content, ReceiptStyle style, String receiptNo) {
         List<byte[]> parts = new ArrayList<>();
         
         parts.add(CMD_INIT);
         parts.add((style == ReceiptStyle.SIZE_80MM) ? FONT_80MM : FONT_58MM);
         parts.add(content.getBytes(StandardCharsets.UTF_8));
-           
-        String receiptNo = (result != null && result.getSaleResponse() != null) 
-            ? result.getSaleResponse().receiptNo() : null;
             
         if (receiptNo != null && !receiptNo.isBlank() && printToggleService.isBarcodeEnabled()) {
             parts.add(CMD_ALIGN_CENTER);
@@ -150,4 +172,5 @@ public class ReceiptPrinter {
         
         return barcode;
     }
+
 }

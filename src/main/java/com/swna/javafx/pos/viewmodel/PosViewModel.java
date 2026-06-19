@@ -388,7 +388,7 @@ public class PosViewModel {
     private void handleProcessedPayment(PosProcessor.ProcessedPayment processed, 
                                         Consumer<Boolean> onComplete,
                                         boolean skipPrinting) {
-        List<PosItem> itemsSnapshot = List.copyOf(getPosItems());
+        List<PosItem> posItemsList = List.copyOf(getPosItems());
 
         if (processed.success()) {
             // SaleRequest를 이벤트로 발행
@@ -399,7 +399,7 @@ public class PosViewModel {
                     this, 
                     processed.saleRequest(), 
                     processed.paymentResult(),
-                    itemsSnapshot
+                    posItemsList
                 ));
             }
             

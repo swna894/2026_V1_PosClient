@@ -10,6 +10,8 @@ import java.util.function.Function;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.sale.model.SaleItemModel;
+import com.swna.javafx.admin.sale.model.SaleModel;
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.pos.dto.request.PaymentRequest;
 import com.swna.javafx.pos.dto.request.SaleRequest;
@@ -352,6 +354,33 @@ public class ReceiptFormatter {
         sb.append(style.getLine(false)).append(NEW_LINE);
     }
 
+    private void buildReceiptBodySection(StringBuilder sb, List<SaleItemModel> posItems, ReceiptStyle style) {
+        int totalWidth = style.getWidth();
+        
+        // 각 컬럼 너비 계산
+        int itemWidth = totalWidth - (QTY_COLUMN_WIDTH + PRICE_COLUMN_WIDTH + DISCOUNT_COLUMN_WIDTH + AMOUNT_COLUMN_WIDTH + ITEM_COLUMN_OFFSET);
+        String rowFormat = String.format("%%-%ds %%%ds %%%ds %%%ds  %%%ds", 
+                itemWidth, PRICE_COLUMN_WIDTH, QTY_COLUMN_WIDTH, DISCOUNT_COLUMN_WIDTH, AMOUNT_COLUMN_WIDTH);
+        
+        // 컬럼 헤더 출력
+        sb.append(String.format(rowFormat, "Item", "Price", "Qty", "D/C", "Amount")).append(NEW_LINE);
+        sb.append(style.getLine(false)).append(NEW_LINE);
+        
+        // 품목이 없는 경우
+        if (posItems == null || posItems.isEmpty()) {
+            sb.append(style.center("No items found for this receipt")).append(NEW_LINE);
+            return;
+        }
+        
+        // 각 품목 출력
+        int itemIndex = 1;
+        for (SaleItemModel item : posItems) {
+            appendSaleItemModelRow(sb, item, itemIndex++, rowFormat, style);
+        }
+        
+        sb.append(style.getLine(false)).append(NEW_LINE);
+    }
+
     /**
      * 단일 품목 행을 추가합니다.
      */
@@ -370,6 +399,28 @@ public class ReceiptFormatter {
                 String.valueOf(item.getQty()),          // Qty
                 discountDisplay,                        // Discount
                 formatCurrency(item.getFinalAmount())   // Amount
+        );
+        sb.append(detailRow).append(NEW_LINE);
+    }
+
+    /**
+     * 단일 품목 행을 추가합니다.
+     */
+    private void appendSaleItemModelRow(StringBuilder sb, SaleItemModel item, int index, String rowFormat, ReceiptStyle style) {
+        // 품목명 (인덱스 포함)
+        sb.append(String.format("%2d. %s", index, item.getDescription())).append(NEW_LINE);
+        
+        // 할인 금액 계산
+        double discount = item.getDiscountAmount().doubleValue();
+        String discountDisplay = (discount > 0) ? formatCurrency(discount) : "-";
+        
+        // 품목 상세 정보 (가격, 수량, 할인, 금액)
+        String detailRow = String.format(rowFormat,
+                "",                                       // Item 컬럼은 비움 (이미 위에 표시됨)
+                formatCurrency(item.getSalePrice().doubleValue()), // Price
+                String.valueOf(item.getQuantity()),                // Qty
+                discountDisplay,                                   // Discount
+                formatCurrency(item.getSaleAmount().doubleValue())   // Amount
         );
         sb.append(detailRow).append(NEW_LINE);
     }
@@ -531,4 +582,23 @@ public class ReceiptFormatter {
         log.info("영수증 생성 완료 - 영수증 번호: {}", receiptNo);
         return receipt.toString();
     }
+
+    public String buildReceiptContent(SaleModel saleModel, List<SaleItemModel> itemModels, Shop shop, ReceiptStyle style, String inform) {
+        String receiptNo = saleModel.getReceiptNo();
+        String date = saleModel.getFormattedPaymentDateTime();
+        double subtotal = saleModel.getSaleAmount().doubleValue();
+        double discountAmount = saleModel.getDiscountAmount().doubleValue();
+        double finalAmount = saleModel.getSaleAmount().doubleValue();
+
+         // 2. 영수증 빌드
+        StringBuilder receipt = new StringBuilder();
+
+        buildHeaderSection(receipt, style, receiptNo, date, shop);
+        buildReceiptBodySection(receipt, itemModels, style);
+        buildFooterSection(receipt, style, subtotal, discountAmount, finalAmount);
+        buildNoticeSection(receipt, style, inform);
+
+        return receipt.toString();
+    }
+
 }

@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -17,13 +18,13 @@ import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.admin.shop.viewmodel.ShopViewModel;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
 import com.swna.javafx.pos.dialog.BasePosDialog;
+import com.swna.javafx.pos.event.ReceiptPrintEvent;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.print.PrinterJob;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -33,7 +34,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
 
@@ -51,18 +51,30 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Slf4j
 @Component
 @Scope("prototype")
-@RequiredArgsConstructor
 @FxmlView("/view/pos/dialog/PrintReceiptDialog.fxml")
 public class PrintReceiptDialogController extends BasePosDialog implements Initializable {
 
     // =========================================================================
     // Dependencies (의존성 주입)
     // =========================================================================
+    private final ApplicationEventPublisher eventPublisher;
     private final SalesViewModel salesViewModel;
     private final ShopViewModel shopViewModel;
+
     
     /** 영수증 HTML 생성 헬퍼 */
     private final ReceiptHtmlGenerator htmlGenerator;
+
+
+    public PrintReceiptDialogController(ApplicationEventPublisher eventPublisher, 
+                        ReceiptHtmlGenerator htmlGenerator, 
+                        SalesViewModel salesViewModel, 
+                        ShopViewModel shopViewModel) {
+        this.eventPublisher = eventPublisher;
+        this.salesViewModel = salesViewModel;
+        this.shopViewModel = shopViewModel;
+        this.htmlGenerator = htmlGenerator;   
+    }
 
     // =========================================================================
     // FXML UI Components (ToolBar)
@@ -137,9 +149,9 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
     // =========================================================================
     // Fields (인스턴스 변수)
     // =========================================================================
+    private List<SaleItemModel> saleItems;
     private PrintReceiptCallback callback;
     private Button[] navButtons;
-    private List<SaleItemModel> currentReceiptItems;
 
     // =========================================================================
     // Initializable Implementation (초기화)
@@ -552,7 +564,6 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
                         salesViewModel.onSelectedSaleChanged(newVal);
                         
                         // 선택된 영수증의 아이템 저장 및 프리뷰 업데이트
-                        currentReceiptItems = salesViewModel.getSaleItemsList();
                         updateReceiptPreview(newVal);
                     }
                 }
@@ -586,7 +597,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
 
     /** selectedSaleProperty 변경 리스너 - 외부에서 선택 변경 시 동기화 */
     private void setupSelectedSalePropertyListener() {
-        salesViewModel.selectedSaleProperty().addListener((obs, oldVal, newVal) -> {
+        salesViewModel.selectedSaleProperty().addListener((obs, oldVal, newVal) -> 
             Platform.runLater(() -> {
                 if (newVal != null && receiptItemsTableView != null) {
                     var selectionModel = receiptItemsTableView.getSelectionModel();
@@ -594,11 +605,10 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
                         selectionModel.select(newVal);
                         receiptItemsTableView.scrollTo(newVal);
                     }
-                    currentReceiptItems = salesViewModel.getSaleItemsList();
                     updateReceiptPreview(newVal);
                 }
-            });
-        });
+            })
+        );
     }
 
     // =========================================================================
@@ -668,11 +678,11 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
         
         log.info("[PrintReceiptDialog] updateReceiptPreview for receipt: {}", saleModel.getReceiptNo());
         
-        List<SaleItemModel> items = salesViewModel.getSaleItemsList();
-        logItemsInfo(items);
+        saleItems = salesViewModel.getSaleItemsList();
+        logItemsInfo(saleItems);
         
         updatePreviewLabels(saleModel);
-        loadReceiptHtml(saleModel, items);
+        loadReceiptHtml(saleModel, saleItems);
     }
 
     /**
@@ -759,39 +769,22 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
      * 영수증 출력 처리
      * WebView의 print() 메서드를 사용하여 현재 프리뷰를 출력
      */
-    @FXML
-    private void handlePrint() {
+    @FXML private void handlePrint() { 
         // 1. 선택된 영수증 검증
         SaleModel selectedSale = validateSelectedSale();
         if (selectedSale == null) return;
         
-        String receiptNo = selectedSale.getReceiptNo();
-        log.info("[PrintReceiptDialog] Printing started for receipt: {}", receiptNo);
-
-        // 2. WebView 유효성 검증
-        if (!isWebViewReady()) {
-            updateStatusMessage("Error: Receipt preview component is not ready.");
-            return;
-        }
-
-        // 3. 프린터 작업 생성 및 실행
-        PrinterJob job = PrinterJob.createPrinterJob();
-        if (job == null) {
-            updateStatusMessage("Error: No default printer setup found on this PC.");
-            return;
-        }
-
-        // 4. 출력 실행
-        updateStatusMessage("Sending to printer... : " + receiptNo);
-        receiptWebView.getEngine().print(job);
+        eventPublisher.publishEvent(new ReceiptPrintEvent(
+                    this, 
+                    selectedSale, 
+                    saleItems
+                ));
+    
+        // updateStatusMessage(success 
+        //     ? "Print completed successfully: " + receiptNo
+        //     : "Print failed or canceled: " + receiptNo);
         
-        // 5. 출력 완료 처리
-        boolean success = job.endJob();
-        updateStatusMessage(success 
-            ? "Print completed successfully: " + receiptNo
-            : "Print failed or canceled: " + receiptNo);
-        
-        notifyPrintCallback(receiptNo);
+        //notifyPrintCallback(receiptNo);
     }
 
     /**
@@ -827,11 +820,11 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
     }
 
     /** 출력 콜백 호출 */
-    private void notifyPrintCallback(String receiptNo) {
-        if (callback != null) {
-            callback.onPrint(receiptNo);
-        }
-    }
+    // private void notifyPrintCallback(String receiptNo) {
+    //     if (callback != null) {
+    //         callback.onPrint(receiptNo);
+    //     }
+    // }
 
     // =========================================================================
     // BasePosDialog Implementation (추상 메서드 구현)

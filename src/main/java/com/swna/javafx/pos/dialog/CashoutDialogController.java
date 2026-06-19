@@ -9,10 +9,11 @@ import com.swna.javafx.pos.dto.request.CardAuthResult;
 import com.swna.javafx.pos.functional.TriConsumer;
 import com.swna.javafx.pos.service.CardPaymentService;
 
-import javafx.application.Platform;
+import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
@@ -195,19 +196,17 @@ public class CashoutDialogController extends BasePosDialog {
     private void showError(String message) {
         lblCredit.setText(message);
         lblCredit.setStyle("-fx-text-fill: red; -fx-font-size: 14px;");
-        
-        // 3초 후 복원
-        new Thread(() -> {
-            try {
-                Thread.sleep(3000);
-                Platform.runLater(() -> {
-                    updateTotalCardAmount(txtCashout.getText());
-                    txtCashout.setStyle("");
-                });
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }).start();
+
+        executeAfter(Duration.seconds(3), () -> {
+            updateTotalCardAmount(txtCashout.getText());
+            txtCashout.setStyle("");
+        });
+    }
+
+    private void executeAfter(Duration duration, Runnable action) {
+        PauseTransition delay = new PauseTransition(duration);
+        delay.setOnFinished(event -> action.run());
+        delay.play();
     }
 
     @Override

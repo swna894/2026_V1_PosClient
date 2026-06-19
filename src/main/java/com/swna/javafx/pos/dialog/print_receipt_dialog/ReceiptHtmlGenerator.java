@@ -13,20 +13,43 @@ import com.swna.javafx.admin.shop.Shop;
 
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 영수증 HTML 생성기
- * 
- * <p>SaleModel과 SaleItemModel 데이터를 기반으로
- * 영수증 출력용 HTML을 생성합니다.</p>
- */
 @Slf4j
 @Component
 public class ReceiptHtmlGenerator {
 
+    // =========================================================================
+    // Constants (상수)
+    // =========================================================================
+    
     private static final int LINE_WIDTH = 40;
     private static final String ROW_FORMAT = "%20s %-" + (LINE_WIDTH - 21) + "s";
     private static final String NL = "\n";
+    
+    /** HTML 구분선 (divider) */
+    private static final String DIVIDER_HTML = "<div class='divider'></div>\n";
+    
+    /**
+     * 영수증 하단 푸터 HTML
+     * 
+     * <p>구성:</p>
+     * <ul>
+     *   <li>환불 불가 안내</li>
+     *   <li>교환 시 영수증 필요 안내</li>
+     *   <li>구분선</li>
+     *   <li>방문 감사 인사</li>
+     * </ul>
+     */
+    private static final String FOOTER_HTML = """
+        <div style='text-align:center; font-size:9px;'>Goods sold are not refundable</div>
+        <div style='text-align:center; font-size:9px;'>For exchange, please bring receipt</div>
+        <div class='divider'></div>
+        <div style='text-align:center; font-size:9px;'>Thank you for your visit!</div>
+        """;
 
+    // =========================================================================
+    // Public Methods
+    // =========================================================================
+    
     /**
      * 영수증 HTML 생성
      * 
@@ -45,25 +68,21 @@ public class ReceiptHtmlGenerator {
         html.append(buildStyle());
         html.append("<body>\n");
         
-        // 매장 정보
         ShopInfo shopInfo = extractShopInfo(shop);
         html.append(buildShopHeader(shopInfo));
-        html.append(buildDivider());
+        html.append(DIVIDER_HTML);
         
-        // 영수증 기본 정보
         html.append(buildReceiptInfo(saleModel));
-        html.append(buildDivider());
+        html.append(DIVIDER_HTML);
         
-        // 품목 목록
         html.append(buildItemsTable(items));
-        html.append(buildDivider());
+        html.append(DIVIDER_HTML);
         
-        // 결제 정보
         html.append(buildPaymentInfo(saleModel));
-        html.append(buildDivider());
+        html.append(DIVIDER_HTML);
         
-        // 푸터
-        html.append(buildFooter());
+        // 상수 사용
+        html.append(FOOTER_HTML);
         
         html.append("</body>\n</html>");
         
@@ -71,31 +90,35 @@ public class ReceiptHtmlGenerator {
     }
 
     // =========================================================================
-    // HTML Structure Methods
+    // HTML Structure Methods (Text Block - 변수 없음, 안전함)
     // =========================================================================
     
     private String buildHeader() {
-        return "<!DOCTYPE html>\n<html>\n<head>\n<meta charset='UTF-8'>\n";
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta charset='UTF-8'>
+            """;
     }
 
     private String buildStyle() {
-        return "<style>\n" +
-               "body { font-family: 'Courier New', monospace; font-size: 11px; " +
-               "width: 280px; margin: 0 auto; padding: 5px; }\n" +
-               ".header { text-align: left; margin-bottom: 5px; }\n" +
-               ".shop-name { font-size: 16px; font-weight: bold; }\n" +
-               ".divider { border-top: 1px solid #000; margin: 4px 0; }\n" +
-               ".row { display: flex; justify-content: space-between; margin: 1px 0; }\n" +
-               ".item-row { display: flex; justify-content: space-between; " +
-               "margin: 2px 0; font-size: 10px; }\n" +
-               ".items-header { display: flex; justify-content: space-between; " +
-               "font-weight: bold; font-size: 10px; border-bottom: 1px dashed #000; " +
-               "padding: 2px 0; }\n" +
-               "</style>\n</head>\n";
+        return """
+            <style>
+            body { font-family: 'Courier New', monospace; font-size: 11px; width: 280px; margin: 0 auto; padding: 5px; }
+            .header { text-align: left; margin-bottom: 5px; }
+            .shop-name { font-size: 16px; font-weight: bold; }
+            .divider { border-top: 1px solid #000; margin: 4px 0; }
+            .row { display: flex; justify-content: space-between; margin: 1px 0; }
+            .item-row { display: flex; justify-content: space-between; margin: 2px 0; font-size: 10px; }
+            .items-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 10px; border-bottom: 1px dashed #000; padding: 2px 0; }
+            </style>
+            </head>
+            """;
     }
 
     // =========================================================================
-    // Shop Information
+    // Shop Information (String.format 사용 - 안전함)
     // =========================================================================
     
     private ShopInfo extractShopInfo(Shop shop) {
@@ -115,16 +138,23 @@ public class ReceiptHtmlGenerator {
     }
 
     private String buildShopHeader(ShopInfo shopInfo) {
-        return "<div class='header'>\n" +
-               "<div class='shop-name'>" + escapeHtml(shopInfo.getName()) + "</div>\n" +
-               "<div>" + escapeHtml(shopInfo.getAddress()) + "</div>\n" +
-               "<div>Tel: " + escapeHtml(shopInfo.getPhone()) + "</div>\n" +
-               "<div>GST: " + escapeHtml(shopInfo.getBusinessNo()) + "</div>\n" +
-               "</div>\n";
+        return String.format("""
+            <div class='header'>
+            <div class='shop-name'>%s</div>
+            <div>%s</div>
+            <div>Tel: %s</div>
+            <div>GST: %s</div>
+            </div>
+            """,
+            escapeHtml(shopInfo.getName()),
+            escapeHtml(shopInfo.getAddress()),
+            escapeHtml(shopInfo.getPhone()),
+            escapeHtml(shopInfo.getBusinessNo())
+        );
     }
 
     // =========================================================================
-    // Receipt Information
+    // Receipt Information (String.format 사용 - 안전함)
     // =========================================================================
     
     private String buildReceiptInfo(SaleModel saleModel) {
@@ -136,26 +166,30 @@ public class ReceiptHtmlGenerator {
             ? saleModel.getPaymentDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
             : "";
         
-        return "<div class='row'><span>Date:</span><span>" + escapeHtml(date) + "</span></div>\n" +
-               "<div class='row'><span>Receipt No:</span><span>" + 
-               escapeHtml(saleModel.getReceiptNo()) + "</span></div>\n";
+        return String.format("""
+            <div class='row'><span>Date:</span><span>%s</span></div>
+            <div class='row'><span>Receipt No:</span><span>%s</span></div>
+            """,
+            escapeHtml(date),
+            escapeHtml(saleModel.getReceiptNo())
+        );
     }
 
     // =========================================================================
-    // Items Table
+    // Items Table (String.format 사용 - 안전함)
     // =========================================================================
     
     private String buildItemsTable(List<SaleItemModel> items) {
         StringBuilder sb = new StringBuilder();
         
-        sb.append("<div class='items-header'>\n");
-        sb.append("<span>Item</span><span>Price</span><span>Qty</span>");
-        sb.append("<span>D/C</span><span>Amount</span>\n");
-        sb.append("</div>\n");
+        sb.append("""
+            <div class='items-header'>
+            <span>Item</span><span>Price</span><span>Qty</span><span>D/C</span><span>Amount</span>
+            </div>
+            """);
         
         if (items == null || items.isEmpty()) {
-            sb.append("<div style='text-align:center; padding:10px;'>");
-            sb.append("No items found</div>\n");
+            sb.append("<div style='text-align:center; padding:10px;'>No items found</div>\n");
             return sb.toString();
         }
         
@@ -172,45 +206,51 @@ public class ReceiptHtmlGenerator {
         double discount = getSafeDouble(item.getDiscountAmount());
         double amount = getSafeDouble(item.getSaleAmount());
         String description = getSafeValue(item.getDescription(), "Unknown Item");
-        int quantity = item.getQuantity();
+        int quantity = getSafeInt(item.getQuantity());
+        String discountDisplay = discount > 0 ? formatCurrency(discount) : "-";
 
-        return "<div style='margin-top:4px'>" + 
-               index + ". " + escapeHtml(description) + "</div>\n" +
-               "<div class='item-row'>\n" +
-               "<span></span><span>" + formatCurrency(price) + "</span>" +
-               "<span>" + quantity + "</span>" +
-               "<span>" + (discount > 0 ? formatCurrency(discount) : "-") + "</span>" +
-               "<span>" + formatCurrency(amount) + "</span>\n" +
-               "</div>\n";
+        return String.format("""
+            <div style='margin-top:4px'>%d. %s</div>
+            <div class='item-row'>
+            <span></span><span>%s</span>
+            <span>%d</span>
+            <span>%s</span>
+            <span>%s</span>
+            </div>
+            """,
+            index,
+            escapeHtml(description),
+            formatCurrency(price),
+            quantity,
+            discountDisplay,
+            formatCurrency(amount)
+        );
     }
 
     // =========================================================================
-    // Payment Information
+    // Payment Information (StringBuilder 사용 - 안전함)
     // =========================================================================
     
     private String buildPaymentInfo(SaleModel saleModel) {
         if (saleModel == null) {
-            return "<div>No payment information</div>\n";
+            return "<div>No payment information</div>";
         }
         
         StringBuilder sb = new StringBuilder();
         sb.append("<div style='font-family: monospace; white-space: pre; font-size: 12px;'>");
         
-        // 총액 및 GST
         BigDecimal saleAmount = getSafeBigDecimal(saleModel.getSaleAmount());
         BigDecimal gst = calculateGst(saleAmount);
-        String finalAmountStr = String.format("%s (GST: %s)", 
+        String finalAmountStr = String.format("%s(GST:%s)", 
             formatCurrency(saleAmount), 
             formatCurrency(gst.doubleValue()));
         sb.append(String.format(ROW_FORMAT, "Final Amount : ", finalAmountStr)).append(NL);
         
-        // 할인 정보
         BigDecimal discount = getSafeBigDecimal(saleModel.getDiscountAmount());
         if (discount.compareTo(BigDecimal.ZERO) > 0) {
             sb.append(String.format(ROW_FORMAT, "D/C : ", formatCurrency(discount))).append(NL);
         }
         
-        // 결제 방식별 정보
         String paymentType = saleModel.getPaymentType();
         sb.append(buildPaymentDetails(paymentType, saleModel));
         
@@ -257,38 +297,24 @@ public class ReceiptHtmlGenerator {
     }
 
     // =========================================================================
-    // Footer
+    // Utility Methods (null-safe getters)
     // =========================================================================
     
-    private String buildFooter() {
-        return "<div style='text-align:center; font-size:9px;'>" +
-               "Goods sold are not refundable</div>\n" +
-               "<div style='text-align:center; font-size:9px;'>" +
-               "For exchange, please bring receipt</div>\n" +
-               "<div style='text-align:center; font-size:9px;'>" +
-               "Thank you for your visit!</div>\n";
-    }
-
-    private String buildDivider() {
-        return "<div class='divider'></div>\n";
-    }
-
-    // =========================================================================
-    // Utility Methods
-    // =========================================================================
-    
-    private BigDecimal calculateGst(BigDecimal amount) {
-        if (amount == null) return BigDecimal.ZERO;
-        // GST = 금액 - (금액 / 1.15)
-        return amount.subtract(amount.divide(BigDecimal.valueOf(1.15), 2, RoundingMode.HALF_UP));
-    }
-
     private BigDecimal getSafeBigDecimal(BigDecimal value) {
         return value != null ? value : BigDecimal.ZERO;
     }
 
     private double getSafeDouble(BigDecimal value) {
         return value != null ? value.doubleValue() : 0.0;
+    }
+
+    private int getSafeInt(Integer value) {
+        return value != null ? value : 0;
+    }
+
+    private BigDecimal calculateGst(BigDecimal amount) {
+        if (amount == null) return BigDecimal.ZERO;
+        return amount.subtract(amount.divide(BigDecimal.valueOf(1.15), 2, RoundingMode.HALF_UP));
     }
 
     private String formatCurrency(double amount) {
