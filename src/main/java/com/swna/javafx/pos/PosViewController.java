@@ -13,7 +13,7 @@ import com.swna.javafx.common.navigation.NavigationService;
 import com.swna.javafx.common.util.StatusLabel;
 import com.swna.javafx.common.util.StatusLabelManager;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
-import com.swna.javafx.pos.dialog.PrintReceiptDialogController;
+import com.swna.javafx.pos.dialog.print_receipt_dialog.PrintReceiptDialogController;
 import com.swna.javafx.pos.factory.PosTableFactory;
 import com.swna.javafx.pos.manager.BarcodeScannerManager;
 import com.swna.javafx.pos.manager.CartButtonManager;

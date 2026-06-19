@@ -19,7 +19,7 @@
 
 <BorderPane prefHeight="700" prefWidth="1200.0" stylesheets="@../../../styles/app.css"
    xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.swna.javafx.pos.dialog.PrintReceiptDialogController">
+   fx:controller="com.swna.javafx.pos.dialog.print_receipt_dialog.PrintReceiptDialogController">
 
    <top>
       <ToolBar>
