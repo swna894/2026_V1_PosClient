@@ -21,6 +21,7 @@ import com.swna.javafx.pos.manager.ClockManager;
 import com.swna.javafx.pos.manager.PosDialogManager;
 import com.swna.javafx.pos.manager.UiNotifier;
 import com.swna.javafx.pos.model.PosItem;
+import com.swna.javafx.pos.print.PrinterService;
 import com.swna.javafx.pos.service.config.PosToggleService;
 import com.swna.javafx.pos.service.config.PrintToggleService;
 import com.swna.javafx.pos.viewmodel.PosViewModel;
@@ -66,6 +67,7 @@ public class PosViewController {
     private final CartButtonManager cartButtonManager;
     private final NavigationService navigationService;
     private final StatusLabelManager statusLabelManager;
+    private final PrinterService printerService;
     private final PrintToggleService printToggleService; 
     private final PosToggleService posToggleService; 
 
@@ -433,7 +435,7 @@ public class PosViewController {
         showSuccessMessage("Previewing receipt: " + receiptNo);
     }
 
-    @FXML private void onActionDrawer(ActionEvent e) { log.info("onActionDrawer"); }
+    @FXML private void onActionDrawer(ActionEvent e) { printerService.openCashDrawer(); }
     @FXML private void onGenerate(ActionEvent e) { navigationService.navigateStage(LabelController.class); }
 
     @FXML private void onMenu(ActionEvent e) {

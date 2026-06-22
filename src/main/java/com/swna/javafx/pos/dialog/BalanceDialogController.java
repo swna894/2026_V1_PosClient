@@ -7,6 +7,8 @@ import java.util.function.Consumer;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.pos.service.config.PrintToggleService;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -20,12 +22,19 @@ import net.rgielen.fxweaver.core.FxmlView;
 @FxmlView("/view/pos/dialog/BalanceDialog.fxml")
 public class BalanceDialogController extends BasePosDialog {
 
+    private final PrintToggleService printToggleService;
+
     @FXML private Label lblBalance;
     @FXML private TextField dummyField;
 
     private static final DecimalFormat FMT = new DecimalFormat("$#,##0.00");
     private Consumer<BalanceResult> callback;
 
+    public BalanceDialogController(PrintToggleService printToggleService) {
+        this.printToggleService = printToggleService;
+
+    }
+    
     public void initData(BigDecimal balance, Consumer<BalanceResult> callback) {
         this.callback = callback;
         lblBalance.setText(FMT.format(balance));
@@ -44,7 +53,7 @@ public class BalanceDialogController extends BasePosDialog {
                     if (event.getCode() == KeyCode.ENTER) {
                         handleComplete();
                         event.consume();
-                    } else if (event.getCode() == KeyCode.F8) {
+                    } else if (event.getCode() == KeyCode.F8) {                      
                         handlePrint();
                         event.consume();
                     } else if (event.getCode() == KeyCode.ESCAPE) {
@@ -56,8 +65,11 @@ public class BalanceDialogController extends BasePosDialog {
         });
     }
 
-    @FXML private void handlePrint() { finish(new BalanceResult(true, false)); }
-    @FXML private void handleComplete() { finish(new BalanceResult(false, true)); }
+    @FXML private void handlePrint() { 
+        printToggleService.setCashBalance(true);
+        finish(new BalanceResult(true, false)); }
+    @FXML private void handleComplete() { 
+        finish(new BalanceResult(false, true)); }
 
     @Override
     @FXML 

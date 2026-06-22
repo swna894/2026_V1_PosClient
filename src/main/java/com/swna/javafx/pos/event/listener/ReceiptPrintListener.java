@@ -37,7 +37,7 @@ public class ReceiptPrintListener {
     public void printReceipt(PaymentSuccessEvent event) {
         
         // ========== 프린트 활성화 여부 확인 (서비스 사용) ==========
-        if (!printToggleService.isPrintEnabled()) {
+        if (!printToggleService.isCashedBalance() && !printToggleService.isPrintEnabled()) { 
             String receiptNo = event.getPaymentResult().getReceiptNo();
             log.info("Print is DISABLED - Skipping receipt printing. Receipt No: {}", receiptNo);
             return;  // 프린트 안 함
@@ -62,6 +62,7 @@ public class ReceiptPrintListener {
                 "Thank you for your visit!"
             );
             
+            printToggleService.setBarcodeEnabled(false);
             log.info("Print command successfully sent to the hardware - Receipt No: {}", receiptNo);
             
         } catch (Exception e) {
@@ -74,10 +75,6 @@ public class ReceiptPrintListener {
     @EventListener
     public void printReceipt(ReceiptPrintEvent event) {
         String receiptNo = event.getSaleModel().getReceiptNo();
-        if (!printToggleService.isPrintEnabled()) {
-            log.info("Print is DISABLED. Skipping receipt: {}", receiptNo);
-            return;
-        }
 
         Shop shop = getShopInfo(); // 기존 공통 메서드 재사용
         log.info("Starting receipt printing (Event-based) - Receipt No: {}", receiptNo);
