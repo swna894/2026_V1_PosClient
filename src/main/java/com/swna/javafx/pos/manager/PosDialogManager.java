@@ -15,6 +15,7 @@ import com.swna.javafx.pos.dialog.CreditDialogController;
 import com.swna.javafx.pos.dialog.ItemDiscountDialogController;
 import com.swna.javafx.pos.dialog.ItemPriceChangeDialogController;
 import com.swna.javafx.pos.dialog.ItemUnregisteredDialogController;
+import com.swna.javafx.pos.dialog.QuickItemDialogController;
 import com.swna.javafx.pos.dialog.ReceiptDialogController;
 import com.swna.javafx.pos.dialog.VolumeDiscountDialogController;
 import com.swna.javafx.pos.dialog.print_receipt_dialog.PrintReceiptDialogController;
@@ -186,6 +187,15 @@ public class PosDialogManager {
         );
     }
 
+    public void showQuickItemDialog(DoubleConsumer onRegister) {
+        showDialog(QuickItemDialogController.class, controller -> 
+            controller.initUnregisteredItem(amount -> {
+                if (onRegister != null) {
+                    onRegister.accept(amount);
+                }
+            })
+        );
+    }
     // PaymentDialogManager.java (추가할 부분)
 
     /**
@@ -201,7 +211,7 @@ public class PosDialogManager {
             return;
         }
         
-        showDialog(VolumeDiscountDialogController.class, controller -> {
+        showDialog(VolumeDiscountDialogController.class, controller -> 
             controller.initData(total, (amountAfterDC, percent) -> {
                 if (amountAfterDC != null) {
                     // 금액 기준 할인
@@ -228,8 +238,8 @@ public class PosDialogManager {
                 } else {
                     callback.accept(DialogResult.failure("Invalid discount parameters"));
                 }
-            });
-        });
+            })
+        );
     }
 
     
@@ -265,22 +275,22 @@ public class PosDialogManager {
      * 영수증 출력/검색 다이얼로그 표시
      */
     public void showPrintReceiptDialog(PrintReceiptDialogController.PrintReceiptCallback callback) {
-        showDialog(PrintReceiptDialogController.class, controller -> {
-            controller.initData(callback);
-        });
+        showDialog(PrintReceiptDialogController.class, controller -> 
+            controller.initData(callback)
+        );
     }
 
     /**
      * 미등록 상품 수동 등록 다이얼로그 표시
      */
     public void showManualRegisterDialog(String barcode, DoubleConsumer onRegister) {
-        showDialog(ItemUnregisteredDialogController.class, controller -> {
+        showDialog(ItemUnregisteredDialogController.class, controller -> 
             controller.initUnregisteredItem(barcode, amount -> {
                 if (onRegister != null) {
                     onRegister.accept(amount);
                 }
-            });
-        });
+            })
+        );
     }
 
     /**
@@ -297,9 +307,9 @@ public class PosDialogManager {
      * 잔액 확인 및 영수증 선택 다이얼로그 표시
      */
     public void showBalanceDialog(BigDecimal balance, Consumer<BalanceDialogController.BalanceResult> callback) {
-        showDialog(BalanceDialogController.class, controller -> {
-            controller.initData(balance, callback);
-        });
+        showDialog(BalanceDialogController.class, controller -> 
+            controller.initData(balance, callback)
+        );
         
     }
     /**

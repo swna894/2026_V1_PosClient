@@ -54,6 +54,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @FxmlView("/view/pos/dialog/PrintReceiptDialog.fxml")
 public class PrintReceiptDialogController extends BasePosDialog implements Initializable {
 
+    private static final String DEFAULT_CURRENCY_ZERO = "$0.00";
     // =========================================================================
     // Dependencies (의존성 주입)
     // =========================================================================
@@ -325,7 +326,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
                 Bindings.createStringBinding(
                     () -> {
                         SaleModel selected = salesViewModel.selectedSaleProperty().get();
-                        return selected != null ? formatCurrency(selected.getCashAmount()) : "$0.00";
+                        return selected != null ? formatCurrency(selected.getCashAmount()) : DEFAULT_CURRENCY_ZERO;
                     },
                     salesViewModel.selectedSaleProperty()
                 )
@@ -339,7 +340,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
                 Bindings.createStringBinding(
                     () -> {
                         SaleModel selected = salesViewModel.selectedSaleProperty().get();
-                        return selected != null ? formatCurrency(selected.getCreditAmount()) : "$0.00";
+                        return selected != null ? formatCurrency(selected.getCreditAmount()) : DEFAULT_CURRENCY_ZERO;
                     },
                     salesViewModel.selectedSaleProperty()
                 )
@@ -353,7 +354,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
                 Bindings.createStringBinding(
                     () -> {
                         SaleModel selected = salesViewModel.selectedSaleProperty().get();
-                        return selected != null ? formatCurrency(selected.getCashoutAmount()) : "$0.00";
+                        return selected != null ? formatCurrency(selected.getCashoutAmount()) : DEFAULT_CURRENCY_ZERO;
                     },
                     salesViewModel.selectedSaleProperty()
                 )
@@ -815,6 +816,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
     }
 
     /** WebView 준비 상태 확인 */
+    @SuppressWarnings("unused")
     private boolean isWebViewReady() {
         return receiptWebView != null && receiptWebView.getEngine() != null;
     }
@@ -885,7 +887,7 @@ public class PrintReceiptDialogController extends BasePosDialog implements Initi
      * @return 통화 형식 문자열 (예: $1,234.56)
      */
     private String formatCurrency(BigDecimal amount) {
-        if (amount == null) return "$0.00";
+        if (amount == null) return DEFAULT_CURRENCY_ZERO;
         java.text.NumberFormat currencyFormat = java.text.NumberFormat.getCurrencyInstance();
         currencyFormat.setMinimumFractionDigits(2);
         currencyFormat.setMaximumFractionDigits(2);

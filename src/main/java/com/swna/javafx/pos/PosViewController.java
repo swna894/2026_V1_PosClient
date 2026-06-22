@@ -106,7 +106,7 @@ public class PosViewController {
     @FXML private Button buttonReceipt;
     @FXML private Button buttonCancel;
     @FXML private Button buttonPrint;
-    @FXML private Button buttonQty;
+    @FXML private Button buttonQucikItem;
     @FXML private Button buttonCash;
     @FXML private Button buttonCredit;
     @FXML private Button buttonCashout;
@@ -389,7 +389,22 @@ public class PosViewController {
     }
 
 
-    @FXML private void onActionQty(ActionEvent e) { log.info("onActionQty"); }
+    @FXML private void onActionQuickItem(ActionEvent e) { 
+        log.info("onActionQuickItem"); 
+        posDialogManager.showQuickItemDialog(amount -> {
+                if (amount > 0) {
+                    log.info("[UI] Quick amount item added: {}", amount);
+                    // 2. 뷰모델에 입력받은 금액 아이템 추가
+                    viewModel.addQuickAmountItem(amount);
+                    // 3. UI 테이블 갱신 및 포커스
+                    refreshTable();
+                } else {
+                    showErrorMessage("Invalid amount entered.");
+                }
+            });
+    }
+
+
     @FXML private void onActionPrint(ActionEvent e) { 
         log.info("onActionPrint");
         
@@ -586,7 +601,7 @@ public class PosViewController {
                 }
                 case F9 -> {
                     // 프린트 설정 토글[cite: 1]
-                    buttonQty.fire();
+                    buttonQucikItem.fire();
                     event.consume();
                 }
                 case F10 -> {

@@ -376,15 +376,15 @@
          <!-- QTY -->
          <!-- ================================================= -->
 
-         <Button fx:id="buttonQty" focusTraversable="false" onAction="#onActionQty"
+         <Button fx:id="buttonQuickItem" focusTraversable="false" onAction="#onActionQuickItem"
             styleClass="btn,btn-lg" text="[F9]">
             <tooltip>
-               <Tooltip text="CHANGE QTY" />
+               <Tooltip text="QUICK ITEM" />
             </tooltip>
             <graphic>
                <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
                   <image>
-                     <Image url="@../../images/number_24px.png" />
+                     <Image url="@../../images/24_tag.png" />
                   </image>
                </ImageView>
             </graphic>
