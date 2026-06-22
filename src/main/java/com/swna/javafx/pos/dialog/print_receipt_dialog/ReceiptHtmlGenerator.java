@@ -314,7 +314,7 @@ public class ReceiptHtmlGenerator {
 
     private BigDecimal calculateGst(BigDecimal amount) {
         if (amount == null) return BigDecimal.ZERO;
-        return amount.subtract(amount.divide(BigDecimal.valueOf(1.15), 2, RoundingMode.HALF_UP));
+        return amount.multiply(BigDecimal.valueOf(0.15)).setScale(2, RoundingMode.HALF_UP);
     }
 
     private String formatCurrency(double amount) {

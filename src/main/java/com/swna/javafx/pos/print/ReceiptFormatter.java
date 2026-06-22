@@ -440,9 +440,7 @@ public class ReceiptFormatter {
     }
 
     private BigDecimal calculateGst(BigDecimal totalAmount) {
-        return totalAmount.subtract(
-            totalAmount.divide(BigDecimal.valueOf(1.15), 2, RoundingMode.HALF_UP)
-        );
+        return  totalAmount.multiply(BigDecimal.valueOf(0.15)).setScale(2, RoundingMode.HALF_UP);
     }
 
     private void appendPaymentDetail(StringBuilder sb, PaymentRequest payment,

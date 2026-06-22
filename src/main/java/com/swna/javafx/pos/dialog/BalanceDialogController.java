@@ -23,7 +23,7 @@ public class BalanceDialogController extends BasePosDialog {
     @FXML private Label lblBalance;
     @FXML private TextField dummyField;
 
-    private static final DecimalFormat FMT = new DecimalFormat("₩#,##0.00");
+    private static final DecimalFormat FMT = new DecimalFormat("$#,##0.00");
     private Consumer<BalanceResult> callback;
 
     public void initData(BigDecimal balance, Consumer<BalanceResult> callback) {
