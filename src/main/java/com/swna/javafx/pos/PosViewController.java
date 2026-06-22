@@ -114,7 +114,7 @@ public class PosViewController {
     @FXML private Button buttonOnPos;
     @FXML private Button buttonOnPrint;
     @FXML private Button buttonSettings;
-    @FXML private Button buttonSupplier;
+    @FXML private Button buttonOnSupplier;
     
     // Image Views
     @FXML private ImageView posImageView;
@@ -141,7 +141,7 @@ public class PosViewController {
         scannerManager.setup(table, safeBarcodeScanner, this::handleBarcode);
         
         // 6. 장바구니 버튼 숨김 처리
-        cartButtonManager.hideUnused(buttonCart3);
+        cartButtonManager.hideUnused(buttonCart3, buttonSettings, buttonOnGenerate, buttonOnSupplier);
         if(!printToggleService.isBarcodeEnabled()) {
             cartButtonManager.hideUnused(buttonReceipt);
         }

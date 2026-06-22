@@ -1,24 +1,38 @@
 package com.swna.javafx.pos.print;
 
-import javax.print.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+
+import javax.print.Doc;
+import javax.print.DocFlavor;
+import javax.print.DocPrintJob;
+import javax.print.PrintException;
+import javax.print.PrintService;
+import javax.print.PrintServiceLookup;
+import javax.print.SimpleDoc;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.print.attribute.standard.JobName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Locale;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class PrinterService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PrinterService.class);
     
     private static final DocFlavor FLAVOR = DocFlavor.BYTE_ARRAY.AUTOSENSE;
+    
+    // ESC/POS 표준 돈통 오픈 명령어 고정값 (2번 핀 Pulse 신호)
+    private static final byte[] ESC_POS_OPEN_DRAWER = new byte[]{ 27, 112, 48, 55, 121 };
+
+    // 비동기(@Async) 프록시 내부 호출 문제를 안전하게 처리하기 위한 자기 자신(Self) 주입
+    private final ObjectProvider<PrinterService> selfProvider;
     
     // Console 디버그 모드 (개발 환경에서는 true로 설정)
     @Value("${print.debug.console:true}")
@@ -27,10 +41,40 @@ public class PrinterService {
     @Value("${print.debug.real:false}")
     private boolean realPrint;
 
+    public PrinterService(ObjectProvider<PrinterService> selfProvider) {
+        this.selfProvider = selfProvider;
+    }
+
+    /**
+     * [신규 추가] 파라미터 없이 현금 영수증 통(돈통) Open
+     * OS에 설정된 '기본 프린터'를 대상으로 돈통 오픈 신호를 보냅니다.
+     */
+    public void openCashDrawer() {
+        // 이름 대신 null을 전달하여 내부적으로 기본 프린터를 찾도록 유도합니다.
+        openCashDrawer(null);
+    }
+    
+    /**
+     * [신규 추가] 현금 영수증 통(돈통) Open
+     * 기존 printBytes 메서드를 직접 호출(this)하지 않고, 주입된 의존성(Proxy)을 통해 비동기로 호출합니다.
+     */
+    public void openCashDrawer(String printerName) {
+        log.info("현금 돈통 Open 신호 전송 시작 - 프린터: {}", printerName);
+        
+        PrinterService self = selfProvider.getIfAvailable();
+        if (self != null) {
+            // 스프링이 제공하는 프록시 객체(self)를 거쳐 호출하므로 printBytes의 @Async가 정상 작동합니다.
+            self.printBytes(printerName, ESC_POS_OPEN_DRAWER);
+        } else {
+            // Fallback: 컨텍스트 라이프사이클 이슈 발생 시 직접 호출 처리
+           log.error("돈통 오픈 실패: PrinterService 프록시 빈을 로드할 수 없습니다.");
+        }
+    }
+
     @Async("printExecutor")
     public void printBytes(String printerName, byte[] bytes) {
         if (bytes == null || bytes.length == 0) {
-            logger.warn("인쇄 데이터가 없습니다.");
+            log.warn("인쇄 데이터가 없습니다.");
             return;
         }
 
@@ -43,7 +87,7 @@ public class PrinterService {
         if (realPrint) {
             printToRealPrinter(printerName, bytes);
         } else {
-            logger.info("[DEV MODE] 실제 프린터로 출력하지 않음 (realPrint=false)");
+            log.info("[DEV MODE] 실제 프린터로 출력하지 않음 (realPrint=false)");
         }
     }
 
@@ -52,7 +96,7 @@ public class PrinterService {
      */
     private void printToConsole(String printerName, byte[] bytes) {
         // 조건부 로깅: 로그 레벨이 INFO 이상일 때만 실행
-        if (logger.isInfoEnabled()) {
+        if (log.isInfoEnabled()) {
             StringBuilder sb = new StringBuilder();
             sb.append("\n").append("=".repeat(70)).append("\n");
             sb.append("🖨️ [PRINT DEBUG] - Printer: ").append(printerName).append("\n");
@@ -69,7 +113,7 @@ public class PrinterService {
             sb.append("=".repeat(70)).append("\n");
             sb.append("✅ Console output only\n");
             
-            logger.info(sb.toString());
+            log.info(sb.toString());
         }
     }
     
@@ -80,7 +124,7 @@ public class PrinterService {
     private void printToRealPrinter(String printerName, byte[] bytes) {
         PrintService service = findPrintService(printerName);
         if (service == null) {
-            logger.error("인쇄 실패: 프린터 '{}'를 찾을 수 없습니다.", printerName);
+            log.error("인쇄 실패: 프린터 '{}'를 찾을 수 없습니다.", printerName);
             return;
         }
 
@@ -91,13 +135,13 @@ public class PrinterService {
             DocPrintJob job = service.createPrintJob();
             Doc doc = new SimpleDoc(bytes, FLAVOR, null);
 
-            logger.info("프린터 '{}'로 데이터 전송 시작 ({} bytes)", service.getName(), bytes.length);
+            log.info("프린터 '{}'로 데이터 전송 시작 ({} bytes)", service.getName(), bytes.length);
             job.print(doc, pras);
             
             Thread.sleep(100); 
 
         } catch (PrintException e) {
-            logger.error("인쇄 중 하드웨어 에러 발생: {}", e.getMessage());
+            log.error("인쇄 중 하드웨어 에러 발생: {}", e.getMessage());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -106,7 +150,7 @@ public class PrinterService {
     public void listAvailablePrinters() {
         PrintService[] services = PrintServiceLookup.lookupPrintServices(FLAVOR, null);
         for (PrintService s : services) {
-            logger.info("사용 가능한 프린터: {}", s.getName());
+            log.info("사용 가능한 프린터: {}", s.getName());
         }
     }
 
@@ -122,7 +166,7 @@ public class PrinterService {
             }
         }
         
-        logger.warn("'{}'를 찾지 못해 기본 프린터를 사용합니다.", printerName);
+        log.warn("'{}'를 찾지 못해 기본 프린터를 사용합니다.", printerName);
         return PrintServiceLookup.lookupDefaultPrintService();
     }
 }

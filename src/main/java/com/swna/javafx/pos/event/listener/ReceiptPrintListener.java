@@ -1,4 +1,4 @@
-package com.swna.javafx.pos.listener;
+package com.swna.javafx.pos.event.listener;
 
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.admin.shop.viewmodel.ShopViewModel;
