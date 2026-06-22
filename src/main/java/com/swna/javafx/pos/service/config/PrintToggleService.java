@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class PrintToggleService {
     
-    private final BooleanProperty printEnabled = new SimpleBooleanProperty(true);
+    private final BooleanProperty printEnabled = new SimpleBooleanProperty(false);
     private final BooleanProperty barcodeEnabled = new SimpleBooleanProperty(false); // 기본값 설정
     private final BooleanProperty isCashedBalance = new SimpleBooleanProperty(false); // 기본값 설정
 
