@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.pos.print.PrinterService;
 import com.swna.javafx.pos.service.config.PrintToggleService;
 
 import javafx.application.Platform;
@@ -23,6 +24,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 public class BalanceDialogController extends BasePosDialog {
 
     private final PrintToggleService printToggleService;
+    private final PrinterService printerService;
 
     @FXML private Label lblBalance;
     @FXML private TextField dummyField;
@@ -30,8 +32,9 @@ public class BalanceDialogController extends BasePosDialog {
     private static final DecimalFormat FMT = new DecimalFormat("$#,##0.00");
     private Consumer<BalanceResult> callback;
 
-    public BalanceDialogController(PrintToggleService printToggleService) {
+    public BalanceDialogController(PrintToggleService printToggleService, PrinterService printerService) {
         this.printToggleService = printToggleService;
+        this.printerService = printerService;
 
     }
     
@@ -51,9 +54,11 @@ public class BalanceDialogController extends BasePosDialog {
             if (lblBalance.getScene() != null) {
                 lblBalance.getScene().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
                     if (event.getCode() == KeyCode.ENTER) {
+                         printerService.openCashDrawer();
                         handleComplete();
                         event.consume();
-                    } else if (event.getCode() == KeyCode.F8) {                      
+                    } else if (event.getCode() == KeyCode.F8) {    
+                         printerService.openCashDrawer();                  
                         handlePrint();
                         event.consume();
                     } else if (event.getCode() == KeyCode.ESCAPE) {

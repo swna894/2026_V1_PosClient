@@ -42,7 +42,9 @@ public class ItemUnregisteredDialogController {
     private void applyNumericFilter(TextField textField) {
         UnaryOperator<TextFormatter.Change> filter = change -> {
             String newText = change.getControlNewText();
-            if (newText.matches("\\d*\\.?\\d*")) return change;
+            if (newText.matches("\\d*\\.?\\d*") && newText.length() <= 6) {
+                return change;
+            }
             return null;
         };
         textField.setTextFormatter(new TextFormatter<>(filter));

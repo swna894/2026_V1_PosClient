@@ -20,7 +20,7 @@
 
    <!-- Header -->
    <VBox alignment="CENTER" spacing="10">
-      <Label styleClass="title-label" text="Register Unregistered Item" />
+      <Label styleClass="title-label" text="Unregistered Item" />
       <Separator prefWidth="200.0" />
       <HBox alignment="CENTER" spacing="8">
          <Label styleClass="info-header" text="Barcode:" />
