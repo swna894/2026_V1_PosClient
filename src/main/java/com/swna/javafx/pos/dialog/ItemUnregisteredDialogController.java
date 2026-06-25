@@ -98,6 +98,12 @@ public class ItemUnregisteredDialogController {
     private void handleConfirm() {
         try {
             String text = txtNewPrice.getText().trim();
+
+            // 글자 수가 6자 이상인 경우 입력 필드를 비우고 메소드 종료 (혹은 뒤의 로직 수행 방지)
+            if (text.length() >= 6) {
+                txtNewPrice.clear();
+                return; // 6자 이상일 때 캐치문이나 콜백으로 넘어가지 않고 바로 종료하려면 추가
+            }
             double newPrice = Double.parseDouble(text.isEmpty() ? "0" : text);
             
             if (onResultCallback != null) {

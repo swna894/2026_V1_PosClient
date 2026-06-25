@@ -63,6 +63,8 @@ public class ReceiptPrintListener {
             );
             
             printToggleService.setBarcodeEnabled(false);
+            // cashBalenceDialog print 실행을 reset 
+            printToggleService.setCashBalance(false); 
             log.info("Print command successfully sent to the hardware - Receipt No: {}", receiptNo);
             
         } catch (Exception e) {

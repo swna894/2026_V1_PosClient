@@ -566,7 +566,7 @@ public class PosViewController {
             switch (code) {
                 case F1 -> {
                     // 현금함 열기
-                    buttonDrawer.fire(); 
+                    fireButtonDrawer(); 
                     event.consume(); // 이벤트가 다른 컨트롤로 전파되는 것을 방지
                 }
                 case F2 -> {
@@ -626,6 +626,9 @@ public class PosViewController {
         });
     }
 
+    public void fireButtonDrawer() {
+         buttonDrawer.fire(); 
+    }
     /**
      * 좌/우 방향키 입력을 감지하여 선택된 행의 수량을 조절합니다.
      * @return 이벤트를 처리했으면 true, 아니면 false

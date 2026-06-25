@@ -62,7 +62,7 @@ public class ScanService {
                 .retry(RETRY_COUNT)
                 .map(this::toPosItemWithCache)
                 .onErrorResume(e -> {
-                    log.error("Scan failed for barcode: {}", barcode, e);
+                    log.error("Scan failed for barcode: {}", barcode);
                     return Mono.error(e);
                 });
     }
