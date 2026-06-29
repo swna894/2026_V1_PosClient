@@ -493,8 +493,7 @@ public class PosViewController {
      * - ON: 프린트 활성화 (실제 프린터로 출력)
      * - OFF: 프린트 비활성화 (출력하지 않음)
      */
-    @FXML 
-    private void onPrint(ActionEvent e) {
+    @FXML  private void onPrint(ActionEvent e) {
         printToggleService.toggle();
         String statusMsg = printToggleService.isPrintEnabled() 
             ? "Print enabled (ON)" 

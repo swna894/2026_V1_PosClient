@@ -26,7 +26,8 @@ public class BalanceDialogController extends BasePosDialog {
 
     private final PrintToggleService printToggleService;
     private final PosViewController posViewController;
-
+    private final PrinterService printerService;
+    
 
     @FXML private Label lblBalance;
     @FXML private TextField dummyField;
@@ -34,9 +35,11 @@ public class BalanceDialogController extends BasePosDialog {
     private static final DecimalFormat FMT = new DecimalFormat("$#,##0.00");
     private Consumer<BalanceResult> callback;
 
-    public BalanceDialogController(PrintToggleService printToggleService, PosViewController posViewController) {
+    public BalanceDialogController(PrintToggleService printToggleService, 
+            PosViewController posViewController, PrinterService printerService) {
         this.printToggleService = printToggleService;
         this.posViewController = posViewController;
+        this.printerService = printerService;
     }
     
     public void initData(BigDecimal balance, Consumer<BalanceResult> callback) {
@@ -78,13 +81,13 @@ public class BalanceDialogController extends BasePosDialog {
         finish(new BalanceResult(false, true)); }
 
     @Override
-    @FXML 
-    public void handleCancel() { 
+    @FXML public void handleCancel() { 
         finish(new BalanceResult(false, false)); 
     }
 
     private void finish(BalanceResult res) {
         if (callback != null) callback.accept(res);
+        printerService.openCashDrawer();
         closeDialog();
     }
 
