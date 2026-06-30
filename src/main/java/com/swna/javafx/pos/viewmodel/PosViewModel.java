@@ -17,6 +17,7 @@ import com.swna.javafx.pos.event.PaymentSuccessEvent;
 import com.swna.javafx.pos.event.PrintFailureEvent;
 import com.swna.javafx.pos.manager.PosDialogManager;
 import com.swna.javafx.pos.model.PosItem;
+import com.swna.javafx.pos.print.PrinterService;
 import com.swna.javafx.pos.service.ScanService;
 import com.swna.javafx.pos.viewmodel.handler.ScanHandler;
 import com.swna.javafx.pos.viewmodel.manager.CartManager;
@@ -44,6 +45,7 @@ public class PosViewModel {
     private final ScanHandler scanHandler;
     private final PosProcessor posProcessor;
     private final PosDialogManager posDialogManager;
+    private final PrinterService printerService;
     
     // ========== UI 상태 ==========
     private final StringProperty scannedCode = new SimpleStringProperty("");
@@ -51,7 +53,9 @@ public class PosViewModel {
     
     public PosViewModel(ApplicationEventPublisher eventPublisher, 
                         ScanService posService, 
-                        PosApiService posApiService, PosDialogManager posDialogManager) {
+                        PosApiService posApiService, 
+                        PosDialogManager posDialogManager, 
+                        PrinterService printerService) {
         this.eventPublisher = eventPublisher;
         this.cartManager = new CartManager();
         this.discountManager = new DiscountManager(cartManager);
@@ -59,6 +63,7 @@ public class PosViewModel {
         this.posDialogManager = posDialogManager;
         this.scanHandler = new ScanHandler(posService, cartManager, posDialogManager);
         this.posProcessor = new PosProcessor(cartManager, posApiService);
+        this.printerService = printerService;
         
         setupScanCallbacks();
     }
@@ -299,6 +304,8 @@ public class PosViewModel {
                     });
                 } else {
                     // 잔액이 없으면 즉시 완료
+                    // 돈통 열기 
+                    printerService.openCashDrawer();
                     handleProcessedPayment(processed, onComplete, false);
                 }
             },
