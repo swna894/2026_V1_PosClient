@@ -26,6 +26,7 @@ public class NavigationService {
     private final AuthStore authStore;
 
     private Stage stage;
+    private Stage adminWindowStage; // 💡 서브 창(MenuController -> UnPackingController 등) 관리를 위한 스테이지 변수 추가
 
     // =========================
     // 창 이동 좌표
@@ -58,7 +59,7 @@ public class NavigationService {
                 (obs, oldVal, newVal) ->
                         Platform.runLater(() -> {
                             if (newVal == AuthState.AUTHENTICATED) {
-                                navigateStage(PosViewController.class);
+                                openStage(PosViewController.class);
                             } else {
                                 navigate(LoginViewController.class);
                             }
@@ -79,7 +80,7 @@ public class NavigationService {
         }
     }
 
-    public <T> void navigateStage(Class<T> controllerClass) {
+    public <T> void openStage(Class<T> controllerClass) {
         try {
             stage.close();
 
@@ -170,23 +171,59 @@ public class NavigationService {
     }
 
     /**
-     * 현재 창은 유지하고 별도의 새 창으로 뷰를 엽니다
+     * 메인 창은 유지하고 '새 창'으로 관리자 메뉴를 엽니다.
+     * 이때 생성된 Stage 참조를 adminWindowStage에 저장해둡니다.
      */
     public <T> void openInNewWindow(Class<T> controllerClass, String title) {
         try {
-            Stage newStage = new Stage();
-            newStage.getIcons().add(new Image("/images/pos_system.png"));
-            
+            // 이미 서브 창이 열려있다면 해당 창을 사용, 없으면 생성
+            if (adminWindowStage == null || !adminWindowStage.isShowing()) {
+                adminWindowStage = new Stage();
+                adminWindowStage.getIcons().add(new Image("/images/pos_system.png"));
+                adminWindowStage.initStyle(StageStyle.DECORATED);
+            }
+
             Parent root = fxWeaver.loadView(controllerClass);
             Scene scene = new Scene(root);
-            
-            newStage.setTitle(title);
-            newStage.setScene(scene);
-            newStage.initStyle(StageStyle.DECORATED);
-            newStage.show();
-            
+
+            adminWindowStage.setTitle(title);
+            adminWindowStage.setScene(scene);
+            adminWindowStage.setMaximized(true); // 새 창도 최대화
+
+            if (!adminWindowStage.isShowing()) {
+                adminWindowStage.show();
+            } else {
+                adminWindowStage.toFront(); // 이미 떠 있으면 앞으로 가져옴
+            }
+
         } catch (Exception e) {
             log.error("Failed to open new window for: {}", controllerClass.getSimpleName(), e);
+        }
+    }
+
+    /**
+     * 💡 [핵심] '새 창(adminWindowStage)' 안에서 화면만 교체합니다.
+     * MenuController -> UnPackingController 로 교체될 때 사용
+     */
+    public <T> void navigateInNewWindow(Class<T> controllerClass, String title) {
+        try {
+            // 만약 서브 창이 없다면 새로 띄우고, 있다면 화면만 교체
+            if (adminWindowStage == null || !adminWindowStage.isShowing()) {
+                openInNewWindow(controllerClass, title);
+                return;
+            }
+
+            Parent root = fxWeaver.loadView(controllerClass);
+            Scene scene = new Scene(root);
+
+            adminWindowStage.setTitle(title);
+            adminWindowStage.setScene(scene); // 👈 핵심: 기존 MenuController 창에 UnPackingController Scene 세팅
+            adminWindowStage.setMaximized(true); // 새 창도 최대화
+
+            adminWindowStage.toFront();
+
+        } catch (Exception e) {
+            log.error("Failed to navigate in new window for: {}", controllerClass.getSimpleName(), e);
         }
     }
 

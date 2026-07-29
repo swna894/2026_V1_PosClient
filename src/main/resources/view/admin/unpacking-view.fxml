@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+
+<BorderPane fx:id="borderPane"
+    xmlns="http://javafx.com/javafx"
+    xmlns:fx="http://javafx.com/fxml"
+    fx:controller="com.swna.javafx.admin.unpacking.UnPackingController">
+    <!-- styleClass="modal-dialog-content" -->
+
+    <padding>
+        <Insets top="0" right="10" bottom="10" left="10" />
+    </padding>
+
+    <!-- ============ Top Main ToolBar ============ -->
+    <top>
+        <ToolBar fx:id="mainToolBar" prefHeight="50">
+            <items>
+                <DatePicker fx:id="datePickerStart" />
+                <Label text="~" />
+                <DatePicker fx:id="datePickerEnd" />
+                <Separator orientation="VERTICAL" />
+
+                <ComboBox fx:id="comboBoxSupplier" promptText="Select Supplier" prefWidth="250" />
+
+                <!-- HBox로 Spacer 감싸기 -->
+                <HBox HBox.hgrow="ALWAYS">
+                    <Pane HBox.hgrow="ALWAYS" />
+                </HBox>
+
+                <Button fx:id="buttonExcelRead" text="_Start" styleClass="long_button" />
+                <Button fx:id="buttonReload" text="_Reload" styleClass="long_button" />
+                <Separator orientation="VERTICAL" />
+                <Button fx:id="buttonBackColor" styleClass="button-small" />
+            </items>
+        </ToolBar>
+    </top>
+
+    <!-- ============ Inspections | Items ============ -->
+    <center>
+        <SplitPane fx:id="splitPane" dividerPositions="0.25">
+            <items>
+
+                <!-- Left Pane: Inspections (Invoices) -->
+                <BorderPane fx:id="leftPane">
+                    <top>
+                        <ToolBar prefHeight="40">
+                            <items>
+                                <Label fx:id="labelInspectionSummary" styleClass="label-stock" />
+                                <Pane prefWidth="0" HBox.hgrow="ALWAYS" />
+                                <Button fx:id="buttonDelete" text="_Delete" styleClass="long_button" />
+                            </items>
+                        </ToolBar>
+                    </top>
+                    <center>
+                        <TableView fx:id="tableViewInspections" />
+                    </center>
+                </BorderPane>
+
+                <!-- Right Pane: Items of Selected Inspection -->
+                <BorderPane fx:id="rightPane">
+                    <top>
+                        <ToolBar prefHeight="40">
+                            <items>
+                                <TextField fx:id="textFieldSearch" promptText="Search"
+                                    style="-fx-alignment: center; -fx-font-size: 14px;" />
+                                <Label fx:id="labelProductSummary" styleClass="label-stock" />
+                                <Separator orientation="VERTICAL" />
+
+                                <Pane prefWidth="0" HBox.hgrow="ALWAYS" />
+
+                                <TextField fx:id="textFieldPriceMultiplier" text="2.3" maxWidth="60"
+                                    style="-fx-alignment: center; -fx-font-weight: bold;" />
+                                <Button fx:id="buttonEPrice" text="_E-Price"
+                                    styleClass="long_button" />
+                                <Separator orientation="VERTICAL" />
+
+                                <Button fx:id="buttonAddStock" text="_Add Stock"
+                                    styleClass="long_button" minWidth="120" />
+                                <ComboBox fx:id="comboBoxConfirmFilter" maxWidth="130" />
+                            </items>
+                        </ToolBar>
+                    </top>
+                    <center>
+                        <TableView fx:id="tableViewItems" editable="true" />
+                    </center>
+                </BorderPane>
+
+            </items>
+        </SplitPane>
+    </center>
+
+</BorderPane>

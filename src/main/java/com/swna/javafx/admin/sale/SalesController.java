@@ -24,6 +24,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SplitPane;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxmlView;
 
 /**
  * 판매 메인 컨트롤러 (바인딩 및 컴파일 이슈 리팩토링 버전)
@@ -31,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@FxmlView("/view/sale/MainSalesView.fxml")
 public class SalesController implements Initializable {
     
     private final SalesViewModel viewModel;
@@ -213,7 +215,7 @@ private void setupButtonActions() {
     }
     
     private void handleBack() {
-        navigationService.navigateStage(PosViewController.class);
+        navigationService.openStage(PosViewController.class);
     }
     
     private void handleExportExcel() {

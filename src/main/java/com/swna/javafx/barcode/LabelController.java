@@ -123,7 +123,7 @@ public class LabelController {
     
     private void setupEventHandlers() {
         if (backButton != null) {
-            backButton.setOnAction(e -> navigationService.navigateStage(PosViewController.class));
+            backButton.setOnAction(e -> navigationService.openStage(PosViewController.class));
         }
 
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {

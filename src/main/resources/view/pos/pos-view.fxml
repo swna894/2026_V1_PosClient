@@ -472,6 +472,9 @@
 
          <Button fx:id="buttonOnSupplier" focusTraversable="false" mnemonicParsing="false"
             onAction="#onSupplier" prefHeight="34" styleClass="btn,btn-sm">
+            <tooltip>
+               <Tooltip text="OPEN SUPPLIER" />
+            </tooltip>
             <graphic>
                <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
@@ -488,6 +491,9 @@
 
          <Button fx:id="buttonOnGenerate" focusTraversable="false" mnemonicParsing="false"
             onAction="#onGenerate" prefHeight="34" styleClass="btn,btn-sm">
+            <tooltip>
+               <Tooltip text="GENERATE BARCODE" />
+            </tooltip>
             <graphic>
                <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
@@ -503,6 +509,9 @@
 
          <Button fx:id="buttonOnPos" focusTraversable="false" mnemonicParsing="false"
             onAction="#onPos" prefHeight="34" styleClass="btn,btn-lg" text="OFF">
+            <tooltip>
+               <Tooltip text="OPEN POS" />
+            </tooltip>
             <graphic>
                <ImageView fx:id="posImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
@@ -519,9 +528,10 @@
 
          <Button fx:id="buttonOnPrint" focusTraversable="false" mnemonicParsing="false"
             onAction="#onPrint" prefHeight="34" styleClass="btn,btn-lg" text="OFF">
-
+            <tooltip>
+               <Tooltip text="OPEN PRINT" />
+            </tooltip>
             <graphic>
-
                <ImageView fx:id="printImageView" fitHeight="24" fitWidth="24" pickOnBounds="true"
                   preserveRatio="true">
 
@@ -540,8 +550,10 @@
          <!-- ================================================= -->
 
          <Button fx:id="buttonSettings" focusTraversable="false" mnemonicParsing="false"
-            prefHeight="34"
-            onAction="#onSettings" styleClass="btn,btn-sm">
+            prefHeight="34" onAction="#onSettings" styleClass="btn,btn-sm">
+            <tooltip>
+               <Tooltip text="OPEN SETTINGS" />
+            </tooltip>
             <graphic>
                <ImageView fitHeight="20" fitWidth="20" pickOnBounds="true"
                   preserveRatio="true">
@@ -554,6 +566,9 @@
          <Button fx:id="buttonMenu" focusTraversable="false" mnemonicParsing="false"
             prefHeight="34"
             onAction="#onMenu" styleClass="btn,btn-sm">
+            <tooltip>
+               <Tooltip text="OPEN MENU" />
+            </tooltip>
             <graphic>
                <ImageView fitHeight="26" fitWidth="26" pickOnBounds="true"
                   preserveRatio="true">

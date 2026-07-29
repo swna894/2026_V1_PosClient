@@ -84,7 +84,7 @@ public class SupplierController implements Initializable {
     private void onBackToPos() {
         log.info("Returning to POS Main Screen");
         // 4. NavigationService를 사용하여 POS 스테이지로 이동 
-        navigationService.navigateStage(PosViewController.class)
+        navigationService.openStage(PosViewController.class)
         ;
     }
 

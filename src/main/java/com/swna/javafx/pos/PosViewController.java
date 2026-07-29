@@ -451,11 +451,11 @@ public class PosViewController {
     }
 
     @FXML private void onActionDrawer(ActionEvent e) { printerService.openCashDrawer(); }
-    @FXML private void onGenerate(ActionEvent e) { navigationService.navigateStage(LabelController.class); }
+    @FXML private void onGenerate(ActionEvent e) { navigationService.openStage(LabelController.class); }
 
     @FXML private void onMenu(ActionEvent e) {
         // 기존 대체
-        // navigationService.navigateStage(MenuController.class);
+        // navigationService.openStage(MenuController.class);
         // 현재 창은 그대로 두고 새 창으로 MenuController 실행
         navigationService.openInNewWindow(MenuController.class, "메뉴 관리");
     }
@@ -508,7 +508,7 @@ public class PosViewController {
     
     @FXML void  onSettings(ActionEvent e) {
        // 새로운 창(Stage)으로 띄우고 싶을 때
-        navigationService.navigateStage(SettingViewController.class);
+        navigationService.openStage(SettingViewController.class);
         
         // 또는 현재 창의 씬(Scene)만 교체하고 싶을 때
         // navigationService.navigate(SupplierController.class)
@@ -517,7 +517,7 @@ public class PosViewController {
     @FXML 
     private void onSupplier(ActionEvent e) {
        // 새로운 창(Stage)으로 띄우고 싶을 때
-        navigationService.navigateStage(SupplierController.class);
+        navigationService.openStage(SupplierController.class);
         
         // 또는 현재 창의 씬(Scene)만 교체하고 싶을 때
         // navigationService.navigate(SupplierController.class)
