@@ -7,65 +7,94 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 
-<BorderPane fx:id="borderPane"
-    xmlns="http://javafx.com/javafx"
-    xmlns:fx="http://javafx.com/fxml"
+<BorderPane fx:id="borderPane" xmlns="http://javafx.com/javafx/22"
+    xmlns:fx="http://javafx.com/fxml/1"
     fx:controller="com.swna.javafx.admin.unpacking.UnPackingController">
     <!-- styleClass="modal-dialog-content" -->
 
     <padding>
-        <Insets top="0" right="10" bottom="10" left="10" />
+        <Insets bottom="10" left="10" right="10" top="0" />
     </padding>
 
     <!-- ============ Top Main ToolBar ============ -->
     <top>
         <ToolBar fx:id="mainToolBar" prefHeight="50">
             <items>
-                <DatePicker fx:id="datePickerStart" />
+                <DatePicker fx:id="datePickerStart" prefWidth="130" promptText="Start Date" />
                 <Label text="~" />
-                <DatePicker fx:id="datePickerEnd" />
+                <DatePicker fx:id="datePickerEnd" prefWidth="130" promptText="End Date" />
                 <Separator orientation="VERTICAL" />
 
-                <ComboBox fx:id="comboBoxSupplier" promptText="Select Supplier" prefWidth="250" />
+                <ComboBox fx:id="comboBoxSupplier" prefWidth="250" promptText="Select Supplier" />
+                <Region maxWidth="1.7976931348623157E308" prefHeight="0.0" HBox.hgrow="ALWAYS" />
 
-                <!-- HBox로 Spacer 감싸기 -->
-                <HBox HBox.hgrow="ALWAYS">
-                    <Pane HBox.hgrow="ALWAYS" />
-                </HBox>
-
-                <Button fx:id="buttonExcelRead" text="_Start" styleClass="long_button" />
-                <Button fx:id="buttonReload" text="_Reload" styleClass="long_button" />
-                <Separator orientation="VERTICAL" />
-                <Button fx:id="buttonBackColor" styleClass="button-small" />
+                <Button fx:id="buttonExcelRead" onAction="#handleExcelRead" prefWidth="100"
+                    text="_Read">
+                    <graphic>
+                        <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true"
+                            preserveRatio="true">
+                            <Image url="@../../images/24_excel.png" />
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button fx:id="buttonReload" prefWidth="100" text="_Reload">
+                    <graphic>
+                        <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true"
+                            preserveRatio="true">
+                            <Image url="@../../images/reload_24px.png" />
+                        </ImageView>
+                    </graphic>
+                </Button>
             </items>
         </ToolBar>
     </top>
 
     <!-- ============ Inspections | Items ============ -->
     <center>
-        <SplitPane fx:id="splitPane" dividerPositions="0.25">
+        <SplitPane fx:id="splitPane" dividerPositions="0.35">
             <items>
 
                 <!-- Left Pane: Inspections (Invoices) -->
-                <BorderPane fx:id="leftPane">
+                <BorderPane fx:id="leftPane" prefHeight="440.0" prefWidth="191.0">
                     <top>
                         <ToolBar prefHeight="40">
                             <items>
-                                <Label fx:id="labelInspectionSummary" styleClass="label-stock" />
+                                <Label fx:id="labelUnpacksSummary" styleClass="label-stock" />
                                 <Pane prefWidth="0" HBox.hgrow="ALWAYS" />
-                                <Button fx:id="buttonDelete" text="_Delete" styleClass="long_button" />
+                                <Button fx:id="buttonDelete" text="_Delete">
+                                    <graphic>
+                                        <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true"
+                                            preserveRatio="true">
+                                            <Image url="@../../images/delete_24px.png" />
+                                        </ImageView>
+                                    </graphic>
+                                </Button>
                             </items>
                         </ToolBar>
                     </top>
                     <center>
-                        <TableView fx:id="tableViewInspections" />
+                        <TableView fx:id="tableViewUnpacks" prefHeight="400.0" prefWidth="317.0"
+                            styleClass="table-view" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="colNo" prefWidth="60" text="ID" />
+                                <TableColumn fx:id="colSelected" prefWidth="60" text="" />
+                                <TableColumn fx:id="colInvoice" prefWidth="150" text="INVOICE" />
+                                <TableColumn fx:id="colAmount" prefWidth="120.0" text="AMOUNT" />
+                                <TableColumn fx:id="colComment" prefWidth="300.0" text="COMMENT   " />
+                            </columns>
+                        </TableView>
                     </center>
                 </BorderPane>
 
@@ -76,25 +105,57 @@
                             <items>
                                 <TextField fx:id="textFieldSearch" promptText="Search"
                                     style="-fx-alignment: center; -fx-font-size: 14px;" />
-                                <Label fx:id="labelProductSummary" styleClass="label-stock" />
+                                <Label fx:id="labelItemsSummary" styleClass="label-stock" />
                                 <Separator orientation="VERTICAL" />
 
                                 <Pane prefWidth="0" HBox.hgrow="ALWAYS" />
 
-                                <TextField fx:id="textFieldPriceMultiplier" text="2.3" maxWidth="60"
-                                    style="-fx-alignment: center; -fx-font-weight: bold;" />
-                                <Button fx:id="buttonEPrice" text="_E-Price"
-                                    styleClass="long_button" />
+                                <TextField fx:id="textFieldPriceMultiplier" maxWidth="60"
+                                    style="-fx-alignment: center; -fx-font-weight: bold;" text="2.3" />
+                                <Button fx:id="buttonEPrice" text="_E-Price">
+                                    <graphic>
+                                        <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true"
+                                            preserveRatio="true">
+                                            <Image url="@../../images/dollar_24px.png" />
+                                        </ImageView>
+                                    </graphic>
+                                </Button>
                                 <Separator orientation="VERTICAL" />
 
-                                <Button fx:id="buttonAddStock" text="_Add Stock"
-                                    styleClass="long_button" minWidth="120" />
+                                <Button fx:id="buttonAddStock" minWidth="120" text="_Add Stock">
+                                    <graphic>
+                                        <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true"
+                                            preserveRatio="true">
+                                            <Image url="@../../images/save_24px.png" />
+                                        </ImageView>
+                                    </graphic>
+                                </Button>
                                 <ComboBox fx:id="comboBoxConfirmFilter" maxWidth="130" />
                             </items>
                         </ToolBar>
                     </top>
                     <center>
-                        <TableView fx:id="tableViewItems" editable="true" />
+                        <TableView fx:id="tableViewItems" editable="true">
+                            <columns>
+                                <TableColumn fx:id="colItemNo" prefWidth="50" text="NO" />
+                                <TableColumn fx:id="colItemConfirm" prefWidth="60" text="CONFIRM" />
+                                <TableColumn fx:id="colItemBarcode" prefWidth="150" text="BARCODE" />
+                                <TableColumn fx:id="colItemDescription" prefWidth="200"
+                                    text="DESCRIPTION" />
+                                <TableColumn fx:id="colItemCategory" prefWidth="150" text="CATEGORY" />
+                                <TableColumn fx:id="colItemOldPriceIn" prefWidth="80"
+                                    text="OdCst" />
+                                <TableColumn fx:id="colItemPriceIn" prefWidth="90" text="COST" />
+                                <TableColumn fx:id="colItemQty" prefWidth="70" text="QTY" />
+                                <TableColumn fx:id="colItemMinStock" prefWidth="90" text="MIN STOCK" />
+                                <TableColumn fx:id="colItemPriceOutEstimated" prefWidth="90"
+                                    text="EP" />
+                                <TableColumn fx:id="colItemPriceOut" prefWidth="90" text="RP" />
+                                <TableColumn fx:id="colItemIsSaved" prefWidth="80" text="ADDED" />
+                                <TableColumn fx:id="colItemCode" prefWidth="150" text="CODE" />
+                                <TableColumn fx:id="colItemComment" prefWidth="150" text="COMMENT" />
+                            </columns>
+                        </TableView>
                     </center>
                 </BorderPane>
 

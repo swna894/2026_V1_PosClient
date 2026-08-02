@@ -1,10 +1,10 @@
-package com.swna.javafx.admin.shop.service;
+package com.swna.javafx.admin.shop.api;
 
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
 import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.common.api.SimpleApiClient;
+import com.swna.javafx.common.api.TypeReferences;
 import com.swna.javafx.common.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -14,16 +14,12 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ShopService {
+public class ShopApiClient {
 
     private final SimpleApiClient webClientCommon;
     
-    // API Endpoint 상수 직접 정의
+    // API Endpoint 상수
     private static final String API_SHOP_FIRST = "/shops/first";
-    
-    // ParameterizedTypeReference 상수로 정의 (재사용)
-    private static final ParameterizedTypeReference<ApiResponse<Shop>> SHOP_RESPONSE_TYPE = 
-        new ParameterizedTypeReference<ApiResponse<Shop>>() {};
 
     /**
      * 서버에서 매장 정보를 가져와 Mono<ApiResponse<Shop>>으로 반환
@@ -31,7 +27,7 @@ public class ShopService {
     public Mono<ApiResponse<Shop>> fetchShopInfo() {
         log.debug("[ShopService] Fetching shop info from: {}", API_SHOP_FIRST);
         
-        return webClientCommon.get(API_SHOP_FIRST, SHOP_RESPONSE_TYPE)
+        return webClientCommon.get(API_SHOP_FIRST, TypeReferences.single(Shop.class))
             .doOnError(e -> log.error("API call failed: {}", e.getMessage()))
             .onErrorResume(e -> Mono.just(ApiResponse.error(
                     ApiResponse.ERROR_CODE_NETWORK_ERROR, 
@@ -44,14 +40,20 @@ public class ShopService {
      */
     public Mono<Shop> fetchShop() {
         return fetchShopInfo()
-            .flatMap(response -> {
-                if (response.isSuccess() && response.hasData()) {
-                    log.debug("[ShopService] Shop fetched: {}", response.data());
-                    return Mono.just(response.data());
-                } else {
-                    log.warn("[ShopService] Failed to fetch shop: {}", response.message());
-                    return Mono.empty();
-                }
-            });
+            .flatMap(this::unwrapSingleResponse);
+    }
+
+    /**
+     * 공통 ApiResponse 단일 객체 언래핑 헬퍼 메서드
+     */
+    private <T> Mono<T> unwrapSingleResponse(ApiResponse<T> response) {
+        if (response != null && response.isSuccess() && response.hasData()) {
+            log.debug("[ShopService] Shop fetched: {}", response.data());
+            return Mono.just(response.data());
+        } else {
+            String message = (response != null) ? response.message() : "Null response received";
+            log.warn("[ShopService] Failed to fetch shop: {}", message);
+            return Mono.empty();
+        }
     }
 }

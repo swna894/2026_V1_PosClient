@@ -3,11 +3,13 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.newvista.unpacking.ReadExcelController"
+   fx:controller="com.swna.javafx.admin.unpacking.dialog.ReadExcelController"
    prefWidth="800.0" prefHeight="500.0"
-   styleClass="modal-dialog-content">
+   stylesheets="@../../styles/app.css">
    <padding>
       <Insets top="10" right="10" bottom="10" left="10" />
    </padding>
@@ -16,18 +18,39 @@
       <VBox spacing="8" fillWidth="true">
          <!-- Top Action Toolbar Area -->
          <ToolBar fx:id="toolBarTop">
-            <DatePicker fx:id="datePicker" styleClass="picker" />
+            <DatePicker fx:id="datePicker" prefWidth="130" styleClass="picker" />
             <ComboBox fx:id="comboBoxSupplier" prefWidth="250.0" promptText="Select Supplier" />
-            <Pane HBox.hgrow="ALWAYS" /> <!-- Spacer -->
             <CheckBox fx:id="checkBoxSupplier" text="CHECK SUPPLIER" />
-            <Button fx:id="buttonUpload" text="_Upload" styleClass="long_button" />
-            <Button fx:id="buttonReload" text="_Reload" styleClass="long_button" />
-            <Button fx:id="buttonBackColor" styleClass="button-small" />
+            <Region maxWidth="1.7976931348623157E308" prefHeight="0.0"
+               HBox.hgrow="ALWAYS" />
+            <Button fx:id="buttonReadExcel" onAction="#handleReadExcel" prefWidth="100" text="_Read">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true"
+                     preserveRatio="true">
+                     <Image url="@../../images/24_excel.png" />
+                  </ImageView>
+               </graphic>
+            </Button>
+            <Button fx:id="buttonReload" onAction="#handleReload" prefWidth="100" text="Reload">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true"
+                     preserveRatio="true">
+                     <Image url="@../../images/reload_24px.png" />
+                  </ImageView>
+               </graphic>
+            </Button>
          </ToolBar>
 
          <!-- Path & Sheet Selection Area -->
          <HBox spacing="8" alignment="CENTER_LEFT">
-            <Button fx:id="buttonPath" styleClass="button-small" text="Select excel" />
+            <Button fx:id="buttonPath" onAction="#handleSelectFilePath">
+               <graphic>
+                  <ImageView fitHeight="20" fitWidth="20" pickOnBounds="true"
+                     preserveRatio="true">
+                     <Image url="@../../images/path_24px.png" />
+                  </ImageView>
+               </graphic>
+            </Button>
             <TextField fx:id="textFieldFilePath" HBox.hgrow="ALWAYS" minHeight="30.0" />
             <ComboBox fx:id="comboBoxSheet" prefWidth="150.0" promptText="Sheet" />
          </HBox>

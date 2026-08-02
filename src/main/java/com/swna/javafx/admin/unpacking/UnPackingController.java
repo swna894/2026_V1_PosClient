@@ -2,22 +2,20 @@ package com.swna.javafx.admin.unpacking;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.supplier.domain.Supplier;
-import com.swna.javafx.admin.unpacking.model.Inspection;
-import com.swna.javafx.admin.unpacking.model.InspectionItem;
+import com.swna.javafx.admin.unpacking.dialog.ReadExcelController;
+import com.swna.javafx.admin.unpacking.model.Unpack;
+import com.swna.javafx.admin.unpacking.model.UnpackItem;
+import com.swna.javafx.common.navigation.NavigationService;
+import com.swna.javafx.common.ui.table.TableColumnUtil;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -27,186 +25,190 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
-import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
-import net.rgielen.fxweaver.core.FxWeaver;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
 
-/**
- * Pure View, now backed by Unpacking.fxml instead of hand-built Nodes.
- * Replaced top HBox containers with ToolBar controls for better layout management.
- */
+@Slf4j
 @Component
 @FxmlView("/view/admin/unpacking-view.fxml")
+@RequiredArgsConstructor
 public class UnPackingController {
 
-	//private final UnpackingViewModel viewModel;
-	//@Autowired private ReadExcelController readExcelController;
-	//@Autowired private ColumnUtil columnUtil;
-	//@Autowired private FxWeaver fxWeaver;
+    private final NavigationService navigationService;
+    private final UnpackingViewModel viewModel;
 
-	private static final String DARK_STYLESHEET = "/styles/black_mode.css";
+    @FXML private BorderPane borderPane;
+    @FXML private ToolBar mainToolBar;
+    @FXML private BorderPane leftPane;
+    @FXML private BorderPane rightPane;
+    @FXML private SplitPane splitPane;
 
-	@FXML private BorderPane borderPane;
-	@FXML private ToolBar mainToolBar; // Replaced HBox with ToolBar
-	@FXML private BorderPane leftPane;
-	@FXML private BorderPane rightPane;
-	@FXML private SplitPane splitPane;
+    @FXML public Button buttonReload;
+    @FXML private Button buttonExcelRead;
+    @FXML private Button buttonAddStock;
+    @FXML private Button buttonEPrice;
+    @FXML private Button buttonDelete;
 
-	@FXML public Button buttonReload;
-	@FXML private Button buttonBackColor;
-	@FXML private Button buttonExcelRead;
-	@FXML private Button buttonAddStock;
-	@FXML private Button buttonEPrice;
-	@FXML private Button buttonDelete;
+    @FXML private TextField textFieldSearch;
+    @FXML private TextField textFieldPriceMultiplier;
+    @FXML private DatePicker datePickerStart;
+    @FXML private DatePicker datePickerEnd;
+    @FXML private Label labelUnpacksSummary;
+    @FXML private Label labelItemsSummary;
+    @FXML private ComboBox<Supplier> comboBoxSupplier;
+    @FXML private ComboBox<String> comboBoxConfirmFilter;
+    @FXML private TableView<Unpack> tableViewUnpacks;
+    @FXML private TableView<UnpackItem> tableViewItems;
 
-	@FXML private TextField textFieldSearch;
-	@FXML private TextField textFieldPriceMultiplier;
-	@FXML private DatePicker datePickerStart;
-	@FXML private DatePicker datePickerEnd;
-	@FXML private Label labelInspectionSummary;
-	@FXML private Label labelProductSummary;
-	@FXML private ComboBox<Supplier> comboBoxSupplier;
-	@FXML private ComboBox<String> comboBoxConfirmFilter;
-	@FXML private TableView<Inspection> tableViewInspections;
-	@FXML private TableView<InspectionItem> tableViewItems;
+    @FXML private TableColumn<Unpack, Double> colAmount;
+    @FXML private TableColumn<Unpack, String> colComment;
+    @FXML private TableColumn<Unpack, String> colInvoice;
+    @FXML private TableColumn<Unpack, String> colNo;
+    @FXML private TableColumn<Unpack, Boolean> colSelected;
 
-	// ---------------- public API kept identical for existing callers ----------------
+    @FXML private TableColumn<UnpackItem, String> colItemNo;
+    @FXML private TableColumn<UnpackItem, Boolean> colItemConfirm;
+    @FXML private TableColumn<UnpackItem, String> colItemBarcode;
+    @FXML private TableColumn<UnpackItem, String> colItemDescription;
+    @FXML private TableColumn<UnpackItem, String> colItemCategory;
+    @FXML private TableColumn<UnpackItem, Double> colItemOldPriceIn;
+    @FXML private TableColumn<UnpackItem, Double> colItemPriceIn;
+    @FXML private TableColumn<UnpackItem, Number> colItemQty;
+    @FXML private TableColumn<UnpackItem, Number> colItemMinStock;
+    @FXML private TableColumn<UnpackItem, Double> colItemPriceOutEstimated;
+    @FXML private TableColumn<UnpackItem, Double> colItemPriceOut;
+    @FXML private TableColumn<UnpackItem, Boolean> colItemIsSaved;
+    @FXML private TableColumn<UnpackItem, String> colItemCode;
+    @FXML private TableColumn<UnpackItem, String> colItemComment;
 
-	// public Stage open() {
-	// }
+    // ---------------- Button Event Handlers ----------------
 
-	public ObservableList<Supplier> getSuppliers() {
-		//return viewModel.getSuppliers();
-		return FXCollections.observableArrayList();
-	}
+    @FXML
+    private void handleExcelRead(ActionEvent event) {
+        navigationService.openModalWindow(ReadExcelController.class, "Read Unpacking Excel");
+    }
 
-	public void updateTableViewInspection(Inspection inspection) {
-		//viewModel.addInspection(inspection);
-	}
+    @FXML
+    private void handleReload(ActionEvent event) {
+        log.info("[Action] Reload button clicked");
+        viewModel.reload();
+    }
 
-	public void updateTableViewInspection(List<Inspection> inspections) {
-		//viewModel.reload();
-	}
+    @FXML
+    private void handleDelete(ActionEvent event) {
+        log.info("[Action] Delete button clicked");
+        viewModel.deleteSelectedInspections();
+    }
 
-	// ---------------- FXML callback ----------------
+    @FXML
+    private void handleEPrice(ActionEvent event) {
+        log.info("[Action] E-Price button clicked");
+        viewModel.applyEstimatedPriceMultiplier(textFieldPriceMultiplier.getText(), tableViewItems.getItems());
+    }
 
-	@FXML
-	private void initialize() {
-		wireButtons();
-		wireControls();
-		configureInspectionsTable();
-		configureItemsTable();
-	}
+    @FXML
+    private void handleAddStock(ActionEvent event) {
+        log.info("[Action] Add Stock button clicked");
+        viewModel.addStockForConfirmedItems(tableViewItems.getItems());
+    }
 
-	private void wireButtons() {
+    // ---------------- Public API ----------------
 
-		// buttonReload.setOnAction(e -> viewModel.reload());
-		// //buttonExcelRead.setOnAction(e -> readExcelController.open());
-		// buttonDelete.setOnAction(e -> viewModel.deleteSelectedInspections());
-		// buttonAddStock.setOnAction(e -> viewModel.addStockForConfirmedItems(tableViewItems.getItems()));
-		// buttonEPrice.setOnAction(e -> viewModel.applyEstimatedPriceMultiplier(textFieldPriceMultiplier.getText(), tableViewItems.getItems()));
-		// buttonBackColor.setOnAction(e -> {
-		// 	viewModel.darkThemeProperty().set(!viewModel.darkThemeProperty().get());
-		// });
-	}
+    public ObservableList<Supplier> getSuppliers() {
+        return viewModel.getSuppliers();
+    }
 
-	private void wireControls() {
-		// datePickerStart.setValue(viewModel.startDateProperty().get());
-		// datePickerEnd.setValue(viewModel.endDateProperty().get());
-		// datePickerStart.valueProperty().bindBidirectional(viewModel.startDateProperty());
-		// datePickerEnd.valueProperty().bindBidirectional(viewModel.endDateProperty());
-		// datePickerStart.setOnAction(e -> viewModel.reload());
-		// datePickerEnd.setOnAction(e -> viewModel.reload());
+    public void updateTableViewInspection(Unpack unpack) {
+        viewModel.addInspection(unpack);
+    }
 
-		// labelInspectionSummary.textProperty().bind(viewModel.inspectionSummaryProperty());
-		// labelProductSummary.textProperty().bind(viewModel.productSummaryProperty());
+    public void updateTableViewInspection(List<Unpack> inspections) {
+        viewModel.reload();
+    }
 
-		// comboBoxSupplier.setItems(viewModel.getSuppliers());
-		// comboBoxSupplier.setButtonCell(supplierListCell());
-		// comboBoxSupplier.setCellFactory(lv -> supplierListCell());
-		// comboBoxSupplier.getSelectionModel().selectedItemProperty()
-		// 		.addListener((obs, oldValue, newValue) -> viewModel.filterBySupplier(newValue));
+    // ---------------- FXML Initializer ----------------
 
-		// comboBoxConfirmFilter.setItems(viewModel.getConfirmFilterOptions());
-		// comboBoxConfirmFilter.getSelectionModel().selectFirst();
-		// comboBoxConfirmFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
-		// 	List<InspectionItem> filtered = viewModel.filterByConfirmStatus(newValue);
-		// 	tableViewItems.setItems(FXCollections.observableArrayList(filtered));
-		// });
-	}
+    @FXML
+    private void initialize() {
+        viewModel.initialize();
+        wireControls();
+        configureUnpackTable();
+        configureItemsTable();
+    }
 
-	private void onBarcodeScanned(String scanned) {
-		// textFieldSearch.setText(scanned);
-		// InspectionItem match = viewModel.findByBarcodeOrCode(scanned);
-		// if (match != null) {
-		// 	tableViewItems.getSelectionModel().selectFirst();
-		// }
-	}
+    private void wireControls() {
+        datePickerStart.setValue(viewModel.startDateProperty().get());
+        datePickerEnd.setValue(viewModel.endDateProperty().get());
+        datePickerStart.valueProperty().bindBidirectional(viewModel.startDateProperty());
+        datePickerEnd.valueProperty().bindBidirectional(viewModel.endDateProperty());
+        datePickerStart.setOnAction(e -> viewModel.reload());
+        datePickerEnd.setOnAction(e -> viewModel.reload());
 
-	private ListCell<Supplier> supplierListCell() {
-		return new ListCell<>() {
-			@Override
-			protected void updateItem(Supplier item, boolean empty) {
-				super.updateItem(item, empty);
-				setText(empty || item == null ? "" : item.getCompany());
-			}
-		};
-	}
+        labelUnpacksSummary.textProperty().bind(viewModel.inspectionSummaryProperty());
+        labelItemsSummary.textProperty().bind(viewModel.productSummaryProperty());
 
-	// ---------------- Tables Config ----------------
+        comboBoxSupplier.setItems(viewModel.getSuppliers());
+        comboBoxSupplier.setButtonCell(supplierListCell());
+        comboBoxSupplier.setCellFactory(lv -> supplierListCell());
+        comboBoxSupplier.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldValue, newValue) -> viewModel.filterBySupplier(newValue));
 
-	private void configureInspectionsTable() {
-		tableViewInspections.setTableMenuButtonVisible(true);
-		// tableViewInspections.setItems(viewModel.getInspections());
-		// tableViewInspections.getSelectionModel().selectedItemProperty()
-		// 		.addListener((obs, oldValue, newValue) -> viewModel.selectInspection(newValue));
+        comboBoxConfirmFilter.setItems(viewModel.getConfirmFilterOptions());
+        comboBoxConfirmFilter.getSelectionModel().selectFirst();
+        comboBoxConfirmFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
+            List<UnpackItem> filtered = viewModel.filterByConfirmStatus(newValue);
+            tableViewItems.setItems(FXCollections.observableArrayList(filtered));
+        });
+    }
 
-		// columnUtil.columnNumner(tableViewInspections, 50);
-		// columnUtil.columnCheckBoxHeader(tableViewInspections, Inspection::selectedProperty, headerCheckBox());
-		// columnUtil.column(tableViewInspections, INVOICE, Inspection::invoiceProperty, getDefault(), false, true, LEFT, 250);
-		// columnUtil.column(tableViewInspections, AMOUNT, Inspection::amountProperty, getCurrency(), false, true, RIGHT, 90);
-		// columnUtil.column(tableViewInspections, COMMENT, Inspection::commentProperty, getDefault(), false, true, CENTER, 200);
-	}
+    private ListCell<Supplier> supplierListCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(Supplier item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getCompany());
+            }
+        };
+    }
 
-	private CheckBox headerCheckBox() {
-		CheckBox checkBox = new CheckBox();
-		checkBox.setOnAction(e -> tableViewInspections.getItems().forEach(item -> item.setSelected(checkBox.isSelected())));
-		return checkBox;
-	}
+    // ---------------- Table Configurations ----------------
 
-	private void configureItemsTable() {
-		// FilteredList<InspectionItem> filtered = new FilteredList<>(viewModel.getInspectItems(), item -> true);
-		// textFieldSearch.textProperty().addListener((obs, oldValue, newValue) ->
-		// 		filtered.setPredicate(item -> !textFieldSearch.isEditable() || viewModel.matchesSearch(item, newValue)));
-		// SortedList<InspectionItem> sorted = new SortedList<>(filtered);
-		// sorted.comparatorProperty().bind(tableViewItems.comparatorProperty());
-		// tableViewItems.setItems(sorted);
+    private void configureUnpackTable() {
+        tableViewUnpacks.setTableMenuButtonVisible(true);
+        tableViewUnpacks.setItems(viewModel.getUnpacks());
+        tableViewUnpacks.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldValue, newValue) -> viewModel.selectInspection(newValue));
 
-		// columnUtil.columnNumner(tableViewItems, 50);
-		// columnUtil.columnCheckBox(tableViewItems, "CHECK", InspectionItem::confirmProperty, 80);
-		// columnUtil.column(tableViewItems, BARCODE, InspectionItem::barcodeProperty, getDefault(), true, true, CENTER, 150);
-		// columnUtil.column(tableViewItems, DESCRIPTION, InspectionItem::descriptionProperty, getDefault(), true, true, LEFT, 200);
-		// TableColumn<InspectionItem, String> columnCategory =
-		// 		columnUtil.column(tableViewItems, CATEGORY, InspectionItem::categoryProperty, viewModel.getCategories(), LEFT, 150);
-		// columnUtil.column(tableViewItems, OLD_PRICE_IN, InspectionItem::oldPriceinProperty, getCurrency(), true, true, RIGHT, 90);
-		// columnUtil.column(tableViewItems, PRICE_IN, InspectionItem::priceinProperty, getDecial(), true, true, RIGHT, 90);
-		// columnUtil.column(tableViewItems, QTY, InspectionItem::qtyProperty, getNumber(), true, true, RIGHT, 90);
-		// columnUtil.column(tableViewItems, "MIN STOCK", InspectionItem::minStockProperty, getNumber(), true, true, RIGHT, 90);
-		// columnUtil.column(tableViewItems, EP, InspectionItem::priceoutEstimatedProperty, getDecial(), true, true, RIGHT, 90);
-		// columnUtil.column(tableViewItems, RP, InspectionItem::priceoutProperty, getDecial(), true, true, RIGHT, 90);
-		// columnUtil.columnCheckBox(tableViewItems, "ADDED", InspectionItem::isSavedProperty, 80);
-		// columnUtil.column(tableViewItems, CODE, InspectionItem::codeProperty, getDefault(), true, true, LEFT, 150);
-		// TableColumn<InspectionItem, String> columnSupplier =
-		// 		columnUtil.column(tableViewItems, SUPPLIER, InspectionItem::supplierProperty, viewModel.getDisplaySupplierNames(), LEFT, 250);
-		// columnUtil.column(tableViewItems, COMMENT, InspectionItem::commentProperty, getDefault(), true, true, LEFT, 150);
+        TableColumnUtil.createNumberColumn(tableViewUnpacks, colNo, 50);
+        TableColumnUtil.createCheckBoxHeaderColumn(tableViewUnpacks, colSelected, Unpack::selectedProperty, "", 50);
 
-		// columnSupplier.setOnEditCommit(event -> {
-		// 	InspectionItem item = event.getRowValue();
-		// 	viewModel.updateSupplierOnItem(item, event.getNewValue(), event.getOldValue());
-		// });
-		// columnCategory.setOnEditCommit(event -> event.getRowValue().setCategory(event.getNewValue()));
-	}
+        TableColumnUtil.makeStringColumn(colInvoice, Unpack::invoiceProperty, Unpack::setInvoice, false, true, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeCurrencyColumn(colAmount, Unpack::amountProperty, false, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeStringColumn(colComment, Unpack::commentProperty, Unpack::setComment, false, true, TableColumnUtil.CENTER, null);
+    }
+
+    private void configureItemsTable() {
+        tableViewItems.setTableMenuButtonVisible(true);
+        tableViewItems.setItems(viewModel.getUnpackItems());
+
+        TableColumnUtil.createNumberColumn(tableViewItems, colItemNo, 50);
+        TableColumnUtil.createCheckBoxHeaderColumn(tableViewItems, colItemConfirm, UnpackItem::confirmProperty, "", 60);
+        TableColumnUtil.createCheckBoxTextColumn(tableViewItems, colItemIsSaved, UnpackItem::isSavedProperty, "ADDED", 70, true);
+
+        TableColumnUtil.makeStringColumn(colItemBarcode, UnpackItem::barcodeProperty, UnpackItem::setBarcode, true, true, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeStringColumn(colItemDescription, UnpackItem::descriptionProperty, UnpackItem::setDescription, true, true, TableColumnUtil.LEFT, null);
+        TableColumnUtil.makeStringColumn(colItemCode, UnpackItem::codeProperty, UnpackItem::setCode, true, true, TableColumnUtil.LEFT, null);
+        TableColumnUtil.makeStringColumn(colItemComment, UnpackItem::commentProperty, UnpackItem::setComment, true, true, TableColumnUtil.LEFT, null);
+
+        TableColumnUtil.makeCurrencyColumn(colItemOldPriceIn, UnpackItem::oldPriceinProperty, false, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(colItemPriceIn, UnpackItem::priceinProperty, true, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(colItemPriceOutEstimated, UnpackItem::priceoutEstimatedProperty, true, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeCurrencyColumn(colItemPriceOut, UnpackItem::priceoutProperty, true, true, TableColumnUtil.RIGHT, null);
+
+        if (colItemCategory != null) {
+            colItemCategory.setOnEditCommit(event -> event.getRowValue().setCategory(event.getNewValue()));
+        }
+    }
 }

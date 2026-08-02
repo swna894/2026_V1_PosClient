@@ -11,6 +11,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxWeaver;
@@ -36,21 +37,38 @@ public class MenuController {
      * Center 영역의 화면(Node)을 다른 Controller의 View로 교체
      */
     public <T> void setCenterView(Class<T> controllerClass) {
+        setCenterView(controllerClass, null);
+    }
+
+    /**
+     * Center 영역의 화면 교체 및 Window Title 변경
+     */
+    public <T> void setCenterView(Class<T> controllerClass, String title) {
         try {
             Parent view = fxWeaver.loadView(controllerClass);
             mainBorderPane.setCenter(view);
+
+            if (title != null && !title.isBlank()) {
+                updateStageTitle(title);
+            }
         } catch (Exception e) {
             log.error("Failed to load view for center area: {}", controllerClass.getSimpleName(), e);
-      
+        }
+    }
+
+    /**
+     * 현재 Scene에 매핑된 Stage의 Title 변경 헬퍼 메서드
+     */
+    private void updateStageTitle(String title) {
+        if (mainBorderPane.getScene() != null && mainBorderPane.getScene().getWindow() instanceof Stage stage) {
+            stage.setTitle(title);
         }
     }
     // ==========================================
     // Sales & Reports Handlers
     // ==========================================
     @FXML public void handleDailySales(ActionEvent event) { viewModel.openDailySales(); }
-    @FXML public void handleSalesHistory(ActionEvent event) { 
-        setCenterView(SalesController.class); 
-    } 
+    @FXML public void handleSalesHistory(ActionEvent event) { setCenterView(SalesController.class, "Sales History"); } 
     @FXML public void handleProductSalesRanking(ActionEvent event) { viewModel.openProductSalesRanking(); }
     @FXML public void handleSalesStatistics(ActionEvent event) { viewModel.openSalesStatistics(); }
     @FXML public void handleAnnualReport(ActionEvent event) { viewModel.openAnnualReport(); }
@@ -63,9 +81,9 @@ public class MenuController {
     @FXML public void handleInventoryStatus(ActionEvent event) { viewModel.openInventoryStatus(); }
     @FXML public void handleInventoryAdjustment(ActionEvent event) { viewModel.openInventoryAdjustment(); }
     @FXML public void handlePurchaseOrdering(ActionEvent event) { viewModel.openPurchaseOrdering(); }
-    @FXML public void handleGoodsUnpacking(ActionEvent event) { setCenterView(UnPackingController.class); }
+    @FXML public void handleGoodsUnpacking(ActionEvent event) { setCenterView(UnPackingController.class, "Goods Unpacking"); }
     @FXML public void handleStockBySupplier(ActionEvent event) { viewModel.openStockBySupplier(); }
-    @FXML public void handleSuppliersManagement(ActionEvent event) { setCenterView(SupplierController.class); }
+    @FXML public void handleSuppliersManagement(ActionEvent event) { setCenterView(SupplierController.class, "Suppliers Management"); }
 
     // ==========================================
     // Management Handlers
@@ -78,7 +96,7 @@ public class MenuController {
     // ==========================================
     // Settings Handlers
     // ==========================================
-    @FXML public void handleGenerateBarcode(ActionEvent event) { setCenterView(LabelController.class); }
+    @FXML public void handleGenerateBarcode(ActionEvent event) { setCenterView(LabelController.class, "Generate Barcode"); }
     @FXML public void handlePrinterSettings(ActionEvent event) { viewModel.openPrinterSettings(); }
     @FXML public void handleUiThemeSettings(ActionEvent event) { viewModel.openUiThemeSettings(); }
     @FXML public void handleVaultConnection(ActionEvent event) { viewModel.openVaultConnection(); }

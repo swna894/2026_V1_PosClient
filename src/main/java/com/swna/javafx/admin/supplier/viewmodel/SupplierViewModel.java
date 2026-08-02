@@ -24,18 +24,19 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Getter
 @Component
 public class SupplierViewModel {
 
     private final SupplierService supplierService;
 
     // ===== 원본 데이터 =====
-    private final ObservableList<Supplier> allSuppliers = FXCollections.observableArrayList();
+    @Getter private final ObservableList<Supplier> allSuppliers = FXCollections.observableArrayList();
     
     // ===== 필터링된 데이터 (테이블에 표시) =====
     private final FilteredList<Supplier> filteredSuppliers = new FilteredList<>(allSuppliers, supplier -> true);
     
-    @Getter
+    @Getter 
     private final ObservableList<Supplier> suppliers = FXCollections.unmodifiableObservableList(filteredSuppliers);
 
     // ===== Property =====
@@ -347,5 +348,29 @@ public class SupplierViewModel {
                             log.error("Failed to add supplier", error);
                         })
                 );
+    }
+
+    // =================================================
+    // COMBOBOX / OTHER HELPERS
+    // =================================================
+
+    /**
+     * 모든 Supplier의 Company 명칭 목록을 List<String> 형태로 반환합니다.
+     * null이거나 빈 값은 제외하며, 필요 시 알파벳/가나다 순으로 정렬합니다.
+     */
+    public java.util.List<String> getCompanyNames() {
+        return allSuppliers.stream()
+                .map(Supplier::getCompany)
+                .filter(company -> company != null && !company.trim().isEmpty())
+                .distinct()
+                .sorted()
+                .toList(); // Java 16+ (이하 버전인 경우 .collect(Collectors.toList()) 사용)
+    }
+
+    /**
+     * JavaFX ComboBox 바인딩에 즉시 활용할 수 있도록 ObservableList<String> 형태로 반환합니다.
+     */
+    public ObservableList<String> getCompanyNamesObservable() {
+        return FXCollections.observableArrayList(getCompanyNames());
     }
 }

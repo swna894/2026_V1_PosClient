@@ -2,10 +2,6 @@ package com.swna.javafx.admin;
 
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.admin.supplier.SupplierController;
-import com.swna.javafx.admin.unpacking.UnPackingController;
-import com.swna.javafx.common.navigation.NavigationService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class MenuViewModel {
-
-    private final NavigationService navigationService;
     
 
     // Sales & Reports

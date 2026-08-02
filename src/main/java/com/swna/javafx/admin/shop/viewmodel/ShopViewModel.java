@@ -3,7 +3,7 @@ package com.swna.javafx.admin.shop.viewmodel;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.shop.Shop;
-import com.swna.javafx.admin.shop.service.ShopService;
+import com.swna.javafx.admin.shop.api.ShopApiClient;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -12,14 +12,14 @@ import reactor.core.publisher.Mono;
 @Component
 public class ShopViewModel {
 
-    private final ShopService shopService;
+    private final ShopApiClient shopService;
 
     // 클라이언트 측 메모리 캐시
     private Shop cachedShop;
     private boolean isLoading = false;
     private Mono<Shop> loadingMono = null;
 
-    public ShopViewModel(ShopService shopService) {
+    public ShopViewModel(ShopApiClient shopService) {
         this.shopService = shopService;
     }
 

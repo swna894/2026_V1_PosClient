@@ -13,6 +13,7 @@ import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,7 @@ public class NavigationService {
                 (obs, oldVal, newVal) ->
                         Platform.runLater(() -> {
                             if (newVal == AuthState.AUTHENTICATED) {
-                                openStage(PosViewController.class);
+                                openWindow(PosViewController.class);
                             } else {
                                 navigate(LoginViewController.class);
                             }
@@ -80,7 +81,7 @@ public class NavigationService {
         }
     }
 
-    public <T> void openStage(Class<T> controllerClass) {
+    public <T> void openWindow(Class<T> controllerClass) {
         try {
             stage.close();
 
@@ -99,6 +100,50 @@ public class NavigationService {
         } catch (Exception e) {
             log.error("POS Stage open error", e);
         }
+    }
+
+    // =========================
+    // 모달 창 열기 (Title 지정)
+    // =========================
+    public <T> void openModalWindow(Class<T> controllerClass, String title) {
+        try {
+            Stage newStage = new Stage();
+            
+            // 1. 창 타이틀 설정
+            newStage.setTitle(title);
+            
+            // 2. 모달 설정 (앱 전체에 대한 모달)
+            newStage.initModality(Modality.APPLICATION_MODAL);
+            
+            // 3. 부모 Stage 지정 (서브 창이 켜져 있으면 서브 창을, 아니면 메인 stage를 Owner로 지정)
+            Stage parentStage = (adminWindowStage != null && adminWindowStage.isShowing()) 
+                                ? adminWindowStage 
+                                : this.stage;
+
+            if (parentStage != null) {
+                newStage.initOwner(parentStage);
+            }
+
+            newStage.getIcons().add(new Image("/images/pos_system.png"));
+
+            Parent root = fxWeaver.loadView(controllerClass);
+            
+            Scene scene = new Scene(root);
+            newStage.initStyle(StageStyle.DECORATED);
+            newStage.setScene(scene);
+        
+            // 4. showAndWait() 호출하여 대기
+            newStage.showAndWait();
+
+        } catch (Exception e) {
+            log.error("POS Modal Stage open error", e);
+        }
+    }
+
+    // 오버로드: title 생략 시 컨트롤러 클래스명 기반으로 자동 설정
+    public <T> void openModalWindow(Class<T> controllerClass) {
+        String defaultTitle = controllerClass.getSimpleName().replace("Controller", "");
+        openModalWindow(controllerClass, defaultTitle);
     }
     
     // =========================

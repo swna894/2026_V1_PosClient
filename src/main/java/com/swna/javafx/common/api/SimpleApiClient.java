@@ -71,12 +71,17 @@ public class SimpleApiClient {
      * DELETE
      * ========================================================= */
 
-    public <T> Mono<T> delete(String url, @NonNull Class<T> responseClass) {
-        return sendRequest(HttpMethod.DELETE, url, null, responseClass);
+    public <T> Mono<T> delete(String url, Object body, @NonNull Class<T> responseClass) {
+        return sendRequest(HttpMethod.DELETE, url, body, responseClass);
     }
 
     public <T> Mono<T> delete(String url, @NonNull ParameterizedTypeReference<T> responseTypeRef) {
         return sendRequest(HttpMethod.DELETE, url, null, responseTypeRef);
+    }
+
+    // 🔥 [추가] Request Body와 ParameterizedTypeReference를 함께 처리하는 오버로딩 메서드
+    public <T> Mono<T> delete(String url, @Nullable Object body, @NonNull ParameterizedTypeReference<T> responseTypeRef) {
+        return sendRequest(HttpMethod.DELETE, url, body, responseTypeRef);
     }
 
     /* =========================================================

@@ -541,7 +541,47 @@ public class TableColumnUtil {
     }
 
     // ========== Public API - CheckBox Header Column ==========
-    
+    /**
+     * Header에는 일반 텍스트(Title)만 표시하고, 셀에는 CheckBox를 표시하는 컬럼을 생성/설정합니다.
+     *
+     * @param <T>       테이블 뷰의 모델 타입
+     * @param tableView 컬럼을 추가할 TableView
+     * @param column    설정할 TableColumn (기존 생성된 객체)
+     * @param property  체크박스 상태에 매핑될 BooleanProperty를 가져오는 함수
+     * @param title     컬럼 헤더에 표시될 제목 (nullable)
+     * @param width     컬럼의 고정 너비 (0일 경우 기본값 50 사용)
+     * @param editable  체크박스 클릭 가능 여부
+     * @return 설정이 완료된 TableColumn
+     */
+    public static <T> TableColumn<T, Boolean> createCheckBoxTextColumn(
+            TableView<T> tableView,
+            TableColumn<T, Boolean> column,
+            Function<T, BooleanProperty> property,
+            String title,
+            int width,
+            boolean editable
+    ) {
+        if (title != null) {
+            column.setText(title);
+        }
+        column.setStyle(STYLE_TRANSPARENT + STYLE_CENTER);
+        column.setSortable(false);
+        column.setPrefWidth(width > 0 ? width : 50);
+
+        // Value Factory 설정
+        column.setCellValueFactory(cellData -> property.apply(cellData.getValue()));
+
+        // Cell Factory 설정 (기본 CheckBoxTableCell 사용)
+        column.setCellFactory(CheckBoxTableCell.forTableColumn(column));
+        column.setEditable(editable);
+
+        // TableView에 해당 컬럼이 없다면 추가
+        if (!tableView.getColumns().contains(column)) {
+            tableView.getColumns().add(column);
+        }
+
+        return column;
+    }
     /**
      * 헤더에 전체 선택/해제용 체크박스가 있는 컬럼을 생성합니다.
      * 헤더의 체크박스를 통해 테이블의 모든 행을 일괄 선택하거나 해제할 수 있습니다.

@@ -596,6 +596,7 @@ public class ReceiptFormatter {
      * @param amount 포맷팅할 금액
      * @return 통화 형식의 문자열
      */
+    @SuppressWarnings("unused")
     private String formatCurrency(BigDecimal amount) {
         return amount != null ? CURRENCY_FORMATTER.format(amount) : ZERO_AMOUNT;
     }

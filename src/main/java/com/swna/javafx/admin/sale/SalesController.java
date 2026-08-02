@@ -215,7 +215,7 @@ private void setupButtonActions() {
     }
     
     private void handleBack() {
-        navigationService.openStage(PosViewController.class);
+        navigationService.openWindow(PosViewController.class);
     }
     
     private void handleExportExcel() {

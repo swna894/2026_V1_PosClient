@@ -1,124 +1,180 @@
 package com.swna.javafx.admin.unpacking.dialog;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.io.File;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.supplier.domain.Supplier;
+import com.swna.javafx.admin.supplier.viewmodel.SupplierViewModel;
 
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
-import net.rgielen.fxweaver.core.FxWeaver;
+import lombok.RequiredArgsConstructor;
 import net.rgielen.fxweaver.core.FxmlView;
-
 
 @Component
 @FxmlView("/view/admin/read-excel-view.fxml")
+@RequiredArgsConstructor
 public class ReadExcelController {
 
-    //private final ReadExcelViewModel viewModel;
+    private final ReadExcelViewModel viewModel;
+    private final SupplierViewModel supplierViewModel;
 
-    @FXML private Button buttonUpload;
+    @FXML private Button buttonReadExcel;
     @FXML private Button buttonReload;
-    @FXML private Button buttonBackColor;
     @FXML private Button buttonPath;
     @FXML private CheckBox checkBoxSupplier;
     @FXML private ComboBox<Supplier> comboBoxSupplier;
     @FXML private ComboBox<String> comboBoxSheet;
-    @FXML private Label labelInvoice;
     @FXML private DatePicker datePicker;
+    @FXML private Label labelInvoice;
     @FXML private ListView<String> listViewLog;
     @FXML private TextField textFieldFilePath;
 
     @FXML
     private void initialize() {
-        wireDataBindings();
+        // ViewModel 초기화 실행 (기본 경로 설정 등)
+        viewModel.initialize();
         configureControls();
-        wireEvents();
-    }
-
-    private void wireDataBindings() {
-        // textFieldFilePath.textProperty().bindBidirectional(viewModel.filePathProperty());
-        // datePicker.valueProperty().bindBidirectional(viewModel.dateProperty());
-        // labelInvoice.textProperty().bind(viewModel.invoiceLabelProperty());
-        // checkBoxSupplier.selectedProperty().bindBidirectional(viewModel.checkSupplierProperty());
-        
-        // comboBoxSupplier.valueProperty().bindBidirectional(viewModel.selectedSupplierProperty());
-        // comboBoxSheet.valueProperty().bindBidirectional(viewModel.selectedSheetProperty());
-
-        // comboBoxSheet.setItems(viewModel.getSheets());
-        // listViewLog.setItems(viewModel.getLogs());
+        wireDataBindings();
     }
 
     private void configureControls() {
+        // 1. Set default DatePicker value
+        datePicker.setValue(LocalDate.now(ZoneId.systemDefault()));
 
-        // Configure Supplier ComboBox Display Cell
-        //comboBoxSupplier.setItems(unPackingController.getSuppliers());
-        ListCell<Supplier> cellFactory = new ListCell<>() {
+        // 2. Load supplier data
+        supplierViewModel.load();
+        comboBoxSupplier.setItems(supplierViewModel.getAllSuppliers());
+
+        // 3. Configure Supplier ComboBox converter
+        StringConverter<Supplier> supplierConverter = new StringConverter<>() {
             @Override
-            protected void updateItem(Supplier item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? "" : item.getCompany());
+            public String toString(Supplier supplier) {
+                return (supplier != null && supplier.getCompany() != null) ? supplier.getCompany() : "";
+            }
+
+            @Override
+            public Supplier fromString(String string) {
+                if (string == null || string.isBlank()) return null;
+                return comboBoxSupplier.getItems().stream()
+                        .filter(s -> string.equals(s.getCompany()))
+                        .findFirst()
+                        .orElse(null);
             }
         };
-        comboBoxSupplier.setButtonCell(cellFactory);
+
+        comboBoxSupplier.setConverter(supplierConverter);
+        
+        // Configure CellFactory for dropdown list display
         comboBoxSupplier.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Supplier item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? "" : item.getCompany());
+                setText(empty || item == null ? "" : supplierConverter.toString(item));
             }
         });
     }
 
-    private void wireEvents() {
-        buttonPath.setOnAction(e -> {
-            // File Chooser Action
-            javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
-            //fileChooser.setInitialDirectory(new java.io.File(viewModel.getInitialDirectory()));
-           //java.io.File file = fileChooser.showOpenDialog(stage);
-            // if (file != null) {
-            //     viewModel.selectExcelFile(file.getAbsolutePath());
-            // }
-        });
+    private void wireDataBindings() {
+        // ViewModel - UI Property Bindings
+        textFieldFilePath.textProperty().bindBidirectional(viewModel.filePathProperty());
+        datePicker.valueProperty().bindBidirectional(viewModel.dateProperty());
+        labelInvoice.textProperty().bind(viewModel.invoiceLabelProperty());
+        checkBoxSupplier.selectedProperty().bindBidirectional(viewModel.checkSupplierProperty());
+        
+        comboBoxSupplier.valueProperty().bindBidirectional(viewModel.selectedSupplierProperty());
+        comboBoxSheet.valueProperty().bindBidirectional(viewModel.selectedSheetProperty());
 
-        // buttonUpload.setOnAction(e -> viewModel.uploadExcel(
-        //     () -> unPackingController.buttonReload.fire(),
-        //     errorMsg -> alertDialog.dialogString(errorMsg, stage)
-        // ));
-
-        buttonBackColor.setOnAction(e -> {
-            // viewModel.darkThemeProperty().set(!viewModel.darkThemeProperty().get());
-            // applyTheme();
-        });
+        // ObservableList Bindings
+        comboBoxSheet.setItems(viewModel.getSheets());
+        listViewLog.setItems(viewModel.getLogs());
     }
 
-    private void applyTheme() {
-       // boolean isDark = viewModel.darkThemeProperty().get();
-       // String darkCss = getClass().getResource(DARK_STYLESHEET).toExternalForm();
+    // =========================================================================
+    // FXML Action Handlers
+    // =========================================================================
 
-        // if (isDark && !scene.getStylesheets().contains(darkCss)) {
-        //     scene.getStylesheets().add(darkCss);
-        // } else if (!isDark) {
-        //     scene.getStylesheets().remove(darkCss);
-        // }
+    /**
+     * Action for [Select excel] button: onAction="#handleSelectFilePath"
+     */
+    @FXML
+    private void handleSelectFilePath() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Excel File");
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Excel Files (*.xlsx, *.xls)", "*.xlsx", "*.xls")
+        );
+        
+        String initialDir = viewModel.getInitialDirectory();
+        if (initialDir != null && new File(initialDir).exists()) {
+            fileChooser.setInitialDirectory(new File(initialDir));
+        }
 
-        // buttonBackColor.setGraphic(ButtonUtil.getImage(isDark ? WHITE_24 : BLACK_24));
-        //datePicker.setStyle(isDark ? datePickerBlack() : datePickerNormal());
+        Stage stage = (Stage) buttonPath.getScene().getWindow();
+        File selectedFile = fileChooser.showOpenDialog(stage);
+        
+        if (selectedFile != null) {
+            viewModel.selectExcelFile(selectedFile.getAbsolutePath());
+        }
     }
 
-    private String datePickerNormal() {
-        return "-fx-prompt-text-fill: derive(-fx-control-inner-background,-30%);" +
-               "-fx-background-color: #707070, linear-gradient(#fcfcfc, #f3f3f3), linear-gradient(#f2f2f2 0.0%, #ebebeb 49.0%, #dddddd 50.0%, #cfcfcf 100.0%);" +
-               "-fx-background-insets: 0.0,1.0,2.0; -fx-background-radius: 3.0,2.0,1.0; -fx-padding: 0.0 3.0 0.0 3.0; -fx-text-fill: black; -fx-font: 12px Arial; -fx-pref-width: 140.0px;";
+    /**
+     * Action for [_Read] button: onAction="#handleReadExcel"
+     */
+    @FXML
+    private void handleReadExcel() {
+        String path = viewModel.filePathProperty().get();
+        if (path == null || path.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Warning", "Please select an Excel file first.");
+            return;
+        }
+
+        buttonReadExcel.setDisable(true); // Prevent duplicate clicks
+
+        viewModel.readExcel(
+            () -> { // On success
+                buttonReadExcel.setDisable(false);
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Excel file processed successfully.");
+            },
+            errorMsg -> { // On failure / error
+                buttonReadExcel.setDisable(false);
+                showAlert(Alert.AlertType.ERROR, "Error", errorMsg);
+            }
+        );
     }
 
-    private String datePickerBlack() {
-        return "-fx-background-color: #414a4c; -fx-pref-width: 140.0px;";
+    /**
+     * Action for [Reload] button: onAction="#handleReload"
+     */
+    @FXML
+    private void handleReload() {
+        supplierViewModel.load();
+        viewModel.loadSheetNames();
+        viewModel.addLog(">> Reloaded Supplier list and Sheet list.");
+    }
+
+    /**
+     * Helper method to display alert dialogs
+     */
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

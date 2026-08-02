@@ -1,17 +1,20 @@
 package com.swna.javafx.admin.unpacking;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.supplier.domain.Supplier;
-import com.swna.javafx.admin.unpacking.model.Inspection;
-import com.swna.javafx.admin.unpacking.model.InspectionItem;
+import com.swna.javafx.admin.unpacking.api.UnpackApiClient;
+import com.swna.javafx.admin.unpacking.dto.UnpackDto;
+import com.swna.javafx.admin.unpacking.dto.UnpackItemDto;
+import com.swna.javafx.admin.unpacking.model.Unpack;
+import com.swna.javafx.admin.unpacking.model.UnpackItem;
 
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -22,281 +25,262 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class UnpackingViewModel {
 
-	// @Autowired private InspectionService inspectionService;
-	// @Autowired private SupplierService supplierService;
-	// @Autowired private PromotionController promotionController;
+    private final UnpackApiClient unpackApiClient;
 
-	// ---------------- State Properties ----------------
-	private final ObjectProperty<LocalDate> startDate = new SimpleObjectProperty<>(LocalDate.now().withDayOfMonth(1));
-	private final ObjectProperty<LocalDate> endDate = new SimpleObjectProperty<>(LocalDate.now());
-	private final StringProperty inspectionSummary = new SimpleStringProperty("  $00.00 | 0 ITEMS");
-	private final StringProperty productSummary = new SimpleStringProperty("  $00.00 | 0 ITEMS");
-	private final BooleanProperty darkTheme = new SimpleBooleanProperty(false);
+    // ---------------- State Properties ----------------
+    private final ObjectProperty<LocalDate> startDate = new SimpleObjectProperty<>(LocalDate.now().withDayOfMonth(1));
+    private final ObjectProperty<LocalDate> endDate = new SimpleObjectProperty<>(LocalDate.now());
+    private final StringProperty unpacksSummary = new SimpleStringProperty("  $0.00 | 0 ITEMS");
+    private final StringProperty itemsSummary = new SimpleStringProperty("  $0.00 | 0 ITEMS");
+    private final BooleanProperty darkTheme = new SimpleBooleanProperty(false);
 
-	private String currentFilterStatus = "ALL";
+    private String currentFilterStatus = "ALL";
 
-	// ---------------- Collections ----------------
-	private final ObservableList<Supplier> suppliers = FXCollections.observableArrayList();
-	private final ObservableList<String> categories = FXCollections.observableArrayList();
-	private final ObservableList<String> displaySupplierNames = FXCollections.observableArrayList();
-	private final ObservableList<String> confirmFilterOptions = FXCollections.observableArrayList("ALL", "Checked", "Unchecked", "Added", "Unadded");
-	
-	private final ObservableList<Inspection> inspections = FXCollections.observableArrayList();
-	private final ObservableList<InspectionItem> inspectItems = FXCollections.observableArrayList(item -> new Observable[] {
-		item.qtyProperty(), item.commentProperty(), item.confirmProperty(), item.priceoutProperty(),
-		// item.barcodeProperty(), item.priceoutProperty(), item.minOrderQtyProperty(), item.supplierProperty()
-	});
+    // ---------------- Collections ----------------
+    private final ObservableList<Supplier> suppliers = FXCollections.observableArrayList();
+    private final ObservableList<String> categories = FXCollections.observableArrayList();
+    private final ObservableList<String> displaySupplierNames = FXCollections.observableArrayList();
+    private final ObservableList<String> confirmFilterOptions = FXCollections.observableArrayList("ALL", "Checked", "Unchecked", "Added", "Unadded");
 
-	// ---------------- Initialization ----------------
-	public void initialize() {
-		initArrayListListener();
-		loadSuppliers();
-		loadCategories();
-		reload();
-	}
+    private final ObservableList<Unpack> unpacks = FXCollections.observableArrayList();
+    private final ObservableList<UnpackItem> unpackItems = FXCollections.observableArrayList(item -> new Observable[] {
+        item.qtyProperty(), item.commentProperty(), item.confirmProperty(), item.priceoutProperty(), item.priceinProperty()
+    });
 
-	public void reload() {
-		HashMap<String, Object> param = new HashMap<>();
-		param.put("start", startDate.get().toString());
-		param.put("end", endDate.get().toString());
+    public void initialize() {
+        initItemChangeListener();
+        reload();
+    }
 
-		// List<Inspection> list = inspectionService.gets(param);
-		// inspections.clear();
-		// inspectItems.clear();
+    /** 1. READ: 기간별 Unpack 및 UnpackItem 목록 조회 */
+    public void reload() {
+        Map<String, Object> param = Map.of(
+            "start", startDate.get().toString(),
+            "end", endDate.get().toString()
+        );
 
-		// if (list != null && !list.isEmpty()) {
-		// 	inspections.addAll(list);
-		// 	inspectItems.addAll(list.get(0).getItems());
-		// }
-		calculateResults();
-	}
+        unpackApiClient.getUnpacks(param)
+            .subscribe(
+                response -> {
+                    if (response != null && response.isSuccess() && response.data() != null) {
+                        List<Unpack> list = response.data().stream()
+                                .map(UnpackDto::toModel)
+                                .toList();
 
-	private void initArrayListListener() {
-		// inspectItems.addListener((ListChangeListener<InspectionItem>) change -> {
-		// 	while (change.next()) {
-		// 		if (change.wasUpdated()) {
-		// 			InspectionItem item = inspectItems.get(change.getFrom());
-		// 			item.setSelected(true);
-		// 			if (item.getIsSaved()) {
-		// 				item.setConfirm(true);
-		// 			}
-		// 			item.setAmount(Double.valueOf(String.format("%.2f", item.getQty() * item.getPricein())));
-		// 			calculateResults();
-		// 			// inspectionService.put(item);
-		// 			updateAbbr(item);
-		// 		}
-		// 	}
-		// });
-	}
+                        Platform.runLater(() -> {
+                            unpacks.setAll(list);
+                            unpackItems.clear();
 
-	// ---------------- Business Logic & Actions ----------------
+                            if (!unpacks.isEmpty()) {
+                                selectInspection(unpacks.get(0));
+                            } else {
+                                calculateResults();
+                            }
+                        });
+                    }
+                },
+                error -> log.error("Unpacks 조회 실패", error)
+            );
+    }
 
-	public void selectInspection(Inspection selected) {
-		inspectItems.clear();
-		//if (selected != null) {
-		// 	inspections.forEach(item -> item.setSelected(false));
-		// 	selected.setSelected(true);
-		// 	inspectItems.addAll(selected.getItems());
-		// }
-		calculateResults();
-	}
+    /** 2. CREATE: Unpack 단건 저장 */
+    public void addInspection(Unpack unpack) {
+        if (unpack == null) return;
 
-	public void addInspection(Inspection inspection) {
-		if (inspection != null) {
-			inspections.forEach(item -> item.setSelected(false));
-			inspection.setSelected(true);
-			inspections.add(0, inspection);
-			inspectItems.clear();
-			calculateResults();
-		}
-	}
+        UnpackDto dto = UnpackDto.fromModel(unpack);
+        unpackApiClient.createUnpack(dto)
+            .subscribe(
+                response -> {
+                    if (response != null && response.isSuccess() && response.data() != null) {
+                        Unpack savedModel = response.data().toModel();
+                        Platform.runLater(() -> {
+                            unpacks.add(0, savedModel);
+                            selectInspection(savedModel);
+                        });
+                    }
+                },
+                error -> log.error("Unpack 생성 실패", error)
+            );
+    }
 
-	public void deleteSelectedInspections() {
-		// List<Inspection> deleteList = inspections.stream().filter(Inspection::getSelected).toList();
-		// if (!deleteList.isEmpty()) {
-		// 	inspectionService.deleteAll(deleteList);
-		// 	reload();
-		// }
-	}
+    /** 3. UPDATE: UnpackItem 단건 인라인 수정 처리 */
+    private void initItemChangeListener() {
+        unpackItems.addListener((ListChangeListener<UnpackItem>) change -> {
+            while (change.next()) {
+                if (change.wasUpdated()) {
+                    UnpackItem item = unpackItems.get(change.getFrom());
+                    // 💡 [수정]: primitive type(int, double)이므로 != null 체크 제거
+                    item.setAmount(Double.parseDouble(String.format("%.2f", item.getQty() * item.getPricein())));
+                    
+                    calculateResults();
+                    updateSingleUnpackItem(item);
+                }
+            }
+        });
+    }
 
-	public List<InspectionItem> addStockForConfirmedItems(List<InspectionItem> items) {
-		if (items == null) return null;
+    public void updateSingleUnpackItem(UnpackItem item) {
+        if (item == null || item.getId() == 0) return;
 
-		for (int i = 0; i < items.size(); i++) {
-			// items.get(i).setLineNo(i + 1);
-		}
+        UnpackItemDto dto = UnpackItemDto.fromModel(item);
+        unpackApiClient.updateUnpackItem(dto)
+            .subscribe(
+                response -> log.info("UnpackItem 수정 성공: id={}", item.getId()),
+                error -> log.error("UnpackItem 수정 실패", error)
+            );
+    }
 
-		// List<InspectionItem> targetItems = items.stream()
-		// 		.filter(item -> item.getConfirm() && !item.getIsSaved() && (item.getPriceoutEstimated() != 0.0 || item.getPriceout() != 0.0))
-		// 		.toList();
+    /** 4. UPDATE (Bulk / Add Stock): 선택된 확정 품목 재고 등록 및 다건 수정 */
+    public void addStockForConfirmedItems(List<UnpackItem> items) {
+        if (items == null || items.isEmpty()) return;
 
-		// if (targetItems.isEmpty()) {
-		// 	return null;
-		// }
+        List<UnpackItem> targetItems = items.stream()
+                .filter(item -> item.getConfirm() && !item.getIsSaved())
+                .toList();
 
-		// if (hasDuplicatesBarcode(targetItems)) {
-		// 	throw new IllegalArgumentException("DUPLICATE_BARCODE");
-		// }
+        if (targetItems.isEmpty()) return;
 
-		// targetItems.forEach(item -> {
-		// 	// if (item.getPriceout() == 0) {
-		// 	// 	item.setPriceout(Double.valueOf(String.format("%.2f", item.getPriceoutEstimated())));
-		// 	// }
-		// });
+        if (hasDuplicatesBarcode(targetItems)) {
+            log.warn("중복된 바코드가 존재합니다.");
+            return;
+        }
 
-		// List<InspectionItem> result = inspectionService.puts(targetItems);
-		// if (result != null) {
-		// 	reload();
-		// }
-		//return result;
-		return null;
-	}
+        List<UnpackItemDto> dtos = targetItems.stream()
+                .map(UnpackItemDto::fromModel)
+                .collect(Collectors.toList());
 
-	public boolean hasDuplicatesBarcode(List<InspectionItem> productList) {
-		for (int i = 0; i < productList.size(); i++) {
-			for (int j = i + 1; j < productList.size(); j++) {
-				if (productList.get(i).getBarcode().trim().equals(productList.get(j).getBarcode().trim())) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+        unpackApiClient.updateUnpackItems(dtos)
+            .subscribe(
+                response -> {
+                    if (response != null && response.isSuccess()) {
+                        log.info("재고 등록 및 품목 다건 수정 성공");
+                        Platform.runLater(this::reload);
+                    }
+                },
+                error -> log.error("재고 등록 실패", error)
+            );
+    }
 
-	public void applyEstimatedPriceMultiplier(String multiplierStr, List<InspectionItem> items) {
-		// if (items == null || multiplierStr == null || !NumberUtil.isStringDouble(multiplierStr)) return;
-		// double multiplier = Double.parseDouble(multiplierStr);
-		// items.forEach(item -> item.setPriceoutEstimated(item.getPricein() * multiplier));
-	}
+    /** 5. DELETE: 선택된 Unpack 삭제 */
+    public void deleteSelectedInspections() {
+        List<Unpack> deleteList = unpacks.stream()
+                // 💡 [수정]: getSelected() -> isSelected() 변경
+                .filter(Unpack::isSelected)
+                .toList();
 
-	public void filterBySupplier(Supplier supplier) {
-		if (supplier == null) return;
-		String abbr = supplier.getAbbr();
-		// List<Inspection> filtered = inspections.stream()
-		// 		.filter(item -> abbr.equals(item.getSupplierAbbr()))
-		// 		.toList();
+        if (deleteList.isEmpty()) return;
 
-		// if (!filtered.isEmpty()) {
-		// 	inspections.setAll(filtered);
-		// 	inspectItems.clear();
-		// 	inspectItems.addAll(filtered.get(0).getItems());
-		// 	calculateResults();
-		// }
-	}
+        List<UnpackDto> dtos = deleteList.stream()
+                .map(UnpackDto::fromModel)
+                .collect(Collectors.toList());
 
-	public List<InspectionItem> filterByConfirmStatus(String status) {
-		this.currentFilterStatus = status;
-		List<InspectionItem> filtered = switch (status) {
-			case "Checked" -> inspectItems.stream().filter(InspectionItem::getConfirm).toList();
-			case "Unchecked" -> inspectItems.stream().filter(item -> !item.getConfirm()).toList();
-			case "Added" -> inspectItems.stream().filter(InspectionItem::getIsSaved).toList();
-			case "Unadded" -> inspectItems.stream().filter(item -> !item.getIsSaved()).toList();
-			default -> inspectItems;
-		};
-		calculateResults();
-		return filtered;
-	}
+        unpackApiClient.deleteUnpacks(dtos)
+            .subscribe(
+                response -> {
+                    if (response != null && response.isSuccess()) {
+                        Platform.runLater(this::reload);
+                    }
+                },
+                error -> log.error("Unpack 삭제 실패", error)
+            );
+    }
 
-	public boolean matchesSearch(InspectionItem item, String searchText) {
-		if (searchText == null || searchText.isBlank()) return true;
-		String lower = searchText.toLowerCase();
+    // ---------------- UI Helper & Logic ----------------
 
-		return (item.getCode() != null && item.getCode().toLowerCase().contains(lower)) ||
-				(item.getBarcode() != null && item.getBarcode().toLowerCase().contains(lower)) ||
-				(item.getDescription() != null && item.getDescription().toLowerCase().contains(lower)) ||
-				(item.getCategory() != null && item.getCategory().toLowerCase().contains(lower)) ||
-				(item.getSupplier() != null && item.getSupplier().toLowerCase().contains(lower));
-	}
+    public void selectInspection(Unpack selected) {
+        unpacks.forEach(item -> item.setSelected(false));
+        unpackItems.clear();
 
-	public InspectionItem findByBarcodeOrCode(String scanned) {
-		if (scanned == null || scanned.isBlank()) return null;
-		InspectionItem match = inspectItems.stream()
-				.filter(item -> scanned.equalsIgnoreCase(item.getBarcode()))
-				.findAny()
-				.orElseGet(() -> inspectItems.stream()
-						.filter(item -> scanned.equalsIgnoreCase(item.getCode()))
-						.findAny()
-						.orElse(null));
+        if (selected != null) {
+            selected.setSelected(true);
+            if (selected.getItems() != null) {
+                unpackItems.addAll(selected.getItems());
+            }
+        }
+        calculateResults();
+    }
 
-		if (match != null) {
-			match.setSelected(true);
-			match.setConfirm(true);
-			inspectItems.remove(match);
-			inspectItems.add(0, match);
-		}
-		return match;
-	}
+    public void applyEstimatedPriceMultiplier(String multiplierStr, List<UnpackItem> items) {
+        if (items == null || multiplierStr == null || !multiplierStr.matches("^\\d+(\\.\\d+)?$")) return;
+        double multiplier = Double.parseDouble(multiplierStr);
+        
+        // 💡 [수정]: primitive double이므로 != null 체크 없이 바로 계산
+        items.forEach(item -> item.setPriceoutEstimated(item.getPricein() * multiplier));
+    }
 
-	public void updateSupplierOnItem(InspectionItem item, String newSupplierName, String oldSupplierName) {
-		if (item == null) return;
-		if (!item.getIsSaved()) {
-			item.setSupplier(newSupplierName);
-			updateAbbr(item);
-		} else {
-			item.setSupplier(oldSupplierName);
-		}
-	}
+    public List<UnpackItem> filterByConfirmStatus(String status) {
+        this.currentFilterStatus = status;
+        List<UnpackItem> filtered = switch (status) {
+            case "Checked" -> unpackItems.stream().filter(UnpackItem::getConfirm).toList();
+            case "Unchecked" -> unpackItems.stream().filter(i -> !i.getConfirm()).toList();
+            case "Added" -> unpackItems.stream().filter(UnpackItem::getIsSaved).toList();
+            case "Unadded" -> unpackItems.stream().filter(i -> !i.getIsSaved()).toList();
+            default -> unpackItems;
+        };
+        calculateResults();
+        return filtered;
+    }
 
-	public void updateAbbr(InspectionItem item) {
-		if (item == null || item.getSupplier() == null) return;
-		// suppliers.stream()
-		// 		.filter(s -> s.getCompany().equals(item.getSupplier()))
-		// 		.map(Supplier::getAbbr)
-		// 		.findFirst()
-		// 		.ifPresent(item::setAbbr);
-	}
+    public boolean hasDuplicatesBarcode(List<UnpackItem> productList) {
+        for (int i = 0; i < productList.size(); i++) {
+            for (int j = i + 1; j < productList.size(); j++) {
+                if (productList.get(i).getBarcode() != null &&
+                    productList.get(i).getBarcode().trim().equals(productList.get(j).getBarcode().trim())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-	public void calculateResults() {
-		double inspAmount = inspections.stream().mapToDouble(Inspection::getAmount).sum();
-		inspectionSummary.set(String.format("  $%.2f | %d ITEMS", inspAmount, inspections.size()));
+    public void calculateResults() {
+        // 💡 [수정]: double getAmount()는 primitive 타입이므로 직접 sum()
+        double inspAmount = unpacks.stream()
+                .mapToDouble(Unpack::getAmount).sum();
+        unpacksSummary.set(String.format("  $%.2f | %d ITEMS", inspAmount, unpacks.size()));
 
-		long checkCount = inspectItems.stream().filter(InspectionItem::getConfirm).count();
-		long uncheckCount = inspectItems.stream().filter(item -> !item.getConfirm()).count();
+        long checkCount = unpackItems.stream().filter(UnpackItem::getConfirm).count();
+        long uncheckCount = unpackItems.stream().filter(i -> !i.getConfirm()).count();
 
-		String itemText = inspectItems.size() + " ITEMS (Checked:" + checkCount + ", Unchecked:" + uncheckCount + ")";
-		if (!"ALL".equals(currentFilterStatus)) {
-			List<InspectionItem> filtered = filterByConfirmStatus(currentFilterStatus);
-			itemText = filtered.size() + " of " + inspectItems.size() + " ITEMS";
-		}
+        double prodAmount = unpackItems.stream()
+                .mapToDouble(UnpackItem::getAmount).sum();
 
-		// double prodAmount = inspectItems.stream().mapToDouble(InspectionItem::getAmount).sum();
-		// productSummary.set(String.format("  $%.2f | %s", prodAmount, itemText));
-	}
+        String itemText = String.format("  $%.2f | %d ITEMS (Checked:%d, Unchecked:%d)", 
+                prodAmount, unpackItems.size(), checkCount, uncheckCount);
+        itemsSummary.set(itemText);
+    }
 
-	private void loadSuppliers() {
-		suppliers.clear();
-		displaySupplierNames.clear();
-		//List<Supplier> list = supplierService.findAll();
-		// if (list != null) {
-		// 	suppliers.addAll(list);
-		// 	list.forEach(s -> displaySupplierNames.add(s.getCompany()));
-		// }
-	}
+    public void filterBySupplier(Supplier supplier) {
+        if (supplier == null) return;
+        String abbr = supplier.getAbbr();
+        List<Unpack> filtered = unpacks.stream()
+                .filter(item -> abbr != null && abbr.equals(item.getSupplierAbbr()))
+                .toList();
 
-	private void loadCategories() {
-		categories.clear();
-		// ObservableList<String> list = promotionController.getComboBoxCategory();
-		// if (list != null) {
-		// 	categories.addAll(list);
-		// }
-	}
+        if (!filtered.isEmpty()) {
+            selectInspection(filtered.get(0));
+        }
+    }
 
-	// ---------------- Getters & Properties ----------------
+    // ---------------- Getters & Properties ----------------
+    public ObjectProperty<LocalDate> startDateProperty() { return startDate; }
+    public ObjectProperty<LocalDate> endDateProperty() { return endDate; }
+    public StringProperty inspectionSummaryProperty() { return unpacksSummary; }
+    public StringProperty productSummaryProperty() { return itemsSummary; }
+    public BooleanProperty darkThemeProperty() { return darkTheme; }
 
-	public ObjectProperty<LocalDate> startDateProperty() { return startDate; }
-	public ObjectProperty<LocalDate> endDateProperty() { return endDate; }
-	public StringProperty inspectionSummaryProperty() { return inspectionSummary; }
-	public StringProperty productSummaryProperty() { return productSummary; }
-	public BooleanProperty darkThemeProperty() { return darkTheme; }
-
-	public ObservableList<Supplier> getSuppliers() { return suppliers; }
-	public ObservableList<String> getCategories() { return categories; }
-	public ObservableList<String> getDisplaySupplierNames() { return displaySupplierNames; }
-	public ObservableList<String> getConfirmFilterOptions() { return confirmFilterOptions; }
-	public ObservableList<Inspection> getInspections() { return inspections; }
-	public ObservableList<InspectionItem> getInspectItems() { return inspectItems; }
+    public ObservableList<Supplier> getSuppliers() { return suppliers; }
+    public ObservableList<String> getCategories() { return categories; }
+    public ObservableList<String> getDisplaySupplierNames() { return displaySupplierNames; }
+    public ObservableList<String> getConfirmFilterOptions() { return confirmFilterOptions; }
+    public ObservableList<Unpack> getUnpacks() { return unpacks; }
+    public ObservableList<UnpackItem> getUnpackItems() { return unpackItems; }
 }

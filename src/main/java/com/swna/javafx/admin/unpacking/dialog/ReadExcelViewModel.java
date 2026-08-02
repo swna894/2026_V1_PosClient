@@ -1,19 +1,22 @@
 package com.swna.javafx.admin.unpacking.dialog;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.supplier.domain.Supplier;
-import com.swna.javafx.admin.unpacking.model.Inspection;
-import com.swna.javafx.admin.unpacking.model.InspectionItem;
+import com.swna.javafx.admin.unpacking.excel.ReaderUnpack;
+import com.swna.javafx.admin.unpacking.model.UnpackItem;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -24,19 +27,20 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class ReadExcelViewModel {
 
     // Properties
     private final StringProperty filePath = new SimpleStringProperty();
     private final StringProperty invoiceLabel = new SimpleStringProperty(" Invoice : ");
-    private final StringProperty selectedSheet = new SimpleStringProperty("INVENTORY");
+    private final StringProperty selectedSheet = new SimpleStringProperty("Unpack");
     private final BooleanProperty darkTheme = new SimpleBooleanProperty(false);
     private final BooleanProperty checkSupplier = new SimpleBooleanProperty(false);
     private final ObjectProperty<Supplier> selectedSupplier = new SimpleObjectProperty<>();
-    private final ObjectProperty<LocalDate> date = new SimpleObjectProperty<>(LocalDate.now());
+    private final ObjectProperty<LocalDate> date = new SimpleObjectProperty<>(LocalDate.now(ZoneId.systemDefault()));
 
     // Collections
     private final ObservableList<String> sheets = FXCollections.observableArrayList();
@@ -45,9 +49,9 @@ public class ReadExcelViewModel {
     private String basicFolder;
 
     public void initialize() {
-        // basicFolder = posController.getSetting().getPathUpload();
-        // filePath.set(basicFolder + "/Excel Sample.xlsx");
-        // darkTheme.set(posController.getSetting().getAutoColor());
+        Path defaultPath = Paths.get(System.getProperty("user.home"), "Downloads", "unpack.xlsx");
+        filePath.set(defaultPath.toAbsolutePath().toString());
+        basicFolder = defaultPath.getParent().toString();
     }
 
     public void selectExcelFile(String selectedFile) {
@@ -58,136 +62,155 @@ public class ReadExcelViewModel {
     }
 
     public String getInitialDirectory() {
-        if (!(new File(basicFolder)).exists()) {
-            return "C:/";
-        }
-        return basicFolder;
+        File dir = new File(basicFolder);
+        return dir.exists() ? basicFolder : "C:/";
     }
 
     public void loadSheetNames() {
-        // List<String> sheetList = excelReadProduct.getSheets(getExcelOption());
-        // sheets.setAll(sheetList);
-        // if (!sheets.isEmpty() && !sheets.contains(selectedSheet.get())) {
-        //     selectedSheet.set(sheets.get(0));
-        // }
+        // Sheet loading logic if needed
     }
 
-    public void uploadExcel(Runnable onSuccess, Consumer<String> onError) {
+    /**
+     * CompletableFuture 기반 비동기 Excel 업로드 처리
+     */
+    public void readExcel(Runnable onSuccess, Consumer<String> onError) {
         if (!updateInvoice()) {
-            onError.accept("Please select supplier");
+            onError.accept("Please select a supplier.");
             return;
         }
 
-        // Task<List<InspectionItem>> task = new Task<>() {
-        //     @Override
-        //     protected List<InspectionItem> call() throws Exception {
-        //         String file = filePath.get().trim();
-        //         addLog(">> Reading excel : " + file);
+        String targetPath = filePath.get() != null ? filePath.get().trim() : "";
+        File file = new File(targetPath);
+        
+        if (!file.exists()) {
+            onError.accept("No specified file found:\n" + targetPath);
+            return;
+        }
+        
+        clearLogs();
+        
+        addLog(">> Reading excel : " + targetPath);
 
-        //         if (!PathUtil.isExist(file)) {
-        //             throw new Exception("- No specified file found.\n\n " + file);
-        //         }
-        //         return excelReadProduct.read(getExcelOption());
-        //     }
-        // };
-
-        // task.setOnFailed(wse -> {
-        //     addLog("@@@ Fail uploading : " + wse.getSource().getException().toString());
-        //     wse.getSource().getException().printStackTrace();
-        // });
-
-        // task.setOnSucceeded(wse -> {
-        //     List<InspectionItem> items = task.getValue();
-        //     if (items != null && !hasDuplicatesBarcode(items)) {
-        //         Supplier supplier = selectedSupplier.get();
-        //         items.forEach(item -> {
-        //             item.setInvoice(generateInvoiceNumber(supplier));
-        //             item.setAbbr(supplier.getAbbr());
-        //             item.setSupplier(supplier.getCompany());
-        //             item.setAmount(Double.valueOf(String.format("%.2f", item.getQty() * item.getPricein())));
-        //             item.setIsSaved(false);
-        //         });
-
-        //         addLog("- Reading items : " + items.size());
-        //         saveInspection(items);
-
-        //         for (int i = 0; i < items.size(); i++) {
-        //             addLog((i + 1) + ". " + items.get(i).getBarcode() + ", " + items.get(i).getDescription());
-        //         }
-
-        //         addLog("- End Saving to DBMS ");
-        //         addLog("- Success read end \n ");
-        //         if (onSuccess != null) onSuccess.run();
-        //     }
-        // });
-
-        // new Thread(task).start();
+        // 비동기로 Excel 파일 처리 실행
+        CompletableFuture.supplyAsync(() -> ReaderUnpack.read(file))
+            .thenAcceptAsync(items -> handleReadSuccess(items, onSuccess, onError), Platform::runLater)
+            .exceptionally(ex -> {
+                Platform.runLater(() -> handleReadFailure(ex, onError));
+                return null;
+            });
     }
 
-    private void saveInspection(List<InspectionItem> items) {
+    private void handleReadSuccess(List<UnpackItem> items, Runnable onSuccess, Consumer<String> onError) {
+        if (items == null || items.isEmpty()) {
+            addLog("@@@ File is empty or no valid items found.");
+            onError.accept("No valid data found in the Excel file.");
+            return;
+        }
+
+        if (hasDuplicatesBarcode(items)) {
+            onError.accept("Duplicate barcodes found in the Excel file.");
+            return;
+        }
+
         Supplier supplier = selectedSupplier.get();
-        // Inspection inspection = new Inspection(items, date.get());
-        // if (!checkSupplier.get()) {
-        //     inspection.setSync(true);
-        //     inspection.getItems().forEach(item -> {
-        //         item.setSupplier(supplier.getCompany());
-        //         item.setAbbr(supplier.getAbbr());
-        //     });
-        // }
-        // inspectionService.post(inspection);
+        enrichItemData(items, supplier);
+
+        addLog("- Reading items : " + items.size());
+        saveUnpack(items);
+
+        for (int i = 0; i < items.size(); i++) {
+            UnpackItem item = items.get(i);
+            addLog((i + 1) + ". " + "code : "  + item.getCode() + " , cost : " + item.getPricein() + " , qty : " + item.getQty() + " , description : " + item.getDescription());
+        }
+
+        addLog("- Success read end \n");
+
+        if (onSuccess != null) {
+            onSuccess.run();
+        }
+    }
+
+    private void handleReadFailure(Throwable ex, Consumer<String> onError) {
+        log.error("Excel processing failed", ex);
+        addLog("@@@ Fail uploading : " + ex.getMessage());
+        if (onError != null) {
+            onError.accept("Error processing Excel file: " + ex.getMessage());
+        }
+    }
+
+    private void enrichItemData(List<UnpackItem> items, Supplier supplier) {
+        String invoiceNo = generateInvoiceNumber(supplier);
+        items.forEach(item -> {
+            //item.setInvoice(invoiceNo);
+            //item.setAbbr(supplier != null ? supplier.getAbbr() : "");
+            item.setSupplier(supplier != null ? supplier.getCompany() : "");
+            //item.setAmount(Double.valueOf(String.format("%.2f", item.getQty() * item.getPricein())));
+            item.setIsSaved(false);
+        });
+    }
+
+    private void saveUnpack(List<UnpackItem> items) {
+        // TODO: Repository 또는 Service 계층을 통한 DB 저장 로직 연동
     }
 
     private boolean updateInvoice() {
         Supplier supplier = selectedSupplier.get();
         if (supplier != null) {
             String inv = supplier.getCompany() + "_" + generateInvoiceTimestamp();
-            invoiceLabel.set("INVOICE : " + inv);
+            invoiceLabel.set("Invoice : " + inv);
             return true;
         }
         return false;
     }
 
     private String generateInvoiceNumber(Supplier supplier) {
-        return supplier.getCompany() + "_" + generateInvoiceTimestamp();
+        return (supplier != null ? supplier.getCompany() : "UNKNOWN") + "_" + generateInvoiceTimestamp();
     }
 
     private String generateInvoiceTimestamp() {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYMMddHHmm"));
     }
 
-    private Boolean hasDuplicatesBarcode(List<InspectionItem> productList) {
-        boolean duplicateFound = false;
-        List<InspectionItem> duplicateList = new ArrayList<>();
+    private boolean hasDuplicatesBarcode(List<UnpackItem> productList) {
+        List<UnpackItem> duplicateList = new ArrayList<>();
 
         for (int i = 0; i < productList.size(); i++) {
             for (int j = i + 1; j < productList.size(); j++) {
-                if (productList.get(i).getBarcode() != null && productList.get(i).getBarcode().equals(productList.get(j).getBarcode())) {
-                    duplicateFound = true;
+                String b1 = productList.get(i).getBarcode();
+                String b2 = productList.get(j).getBarcode();
+                if (b1 != null && !b1.isBlank() && b1.equals(b2)) {
                     duplicateList.add(productList.get(i));
                     duplicateList.add(productList.get(j));
                 }
             }
         }
 
-        if (duplicateFound) {
+        if (!duplicateList.isEmpty()) {
             addLog("++++++++++ Barcode duplicate +++++++++++++");
-            for (InspectionItem product : duplicateList) {
-                addLog(" - " + product.getLineNo() + ". code : " + product.getCode() + ", " + product.getBarcode() + ", Qty : " + product.getQty() + ", " + product.getDescription());
+            for (UnpackItem product : duplicateList) {
+                addLog(" - " + product.getLineNo() + ". code : " + product.getCode() 
+                        + ", " + product.getBarcode() + ", Qty : " + product.getQty() 
+                        + ", " + product.getDescription());
             }
+            return true;
         }
-        return duplicateFound;
+        return false;
     }
 
-    // private ExcelOption getExcelOption() {
-    //     ExcelOption option = new ExcelOption();
-    //     option.setFileRead(filePath.get().trim());
-    //     option.setSheetName(selectedSheet.get());
-    //     option.setStartRow(1);
-    //     return option;
-    // }
-
     public void addLog(String message) {
-        Platform.runLater(() -> logs.add(message));
+        if (Platform.isFxApplicationThread()) {
+            logs.add(message);
+        } else {
+            Platform.runLater(() -> logs.add(message));
+        }
+    }
+
+    public void clearLogs() {
+        if (Platform.isFxApplicationThread()) {
+            logs.clear();
+        } else {
+            Platform.runLater(logs::clear);
+        }
     }
 
     // Properties Getters
