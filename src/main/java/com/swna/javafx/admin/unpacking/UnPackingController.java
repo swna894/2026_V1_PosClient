@@ -1,5 +1,6 @@
 package com.swna.javafx.admin.unpacking;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -73,12 +74,12 @@ public class UnPackingController {
     @FXML private TableColumn<UnpackItem, String> colItemBarcode;
     @FXML private TableColumn<UnpackItem, String> colItemDescription;
     @FXML private TableColumn<UnpackItem, String> colItemCategory;
-    @FXML private TableColumn<UnpackItem, Double> colItemOldPriceIn;
-    @FXML private TableColumn<UnpackItem, Double> colItemPriceIn;
-    @FXML private TableColumn<UnpackItem, Number> colItemQty;
-    @FXML private TableColumn<UnpackItem, Number> colItemMinStock;
-    @FXML private TableColumn<UnpackItem, Double> colItemPriceOutEstimated;
-    @FXML private TableColumn<UnpackItem, Double> colItemPriceOut;
+    @FXML private TableColumn<UnpackItem, BigDecimal> colItemOldPriceIn;
+    @FXML private TableColumn<UnpackItem, BigDecimal> colItemPriceIn;
+    @FXML private TableColumn<UnpackItem, Integer> colItemQty;
+    @FXML private TableColumn<UnpackItem, Integer> colItemMinStock;
+    @FXML private TableColumn<UnpackItem, BigDecimal> colItemPriceOutEstimated;
+    @FXML private TableColumn<UnpackItem, BigDecimal> colItemPriceOut;
     @FXML private TableColumn<UnpackItem, Boolean> colItemIsSaved;
     @FXML private TableColumn<UnpackItem, String> colItemCode;
     @FXML private TableColumn<UnpackItem, String> colItemComment;
@@ -202,10 +203,13 @@ public class UnPackingController {
         TableColumnUtil.makeStringColumn(colItemCode, UnpackItem::codeProperty, UnpackItem::setCode, true, true, TableColumnUtil.LEFT, null);
         TableColumnUtil.makeStringColumn(colItemComment, UnpackItem::commentProperty, UnpackItem::setComment, true, true, TableColumnUtil.LEFT, null);
 
-        TableColumnUtil.makeCurrencyColumn(colItemOldPriceIn, UnpackItem::oldPriceinProperty, false, true, TableColumnUtil.RIGHT, null);
-        TableColumnUtil.makeCurrencyColumn(colItemPriceIn, UnpackItem::priceinProperty, true, true, TableColumnUtil.RIGHT, null);
-        TableColumnUtil.makeCurrencyColumn(colItemPriceOutEstimated, UnpackItem::priceoutEstimatedProperty, true, true, TableColumnUtil.RIGHT, null);
-        TableColumnUtil.makeCurrencyColumn(colItemPriceOut, UnpackItem::priceoutProperty, true, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeIntegerColumn(colItemQty, UnpackItem::qtyProperty, UnpackItem::setQty, true, true, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeIntegerColumn(colItemMinStock, UnpackItem::minStockProperty, UnpackItem::setMinStock, true, true, TableColumnUtil.CENTER, null);
+
+        TableColumnUtil.makeBigDecimalCurrencyColumn(colItemOldPriceIn, UnpackItem::oldPriceinProperty, false, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceIn, UnpackItem::priceinProperty, false, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceOutEstimated, UnpackItem::priceoutEstimatedProperty, true, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceOut, UnpackItem::priceoutProperty, true, true, TableColumnUtil.RIGHT, null);
 
         if (colItemCategory != null) {
             colItemCategory.setOnEditCommit(event -> event.getRowValue().setCategory(event.getNewValue()));

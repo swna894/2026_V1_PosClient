@@ -73,7 +73,8 @@
                             <items>
                                 <Label fx:id="labelUnpacksSummary" styleClass="label-stock" />
                                 <Pane prefWidth="0" HBox.hgrow="ALWAYS" />
-                                <Button fx:id="buttonDelete" text="_Delete">
+                                <Button fx:id="buttonDelete" onAction="#handleDelete"
+                                    text="_Delete">
                                     <graphic>
                                         <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true"
                                             preserveRatio="true">

@@ -65,7 +65,7 @@ public class TableColumnUtil {
 
 
     public static String formatCurrency(double amount) {
-        NumberFormat format = NumberFormat.getCurrencyInstance();
+        NumberFormat format = NumberFormat.getCurrencyInstance(Locale.US);
         // 소수점 자릿수를 2자리로 고정
         format.setMinimumFractionDigits(2);
         format.setMaximumFractionDigits(2);
@@ -415,12 +415,12 @@ public class TableColumnUtil {
     ) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()));
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-        column.setCellFactory(tc -> new BigDecimalCurrencyCell<>());
 
         column.setVisible(isVisible);
 
         if (editable) {
-            column.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalStringConverter()));
+            // 기본 BigDecimalStringConverter 대신 $ 포맷팅을 지원하는 Converter 적용
+            column.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalCurrencyStringConverter()));
             column.setOnEditCommit(event -> {
                 T row = event.getRowValue();
                 ObjectProperty<BigDecimal> prop = propertyGetter.apply(row);
@@ -428,6 +428,7 @@ public class TableColumnUtil {
                 if (dirtyConsumer != null) dirtyConsumer.accept(row);
             });
         } else {
+            column.setCellFactory(tc -> new BigDecimalCurrencyCell<>());
             column.setEditable(false);
         }
     }
@@ -439,7 +440,7 @@ public class TableColumnUtil {
         private final NumberFormat currencyFormat;
         
         public BigDecimalCurrencyCell() {
-            this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+            this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
             currencyFormat.setMinimumFractionDigits(2);
             currencyFormat.setMaximumFractionDigits(2);
         }
@@ -456,6 +457,40 @@ public class TableColumnUtil {
             }
         }
     }
+
+    /**
+     * BigDecimal 통화 전용 StringConverter (편집 및 조회 시 $ 표시 유지 및 입력 파싱 처리)
+     */
+    private static class BigDecimalCurrencyStringConverter extends javafx.util.StringConverter<BigDecimal> {
+        private final NumberFormat currencyFormat;
+
+        public BigDecimalCurrencyStringConverter() {
+            this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+            currencyFormat.setMinimumFractionDigits(2);
+            currencyFormat.setMaximumFractionDigits(2);
+        }
+
+        @Override
+        public String toString(BigDecimal value) {
+            if (value == null) return "";
+            if (value.compareTo(BigDecimal.ZERO) == 0) return "-";
+            return currencyFormat.format(value); // $1,234.56 형태로 반환
+        }
+
+        @Override
+        public BigDecimal fromString(String string) {
+            if (string == null || string.isBlank() || string.equals("-")) {
+                return BigDecimal.ZERO;
+            }
+            // 사용자가 $ 나 쉼표(,)를 포함하여 수정 입력하더라도 숫자와 소수점만 추출하여 파싱
+            String cleanString = string.replaceAll("[^0-9.-]", "");
+            if (cleanString.isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            return new BigDecimal(cleanString);
+        }
+    }
+    
     // ========== Public API - Boolean Column ==========
     
     /**
@@ -861,7 +896,7 @@ public class TableColumnUtil {
         private final NumberFormat currencyFormat;
         
         public CurrencyCell() {
-            this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+            this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
             currencyFormat.setMinimumFractionDigits(2);
             currencyFormat.setMaximumFractionDigits(2);
         }

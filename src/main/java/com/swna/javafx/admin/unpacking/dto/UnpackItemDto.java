@@ -1,5 +1,6 @@
 package com.swna.javafx.admin.unpacking.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.swna.javafx.admin.unpacking.model.UnpackItem;
@@ -30,10 +31,10 @@ public record UnpackItemDto(
         Integer stock,
         Integer minOrderQty,
         Integer minStock,
-        Double amount,
-        Double pricein,
-        Double priceout,
-        Double oldPricein,
+        BigDecimal amount,
+        BigDecimal pricein,
+        BigDecimal priceout,
+        BigDecimal oldPricein,
         Boolean confirm,
         Boolean isSaved,
         Boolean isNew
@@ -44,8 +45,6 @@ public record UnpackItemDto(
 
         return UnpackItemDto.builder()
                 .id(model.getId() == 0 ? null : model.getId())
-                .created(model.getCreated())
-                .updated(model.getUpdated())
                 .unpackId(model.getUnpackId())
                 .invoice(model.getInvoice())
                 .barcode(model.getBarcode())

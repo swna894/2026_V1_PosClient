@@ -1,8 +1,11 @@
 package com.swna.javafx.admin.unpacking;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
@@ -96,7 +99,7 @@ public class UnpackingViewModel {
         if (unpack == null) return;
 
         UnpackDto dto = UnpackDto.fromModel(unpack);
-        unpackApiClient.createUnpack(dto)
+        unpackApiClient.postUnpack(dto)
             .subscribe(
                 response -> {
                     if (response != null && response.isSuccess() && response.data() != null) {
@@ -116,12 +119,23 @@ public class UnpackingViewModel {
         unpackItems.addListener((ListChangeListener<UnpackItem>) change -> {
             while (change.next()) {
                 if (change.wasUpdated()) {
-                    UnpackItem item = unpackItems.get(change.getFrom());
-                    // 💡 [수정]: primitive type(int, double)이므로 != null 체크 제거
-                    item.setAmount(Double.parseDouble(String.format("%.2f", item.getQty() * item.getPricein())));
+                    for (int i = change.getFrom(); i < change.getTo(); i++) {
+                        UnpackItem item = unpackItems.get(i);
+                        
+                        BigDecimal qty = BigDecimal.valueOf(item.getQty());
+                        BigDecimal priceIn = item.getPricein() != null ? item.getPricein() : BigDecimal.ZERO;
+                        
+                        // 수량 * 단가 연산 및 반올림 처리
+                        BigDecimal newAmount = priceIn.multiply(qty).setScale(2, RoundingMode.HALF_UP);
+                        
+                        if (item.getAmount() == null || item.getAmount().compareTo(newAmount) != 0) {
+                            item.setAmount(newAmount);
+                        }
+
+                        updateSingleUnpackItem(item);
+                    }
                     
                     calculateResults();
-                    updateSingleUnpackItem(item);
                 }
             }
         });
@@ -172,7 +186,6 @@ public class UnpackingViewModel {
     /** 5. DELETE: 선택된 Unpack 삭제 */
     public void deleteSelectedInspections() {
         List<Unpack> deleteList = unpacks.stream()
-                // 💡 [수정]: getSelected() -> isSelected() 변경
                 .filter(Unpack::isSelected)
                 .toList();
 
@@ -180,7 +193,7 @@ public class UnpackingViewModel {
 
         List<UnpackDto> dtos = deleteList.stream()
                 .map(UnpackDto::fromModel)
-                .collect(Collectors.toList());
+                .toList();
 
         unpackApiClient.deleteUnpacks(dtos)
             .subscribe(
@@ -208,12 +221,17 @@ public class UnpackingViewModel {
         calculateResults();
     }
 
+    /** 예상 판매가 배수 적용 (BigDecimal 연산 적용) */
     public void applyEstimatedPriceMultiplier(String multiplierStr, List<UnpackItem> items) {
         if (items == null || multiplierStr == null || !multiplierStr.matches("^\\d+(\\.\\d+)?$")) return;
-        double multiplier = Double.parseDouble(multiplierStr);
         
-        // 💡 [수정]: primitive double이므로 != null 체크 없이 바로 계산
-        items.forEach(item -> item.setPriceoutEstimated(item.getPricein() * multiplier));
+        BigDecimal multiplier = new BigDecimal(multiplierStr);
+
+        items.forEach(item -> {
+            BigDecimal priceIn = item.getPricein() != null ? item.getPricein() : BigDecimal.ZERO;
+            BigDecimal estimated = priceIn.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
+            item.setPriceoutEstimated(estimated);
+        });
     }
 
     public List<UnpackItem> filterByConfirmStatus(String status) {
@@ -241,8 +259,8 @@ public class UnpackingViewModel {
         return false;
     }
 
+    /** 합계 금액 계산 (BigDecimal 합산 적용) */
     public void calculateResults() {
-        // 💡 [수정]: double getAmount()는 primitive 타입이므로 직접 sum()
         double inspAmount = unpacks.stream()
                 .mapToDouble(Unpack::getAmount).sum();
         unpacksSummary.set(String.format("  $%.2f | %d ITEMS", inspAmount, unpacks.size()));
@@ -250,8 +268,11 @@ public class UnpackingViewModel {
         long checkCount = unpackItems.stream().filter(UnpackItem::getConfirm).count();
         long uncheckCount = unpackItems.stream().filter(i -> !i.getConfirm()).count();
 
-        double prodAmount = unpackItems.stream()
-                .mapToDouble(UnpackItem::getAmount).sum();
+        // Stream에서 BigDecimal 안전하게 합산
+        BigDecimal prodAmount = unpackItems.stream()
+                .map(UnpackItem::getAmount)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         String itemText = String.format("  $%.2f | %d ITEMS (Checked:%d, Unchecked:%d)", 
                 prodAmount, unpackItems.size(), checkCount, uncheckCount);

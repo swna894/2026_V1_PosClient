@@ -32,13 +32,10 @@ public record UnpackDto(
 
         List<UnpackItemDto> itemDtos = model.getItems().stream()
                 .map(UnpackItemDto::fromModel)
-                .collect(Collectors.toList());
+                .toList();
 
         return UnpackDto.builder()
                 .id(model.getId() == 0 ? null : model.getId())
-                .created(model.getCreated())
-                .updated(model.getUpdated())
-                .unpacked(model.getUnpacked())
                 .invoice(model.getInvoice())
                 .supplierAbbr(model.getSupplierAbbr())
                 .comment(model.getComment())

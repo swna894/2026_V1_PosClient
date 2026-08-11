@@ -2,6 +2,8 @@ package com.swna.javafx.admin.unpacking.excel;
 
 import java.io.File;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,12 +24,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ReaderUnpack {
 
+    private static final DataFormatter FORMATTER = new DataFormatter();
+
     private ReaderUnpack() {
-        /* This utility class should not be instantiated */
+        /* Utility class should not be instantiated */
     }
 
     /**
-     * Reads an Excel/CSV file from a File object and returns a list of UnpackItem.
+     * File 객체로부터 Excel/CSV를 읽어 UnpackItem 목록으로 변환
      */
     public static List<UnpackItem> read(File file) {
         if (file == null || !file.exists()) {
@@ -44,7 +48,7 @@ public class ReaderUnpack {
     }
 
     /**
-     * Reads an Excel/CSV file from an InputStream and returns a list of UnpackItem.
+     * InputStream으로부터 Excel/CSV를 읽어 UnpackItem 목록으로 변환
      */
     public static List<UnpackItem> readAvalonFile(InputStream inputStream) {
         if (inputStream == null) {
@@ -55,7 +59,7 @@ public class ReaderUnpack {
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
             return parseSheet(workbook.getSheetAt(0));
         } catch (Exception e) {
-            log.error("Failed to read Excel InputStream.", e);
+            log.error("Failed to read Excel InputStream", e);
             return new ArrayList<>();
         }
     }
@@ -67,9 +71,7 @@ public class ReaderUnpack {
             return itemList;
         }
 
-        DataFormatter formatter = new DataFormatter();
-
-        // Row 0 is configured as the header row
+        // Row 0: Header Row
         int headerRowIndex = 0;
         Row headerRow = sheet.getRow(headerRowIndex);
         if (headerRow == null) {
@@ -77,91 +79,117 @@ public class ReaderUnpack {
             return itemList;
         }
 
-        // Build case-insensitive header map
-        Map<String, Integer> headerMap = buildHeaderMap(headerRow, formatter);
+        // 헤더 컬럼 이름 매핑 (대소문자 구분 없음)
+        Map<String, Integer> headerMap = buildHeaderMap(headerRow);
 
-        // Read data starting from Row 1
-        int startRow = headerRowIndex + 1; 
-        
-        for (int r = startRow; r <= sheet.getLastRowNum(); r++) {
+        // Data Rows: Row 1부터 파싱
+        int startRow = headerRowIndex + 1;
+        int lastRow = sheet.getLastRowNum();
+
+        for (int r = startRow; r <= lastRow; r++) {
             Row row = sheet.getRow(r);
             if (row == null || isRowEmpty(row)) {
                 continue;
             }
 
-            UnpackItem item = new UnpackItem();
-            item.setLineNo(r);
-
-            // Mapping data based on case-insensitive header text
-            item.setCode(getCellValueByHeaderAsString(row, headerMap, "code", formatter));
-            item.setDescription(getCellValueByHeaderAsString(row, headerMap, "description", formatter));
-            item.setBarcode(getCellValueByHeaderAsString(row, headerMap, "barcode", formatter));
-            item.setQty(getCellValueByHeaderAsInt(row, headerMap, "qty"));
+            UnpackItem item = parseRowToModel(row, headerMap, r);
             
-            // Cost is mapped to PriceIn (or PriceOut depending on model definition)
-            double cost = getCellValueByHeaderAsDouble(row, headerMap, "cost");
-            item.setPricein(cost); 
-
-            itemList.add(item);
+            // 바코드, 코드, 설명 등의 유효성 검사 (유효한 데이터만 추가)
+            if (isValidItem(item)) {
+                itemList.add(item);
+            }
         }
 
+        log.info("Successfully parsed {} items from sheet.", itemList.size());
         return itemList;
     }
 
+    private static UnpackItem parseRowToModel(Row row, Map<String, Integer> headerMap, int rowNum) {
+        UnpackItem item = new UnpackItem();
+        item.setLineNo(rowNum + 1); // Excel 행 번호 기준 (1-based index)
+
+        String code = getCellValueByHeaderAsString(row, headerMap, "code");
+        String description = getCellValueByHeaderAsString(row, headerMap, "description");
+        String barcode = getCellValueByHeaderAsString(row, headerMap, "barcode");
+        int qty = getCellValueByHeaderAsInt(row, headerMap, "qty");
+        BigDecimal cost = getCellValueByHeaderAsBigDecimal(row, headerMap, "cost");
+
+        item.setCode(code);
+        item.setDescription(description);
+        item.setBarcode(barcode);
+        item.setQty(qty);
+        item.setPricein(cost);
+
+        // BigDecimal 정밀 연산 및 소수점 2자리 반올림
+        BigDecimal totalAmount = cost.multiply(BigDecimal.valueOf(qty)).setScale(2, RoundingMode.HALF_UP);
+        item.setAmount(totalAmount);
+        
+        // UI 기본 상태 설정
+        item.setConfirm(false);
+        item.setIsSaved(false);
+        item.setIsNew(true);
+
+        return item;
+    }
+
     /**
-     * Constructs a header map where keys are stored in lowercase for case-insensitive matching.
+     * 바코드, 코드, 설명 중 하나라도 데이터가 있는 정상 Row인지 확인
      */
-    private static Map<String, Integer> buildHeaderMap(Row headerRow, DataFormatter formatter) {
+    private static boolean isValidItem(UnpackItem item) {
+        return (item.getBarcode() != null && !item.getBarcode().isBlank())
+            || (item.getCode() != null && !item.getCode().isBlank())
+            || (item.getDescription() != null && !item.getDescription().isBlank());
+    }
+
+    /**
+     * 대소문자 구분 없는 Header Map 생성
+     */
+    private static Map<String, Integer> buildHeaderMap(Row headerRow) {
         Map<String, Integer> headerMap = new HashMap<>();
-        if (headerRow != null) {
-            for (Cell cell : headerRow) {
-                if (cell != null) {
-                    String headerName = getCellValueAsString(cell, formatter);
-                    if (!headerName.isEmpty()) {
-                        // Store header name in lowercase
-                        headerMap.put(headerName.toLowerCase(), cell.getColumnIndex());
-                    }
+        for (Cell cell : headerRow) {
+            if (cell != null) {
+                String headerName = getCellValueAsString(cell);
+                if (!headerName.isBlank()) {
+                    headerMap.put(headerName.toLowerCase(), cell.getColumnIndex());
                 }
             }
         }
         return headerMap;
     }
 
-    // Extracts cell value as String using header name (case-insensitive)
-    private static String getCellValueByHeaderAsString(Row row, Map<String, Integer> headerMap, String headerName, DataFormatter formatter) {
+    // ---------------- Cell Value Extractors ----------------
+
+    private static String getCellValueByHeaderAsString(Row row, Map<String, Integer> headerMap, String headerName) {
         Integer colIndex = headerMap.get(headerName.toLowerCase());
         if (colIndex == null) return "";
-        return getCellValueAsString(row.getCell(colIndex), formatter);
+        return getCellValueAsString(row.getCell(colIndex));
     }
 
-    // Extracts cell value as int using header name (case-insensitive)
     private static int getCellValueByHeaderAsInt(Row row, Map<String, Integer> headerMap, String headerName) {
         Integer colIndex = headerMap.get(headerName.toLowerCase());
         if (colIndex == null) return 0;
         return getCellValueAsInt(row.getCell(colIndex));
     }
 
-    // Extracts cell value as double using header name (case-insensitive)
-    private static double getCellValueByHeaderAsDouble(Row row, Map<String, Integer> headerMap, String headerName) {
+    private static BigDecimal getCellValueByHeaderAsBigDecimal(Row row, Map<String, Integer> headerMap, String headerName) {
         Integer colIndex = headerMap.get(headerName.toLowerCase());
-        if (colIndex == null) return 0.0;
-        return getCellValueAsDouble(row.getCell(colIndex));
+        if (colIndex == null) return BigDecimal.ZERO;
+        return getCellValueAsBigDecimal(row.getCell(colIndex));
     }
 
-    // Cell value utility method (String)
-    private static String getCellValueAsString(Cell cell, DataFormatter formatter) {
+    private static String getCellValueAsString(Cell cell) {
         if (cell == null) return "";
-        return formatter.formatCellValue(cell).trim();
+        return FORMATTER.formatCellValue(cell).trim();
     }
 
-    // Cell value utility method (Integer)
     private static int getCellValueAsInt(Cell cell) {
         if (cell == null) return 0;
         if (cell.getCellType() == CellType.NUMERIC) {
             return (int) cell.getNumericCellValue();
         } else if (cell.getCellType() == CellType.STRING) {
             try {
-                return Integer.parseInt(cell.getStringCellValue().trim());
+                String strVal = cell.getStringCellValue().trim().replaceAll("[^0-9-]", "");
+                return strVal.isEmpty() ? 0 : Integer.parseInt(strVal);
             } catch (NumberFormatException e) {
                 return 0;
             }
@@ -169,28 +197,35 @@ public class ReaderUnpack {
         return 0;
     }
 
-    // Cell value utility method (Double)
-    private static double getCellValueAsDouble(Cell cell) {
-        if (cell == null) return 0.0;
-        if (cell.getCellType() == CellType.NUMERIC) {
-            return cell.getNumericCellValue();
-        } else if (cell.getCellType() == CellType.STRING) {
-            try {
-                return Double.parseDouble(cell.getStringCellValue().trim());
-            } catch (NumberFormatException e) {
-                return 0.0;
+    private static BigDecimal getCellValueAsBigDecimal(Cell cell) {
+        if (cell == null) return BigDecimal.ZERO;
+
+        try {
+            if (cell.getCellType() == CellType.NUMERIC) {
+                return BigDecimal.valueOf(cell.getNumericCellValue()).setScale(2, RoundingMode.HALF_UP);
+            } else if (cell.getCellType() == CellType.STRING) {
+                String strVal = cell.getStringCellValue().trim().replaceAll("[^0-9.-]", "");
+                return strVal.isEmpty() ? BigDecimal.ZERO : new BigDecimal(strVal).setScale(2, RoundingMode.HALF_UP);
+            } else if (cell.getCellType() == CellType.FORMULA) {
+                return BigDecimal.valueOf(cell.getNumericCellValue()).setScale(2, RoundingMode.HALF_UP);
             }
+        } catch (Exception e) {
+            log.warn("Failed to parse cell value to BigDecimal: cell={}", cell, e);
+            return BigDecimal.ZERO;
         }
-        return 0.0;
+
+        return BigDecimal.ZERO;
     }
 
-    // Checks whether the row is empty
     private static boolean isRowEmpty(Row row) {
         if (row == null) return true;
         for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
             Cell cell = row.getCell(c);
             if (cell != null && cell.getCellType() != CellType.BLANK) {
-                return false;
+                String str = FORMATTER.formatCellValue(cell).trim();
+                if (!str.isEmpty()) {
+                    return false;
+                }
             }
         }
         return true;

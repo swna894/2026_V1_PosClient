@@ -1,5 +1,6 @@
 package com.swna.javafx.admin.unpacking.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import javafx.beans.property.*;
@@ -27,10 +28,10 @@ public class UnpackItem {
     private final IntegerProperty stock = new SimpleIntegerProperty(0);
     private final IntegerProperty minOrderQty = new SimpleIntegerProperty(12);
     private final IntegerProperty minStock = new SimpleIntegerProperty(6);
-    private final DoubleProperty amount = new SimpleDoubleProperty(0.0);
-    private final DoubleProperty pricein = new SimpleDoubleProperty(0.0);
-    private final DoubleProperty oldPricein = new SimpleDoubleProperty(0.0);
-    private final DoubleProperty priceout = new SimpleDoubleProperty(0.0);
+    private final ObjectProperty<BigDecimal> amount = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> pricein = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> oldPricein = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private final ObjectProperty<BigDecimal> priceout = new SimpleObjectProperty<>(BigDecimal.ZERO);
     private final BooleanProperty confirm = new SimpleBooleanProperty(false);
     private final BooleanProperty isSaved = new SimpleBooleanProperty(false);
     private final BooleanProperty isNew = new SimpleBooleanProperty(false);
@@ -40,7 +41,7 @@ public class UnpackItem {
     // ---- UI 전용 (서버 미전송) ----
     private final BooleanProperty selected = new SimpleBooleanProperty(false);
     private final IntegerProperty lineNo = new SimpleIntegerProperty(0);
-    private final DoubleProperty priceoutEstimated = new SimpleDoubleProperty(0.0);
+    private final ObjectProperty<BigDecimal> priceoutEstimated = new SimpleObjectProperty<>(BigDecimal.ZERO);
 
     public UnpackItem() {
         // JavaFX bean 규약을 위한 기본 생성자
@@ -102,21 +103,21 @@ public class UnpackItem {
     public int getMinStock() { return minStock.get(); }
     public void setMinStock(int value) { minStock.set(value); }
 
-    public DoubleProperty amountProperty() { return amount; }
-    public double getAmount() { return amount.get(); }
-    public void setAmount(double value) { amount.set(value); }
+    public ObjectProperty<BigDecimal> amountProperty() { return amount; }
+    public BigDecimal getAmount() { return amount.get(); }
+    public void setAmount(BigDecimal value) { amount.set(value); }
 
-    public DoubleProperty priceinProperty() { return pricein; }
-    public double getPricein() { return pricein.get(); }
-    public void setPricein(double value) { pricein.set(value); }
+    public ObjectProperty<BigDecimal> priceinProperty() { return pricein; }
+    public BigDecimal getPricein() { return pricein.get(); }
+    public void setPricein(BigDecimal value) { pricein.set(value); }
 
-    public DoubleProperty oldPriceinProperty() { return oldPricein; }
-    public double getOldPricein() { return oldPricein.get(); }
-    public void setOldPricein(double value) { oldPricein.set(value); }
+    public ObjectProperty<BigDecimal> oldPriceinProperty() { return oldPricein; }
+    public BigDecimal getOldPricein() { return oldPricein.get(); }
+    public void setOldPricein(BigDecimal value) { oldPricein.set(value); }
 
-    public DoubleProperty priceoutProperty() { return priceout; }
-    public double getPriceout() { return priceout.get(); }
-    public void setPriceout(double value) { priceout.set(value); }
+    public ObjectProperty<BigDecimal> priceoutProperty() { return priceout; }
+    public BigDecimal getPriceout() { return priceout.get(); }
+    public void setPriceout(BigDecimal value) { priceout.set(value); }
 
     public BooleanProperty confirmProperty() { return confirm; }
     public boolean getConfirm() { return confirm.get(); }
@@ -147,7 +148,7 @@ public class UnpackItem {
     public int getLineNo() { return lineNo.get(); }
     public void setLineNo(int value) { lineNo.set(value); }
 
-    public DoubleProperty priceoutEstimatedProperty() { return priceoutEstimated; }
-    public double getPriceoutEstimated() { return priceoutEstimated.get(); }
-    public void setPriceoutEstimated(double value) { priceoutEstimated.set(value); }
+    public ObjectProperty<BigDecimal> priceoutEstimatedProperty() { return priceoutEstimated; }
+    public BigDecimal getPriceoutEstimated() { return priceoutEstimated.get(); }
+    public void setPriceoutEstimated(BigDecimal value) { priceoutEstimated.set(value); }
 }

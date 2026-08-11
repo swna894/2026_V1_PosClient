@@ -1,6 +1,8 @@
 package com.swna.javafx.admin.unpacking.dialog;
 
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -15,8 +17,12 @@ import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.supplier.domain.Supplier;
+import com.swna.javafx.admin.unpacking.api.UnpackApiClient;
+import com.swna.javafx.admin.unpacking.dto.UnpackDto;
 import com.swna.javafx.admin.unpacking.excel.ReaderUnpack;
+import com.swna.javafx.admin.unpacking.model.Unpack;
 import com.swna.javafx.admin.unpacking.model.UnpackItem;
+import com.swna.javafx.common.response.ApiResponse;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -27,11 +33,16 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class ReadExcelViewModel {
+
+    // UnpackApiClient 주입
+    private final UnpackApiClient unpackApiClient;
 
     // Properties
     private final StringProperty filePath = new SimpleStringProperty();
@@ -88,10 +99,9 @@ public class ReadExcelViewModel {
         }
         
         clearLogs();
-        
         addLog(">> Reading excel : " + targetPath);
 
-        // 비동기로 Excel 파일 처리 실행
+        // 비동기로 Excel 파일 파싱 실행
         CompletableFuture.supplyAsync(() -> ReaderUnpack.read(file))
             .thenAcceptAsync(items -> handleReadSuccess(items, onSuccess, onError), Platform::runLater)
             .exceptionally(ex -> {
@@ -113,21 +123,121 @@ public class ReadExcelViewModel {
         }
 
         Supplier supplier = selectedSupplier.get();
-        enrichItemData(items, supplier);
+        String invoiceNo = generateInvoiceNumber(supplier);
+
+        // 1. UnpackItem 기본 값 보완 (수량/금액 및 송장/공급사 정보 바인딩)
+        enrichItemData(items, supplier, invoiceNo);
 
         addLog("- Reading items : " + items.size());
-        saveUnpack(items);
 
         for (int i = 0; i < items.size(); i++) {
             UnpackItem item = items.get(i);
-            addLog((i + 1) + ". " + "code : "  + item.getCode() + " , cost : " + item.getPricein() + " , qty : " + item.getQty() + " , description : " + item.getDescription());
+            addLog((i + 1) + ". " + "code : " + item.getCode() + " , cost : " + item.getPricein() + " , qty : " + item.getQty() + " , description : " + item.getDescription());
         }
 
-        addLog("- Success read end \n");
+        // 2. Unpack 상위 Model 객체 생성 및 금액 합산
+        Unpack unpackModel = createUnpackModel(supplier, invoiceNo, items);
 
+        // 3. Model -> DTO 변환 후 서버 전송 (postUnpack)
+        saveUnpackToServer(unpackModel, onSuccess, onError);
+    }
+
+    /**
+     * 서버 POST API 호출 처리 메서드
+     */
+    private void saveUnpackToServer(Unpack unpackModel, Runnable onSuccess, Consumer<String> onError) {
+        UnpackDto dto = UnpackDto.fromModel(unpackModel);
+        addLog(">> Saving to server (POST /api/unpack)...");
+
+        unpackApiClient.postUnpack(dto)
+            .subscribe(
+                response -> Platform.runLater(() -> handleApiResponse(response, onSuccess, onError)),
+                error -> Platform.runLater(() -> handleApiError(error, onError))
+            );
+    }
+
+    private void handleApiResponse(ApiResponse<UnpackDto> response, Runnable onSuccess, Consumer<String> onError) {
+        if (response != null && response.isSuccess()) {
+            handleSuccess(onSuccess);
+            return;
+        }
+        
+        String errMsg = getErrorMessage(response);
+        addLog("@@@ Server Error: " + errMsg);
+        notifyError(onError, errMsg);
+    }
+
+    private void handleSuccess(Runnable onSuccess) {
+        addLog("- Successfully saved to server!");
+        addLog("- Success read end \n");
         if (onSuccess != null) {
             onSuccess.run();
         }
+    }
+
+    private void handleApiError(Throwable error, Consumer<String> onError) {
+        log.error("Server API postUnpack failed", error);
+        String errorMessage = "Server Error: " + error.getMessage();
+        addLog("@@@ Network/Server Error: " + error.getMessage());
+        notifyError(onError, errorMessage);
+    }
+
+    private String getErrorMessage(ApiResponse<UnpackDto> response) {
+        if (response != null && response.message() != null) {
+            return response.message();
+        }
+        return "Failed to save unpack to server.";
+    }
+
+    private void notifyError(Consumer<String> onError, String message) {
+        if (onError != null) {
+            onError.accept(message);
+        }
+    }
+
+    /**
+     * Unpack 상위 모델 생성 및 총 금액 BigDecimal 연산 처리
+     */
+    private Unpack createUnpackModel(Supplier supplier, String invoiceNo, List<UnpackItem> items) {
+        Unpack unpack = new Unpack();
+        unpack.setInvoice(invoiceNo);
+        unpack.setSupplierAbbr(supplier != null ? supplier.getAbbr() : "");
+        unpack.setUnpacked(LocalDateTime.now(ZoneId.systemDefault()));
+        unpack.setSync(false);
+
+        // BigDecimal 합산 연산 (qty * pricein)
+        BigDecimal totalAmount = items.stream()
+                .map(item -> {
+                    BigDecimal qty = BigDecimal.valueOf(item.getQty());
+                    BigDecimal priceIn = item.getPricein() != null ? item.getPricein() : BigDecimal.ZERO;
+                    return priceIn.multiply(qty);
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        unpack.setAmount(totalAmount.doubleValue());
+        unpack.setItems(items);
+        return unpack;
+    }
+
+    /**
+     * Excel에서 읽어온 개별 Item 금액(amount) BigDecimal 연산 처리
+     */
+    private void enrichItemData(List<UnpackItem> items, Supplier supplier, String invoiceNo) {
+        items.forEach(item -> {
+            item.setInvoice(invoiceNo);
+            item.setAbbr(supplier != null ? supplier.getAbbr() : "");
+            item.setSupplier(supplier != null ? supplier.getCompany() : "");
+
+            BigDecimal qty = BigDecimal.valueOf(item.getQty());
+            BigDecimal priceIn = item.getPricein() != null ? item.getPricein() : BigDecimal.ZERO;
+            BigDecimal amount = priceIn.multiply(qty).setScale(2, RoundingMode.HALF_UP);
+
+            item.setAmount(amount);
+            item.setConfirm(false);
+            item.setIsSaved(false);
+            item.setIsNew(true);
+        });
     }
 
     private void handleReadFailure(Throwable ex, Consumer<String> onError) {
@@ -136,21 +246,6 @@ public class ReadExcelViewModel {
         if (onError != null) {
             onError.accept("Error processing Excel file: " + ex.getMessage());
         }
-    }
-
-    private void enrichItemData(List<UnpackItem> items, Supplier supplier) {
-        String invoiceNo = generateInvoiceNumber(supplier);
-        items.forEach(item -> {
-            //item.setInvoice(invoiceNo);
-            //item.setAbbr(supplier != null ? supplier.getAbbr() : "");
-            item.setSupplier(supplier != null ? supplier.getCompany() : "");
-            //item.setAmount(Double.valueOf(String.format("%.2f", item.getQty() * item.getPricein())));
-            item.setIsSaved(false);
-        });
-    }
-
-    private void saveUnpack(List<UnpackItem> items) {
-        // TODO: Repository 또는 Service 계층을 통한 DB 저장 로직 연동
     }
 
     private boolean updateInvoice() {
@@ -168,7 +263,7 @@ public class ReadExcelViewModel {
     }
 
     private String generateInvoiceTimestamp() {
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYMMddHHmm"));
+        return LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyMMddHHmm"));
     }
 
     private boolean hasDuplicatesBarcode(List<UnpackItem> productList) {

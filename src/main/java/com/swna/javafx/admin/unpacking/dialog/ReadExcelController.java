@@ -102,6 +102,14 @@ public class ReadExcelController {
         // ObservableList Bindings
         comboBoxSheet.setItems(viewModel.getSheets());
         listViewLog.setItems(viewModel.getLogs());
+
+        // 💡 로그 목록이 변경될 때 맨 마지막 행으로 자동 스크롤
+        viewModel.getLogs().addListener((javafx.collections.ListChangeListener<String>) change -> {
+            int size = viewModel.getLogs().size();
+            if (size > 0) {
+                listViewLog.scrollTo(size - 1);
+            }
+        });
     }
 
     // =========================================================================
