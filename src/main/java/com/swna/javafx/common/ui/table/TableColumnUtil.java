@@ -419,8 +419,8 @@ public class TableColumnUtil {
         column.setVisible(isVisible);
 
         if (editable) {
-            // 기본 BigDecimalStringConverter 대신 $ 포맷팅을 지원하는 Converter 적용
-            column.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalCurrencyStringConverter()));
+            // 커스텀 EditingCell을 통한 편집모드 제어 (클릭 시 숫자만 추출, 입력 제한)
+            column.setCellFactory(col -> new BigDecimalCurrencyEditingCell<>(alignment));
             column.setOnEditCommit(event -> {
                 T row = event.getRowValue();
                 ObjectProperty<BigDecimal> prop = propertyGetter.apply(row);
@@ -430,6 +430,115 @@ public class TableColumnUtil {
         } else {
             column.setCellFactory(tc -> new BigDecimalCurrencyCell<>());
             column.setEditable(false);
+        }
+    }
+
+    /**
+     * BigDecimal 통화 전용 편집 셀 (클릭 시 '-' 제거 및 숫자만 입력 허용)
+     */
+    private static class BigDecimalCurrencyEditingCell<T> extends TableCell<T, BigDecimal> {
+        private final String alignment;
+        private TextField textField;
+        private final NumberFormat currencyFormat;
+
+        public BigDecimalCurrencyEditingCell(String alignment) {
+            this.alignment = alignment;
+            this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+            currencyFormat.setMinimumFractionDigits(2);
+            currencyFormat.setMaximumFractionDigits(2);
+        }
+
+        @Override
+        public void startEdit() {
+            if (!isEmpty()) {
+                super.startEdit();
+                createTextField();
+                setText(null);
+                setGraphic(textField);
+                textField.selectAll();
+                textField.requestFocus();
+            }
+        }
+
+        @Override
+        public void cancelEdit() {
+            super.cancelEdit();
+            setText(formatText(getItem()));
+            setGraphic(null);
+        }
+
+        @Override
+        public void updateItem(BigDecimal item, boolean empty) {
+            super.updateItem(item, empty);
+            setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+
+            if (empty) {
+                setText(null);
+                setGraphic(null);
+            } else {
+                if (isEditing()) {
+                    if (textField != null) {
+                        textField.setText(getInitialEditText());
+                    }
+                    setText(null);
+                    setGraphic(textField);
+                } else {
+                    setText(formatText(item));
+                    setGraphic(null);
+                }
+            }
+        }
+
+        private void createTextField() {
+            textField = new TextField(getInitialEditText());
+            textField.setStyle(getAlignmentStyle(alignment));
+
+            // 숫자 및 소수점(최대 2자리)만 입력 허용하는 필터
+            UnaryOperator<TextFormatter.Change> numberFilter = change -> {
+                String newText = change.getControlNewText();
+                if (newText.isEmpty()) return change;
+                return newText.matches("\\d*(\\.\\d{0,2})?") ? change : null;
+            };
+            textField.setTextFormatter(new TextFormatter<>(numberFilter));
+
+            // Enter 키 입력 시 반영
+            textField.setOnAction(e -> commitEdit(getParsedValue()));
+
+            // 포커스 아웃(외부 클릭) 시 자동 저장
+            textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+                if (!isFocused && isEditing()) {
+                    commitEdit(getParsedValue());
+                }
+            });
+        }
+
+        // 클릭(편집) 시작 시 TextField에 채워넣을 초기 텍스트 (0이나 null, - 일 경우 빈칸 처리)
+        private String getInitialEditText() {
+            BigDecimal item = getItem();
+            if (item == null || item.compareTo(BigDecimal.ZERO) == 0) {
+                return "";
+            }
+            return item.toPlainString();
+        }
+
+        // 입력된 문자열을 BigDecimal로 변환
+        private BigDecimal getParsedValue() {
+            String text = textField.getText();
+            if (text == null || text.isBlank()) {
+                return BigDecimal.ZERO;
+            }
+            try {
+                return new BigDecimal(text);
+            } catch (NumberFormatException e) {
+                return BigDecimal.ZERO;
+            }
+        }
+
+        // 조회 모드 시 표시할 포맷 ($1,234.56 또는 -)
+        private String formatText(BigDecimal value) {
+            if (value == null) return "";
+            if (value.compareTo(BigDecimal.ZERO) == 0) return "-";
+            return currencyFormat.format(value);
         }
     }
 
@@ -490,7 +599,6 @@ public class TableColumnUtil {
             return new BigDecimal(cleanString);
         }
     }
-    
     // ========== Public API - Boolean Column ==========
     
     /**

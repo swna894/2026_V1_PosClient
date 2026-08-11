@@ -77,7 +77,6 @@ public class UnpackingViewModel {
                         List<Unpack> list = response.data().stream()
                                 .map(UnpackDto::toModel)
                                 .toList();
-
                         Platform.runLater(() -> {
                             unpacks.setAll(list);
                             unpackItems.clear();
@@ -169,7 +168,7 @@ public class UnpackingViewModel {
 
         List<UnpackItemDto> dtos = targetItems.stream()
                 .map(UnpackItemDto::fromModel)
-                .collect(Collectors.toList());
+                .toList();
 
         unpackApiClient.updateUnpackItems(dtos)
             .subscribe(

@@ -260,7 +260,20 @@
    -fx-font-size: 16px;
 }
 
+/* ========================================================================= */
+/* NEW-ITEM ROW STYLES (신규 항목 스타일 정의 및 우선순위 제어)               */
+/* ========================================================================= */
 
+/* 일반, 호버(hover), 선택(selected) 상태 모두 붉은색 글자 유지 */
+.table-view .table-row-cell:new-item .table-cell,
+.table-view .table-row-cell:new-item .text,
+.table-view .table-row-cell:new-item:hover .table-cell,
+.table-view .table-row-cell:new-item:hover .text,
+.table-view .table-row-cell:new-item:selected .table-cell,
+.table-view .table-row-cell:new-item:selected .text {
+   -fx-text-fill: red !important;
+   -fx-fill: red !important;
+}
 
 /* ========================================================================= */
 /* 4. LOGIN SCREEN (로그인 화면 전용 컴포넌트)                                   */

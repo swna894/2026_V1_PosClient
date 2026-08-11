@@ -14,6 +14,7 @@ import com.swna.javafx.common.ui.table.TableColumnUtil;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -23,6 +24,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
@@ -37,6 +39,9 @@ import net.rgielen.fxweaver.core.FxmlView;
 @RequiredArgsConstructor
 public class UnPackingController {
 
+    // PseudoClass 상수 정의
+    private static final PseudoClass NEW_ITEM_PSEUDO = PseudoClass.getPseudoClass("new-item");
+    
     private final NavigationService navigationService;
     private final UnpackingViewModel viewModel;
 
@@ -193,6 +198,35 @@ public class UnPackingController {
     private void configureItemsTable() {
         tableViewItems.setTableMenuButtonVisible(true);
         tableViewItems.setItems(viewModel.getUnpackItems());
+
+        // isNew가 true인 경우 글자색을 붉은색으로 표시
+        // PseudoClass 기반 RowFactory 적용
+        tableViewItems.setRowFactory(tv -> new TableRow<>() {
+            private final javafx.beans.value.ChangeListener<Boolean> isNewListener = 
+                    (obs, oldVal, newVal) -> updatePseudoState(newVal);
+
+            @Override
+            protected void updateItem(UnpackItem item, boolean empty) {
+                UnpackItem prevItem = getItem();
+                if (prevItem != null) {
+                    prevItem.isNewProperty().removeListener(isNewListener);
+                }
+
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    updatePseudoState(false);
+                } else {
+                    item.isNewProperty().addListener(isNewListener);
+                    updatePseudoState(item.getIsNew());
+                }
+            }
+
+            private void updatePseudoState(Boolean isNew) {
+                // :new-item 의사 클래스 상태 변경
+                pseudoClassStateChanged(NEW_ITEM_PSEUDO, Boolean.TRUE.equals(isNew));
+            }
+        });
 
         TableColumnUtil.createNumberColumn(tableViewItems, colItemNo, 50);
         TableColumnUtil.createCheckBoxHeaderColumn(tableViewItems, colItemConfirm, UnpackItem::confirmProperty, "", 60);
