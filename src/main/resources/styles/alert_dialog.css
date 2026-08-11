@@ -1,0 +1,55 @@
+.dialog-glass {
+  -fx-effect: dropshadow(three-pass-box, derive(cadetblue, -20%), 10, 0, 4, 4); 
+  -fx-background-color: derive(cadetblue, -20%); 
+  -fx-background-insets: 12; 
+  -fx-background-radius: 6;
+}
+
+.dialog-pane > .content.label {
+   -fx-padding: 0.5em 0.5em 0.5em 0.5em;
+   -fx-background-color: transparent ;
+   -fx-text-fill:black;
+   -fx-font-size: 16.0;
+   -fx-font-family: "Bookman Old Style";
+}
+
+.dialog-title {
+ 
+  -fx-background-insets: 10; 
+  -fx-background-radius: 6;
+  -fx-font-size: 14.0;
+  -fx-font-family: "Bookman Old Style";
+  -fx-text-fill: black;
+  -fx-font-weight: bold; 
+  -fx-padding: 10.0px;
+  -fx-alignment: center;
+  -fx-background-color: linear-gradient(to bottom, #f2f2f2, #d4d4d4);
+  -fx-border-color: white;
+  -fx-background-radius: 15.0;
+  -fx-border-radius: 15.0
+  
+}
+
+.box-content {
+  -fx-padding: 20, 0, 0, 0;
+  -fx-effect: dropshadow(three-pass-box, derive(cadetblue, -20%), 10, 0, 4, 4); 
+  -fx-background-color: linear-gradient(to bottom, derive(cadetblue, 20%), cadetblue);
+  -fx-background-insets: 12;
+  -fx-border-style: solid solid solid solid;
+  -fx-border-color: derive(cadetblue, -20%);
+  -fx-border-width: 5;
+  -fx-border-insets: 10;
+  -fx-background-radius: 6;
+  -fx-spacing: 3;
+  -fx-alignment: center;
+  -fx-font-family: "Bookman Old Style";
+  -fx-text-fill: black;
+  -fx-font-size: 14.0;
+  -fx-font-weight: bold; 
+}
+
+ButtonBar, HBox, VBox {
+   -fx-background-color: linear-gradient(to bottom, derive(cadetblue, 20%), cadetblue);
+   -fx-background-radius: 6;
+}
+

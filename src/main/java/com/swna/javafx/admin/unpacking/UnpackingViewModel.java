@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import com.swna.javafx.admin.unpacking.dto.UnpackDto;
 import com.swna.javafx.admin.unpacking.dto.UnpackItemDto;
 import com.swna.javafx.admin.unpacking.model.Unpack;
 import com.swna.javafx.admin.unpacking.model.UnpackItem;
+import com.swna.javafx.common.util.AlertDialog;
 
 import javafx.application.Platform;
 import javafx.beans.Observable;
@@ -28,6 +30,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.scene.control.ButtonType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UnpackingViewModel {
 
     private final UnpackApiClient unpackApiClient;
+    private final AlertDialog alertDialog;
 
     // ---------------- State Properties ----------------
     private final ObjectProperty<LocalDate> startDate = new SimpleObjectProperty<>(LocalDate.now().withDayOfMonth(1));
@@ -152,21 +156,57 @@ public class UnpackingViewModel {
             );
     }
 
-    /** 4. UPDATE (Bulk / Add Stock): 선택된 확정 품목 재고 등록 및 다건 수정 */
-    public void addStockForConfirmedItems(List<UnpackItem> items) {
-        if (items == null || items.isEmpty()) return;
 
-        List<UnpackItem> targetItems = items.stream()
-                .filter(item -> item.getConfirm() && !item.getIsSaved())
+
+    /** 선택된 확정 품목 재고 등록 처리 (확인 다이얼로그 적용) */
+    public void addStockForConfirmedItems() {
+        if (unpackItems.isEmpty()) {
+            alertDialog.dialogString("No products were found to add  Or check the RP.");
+            return;
+        }
+
+        // 1. 라인 번호(LineNo) 순차 부여
+        for (int i = 0; i < unpackItems.size(); i++) {
+            unpackItems.get(i).setLineNo(i + 1);
+        }
+
+        // 2. 대상 품목 필터링 (확정, 미저장, 판매가 또는 예상가 존재)
+        List<UnpackItem> targetItems = unpackItems.stream()
+                .filter(item -> Boolean.TRUE.equals(item.getConfirm()) && !Boolean.TRUE.equals(item.getIsSaved()))
+                .filter(item -> (item.getPriceoutEstimated() != null && item.getPriceoutEstimated().compareTo(BigDecimal.ZERO) != 0) 
+                             || (item.getPriceout() != null && item.getPriceout().compareTo(BigDecimal.ZERO) != 0))
                 .toList();
 
-        if (targetItems.isEmpty()) return;
+        // 대상 품목이 없는 경우 알림창 표시
+        if (targetItems.isEmpty()) {
+            alertDialog.dialogString("No products were found to add  Or check the RP.");
+            return;
+        }
 
+        // 3. 바코드 중복 체크
         if (hasDuplicatesBarcode(targetItems)) {
             log.warn("중복된 바코드가 존재합니다.");
             return;
         }
 
+        // 4. 재고 등록 여부 confirmation 다이얼로그 호출
+        Optional<ButtonType> result = alertDialog.dialogDecisionString(
+                "  Did you want to add checked." + targetItems.size() + " items to inventory ?"
+        );
+
+        // 사용자가 OK를 누르지 않고 취소한 경우 중단
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        // 5. 판매가 미입력 시 예상 판매가로 자동 대입
+        targetItems.forEach(item -> {
+            if (item.getPriceout() == null || item.getPriceout().compareTo(BigDecimal.ZERO) == 0) {
+                item.setPriceout(item.getPriceoutEstimated());
+            }
+        });
+
+        // 6. DTO 변환 및 API 호출
         List<UnpackItemDto> dtos = targetItems.stream()
                 .map(UnpackItemDto::fromModel)
                 .toList();
@@ -175,8 +215,13 @@ public class UnpackingViewModel {
             .subscribe(
                 response -> {
                     if (response != null && response.isSuccess()) {
-                        log.info("재고 등록 및 품목 다건 수정 성공");
+                        log.info("재고 등록 성공");
                         Platform.runLater(this::reload);
+                    } else {
+                        // 실패 시 UI 스레드에서 알림창 표시
+                        Platform.runLater(() -> 
+                            alertDialog.dialogString("Barcodes are registered with other companies.")
+                        );
                     }
                 },
                 error -> log.error("재고 등록 실패", error)

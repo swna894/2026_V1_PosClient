@@ -118,7 +118,7 @@ public class UnPackingController {
     @FXML
     private void handleAddStock(ActionEvent event) {
         log.info("[Action] Add Stock button clicked");
-        viewModel.addStockForConfirmedItems(tableViewItems.getItems());
+        viewModel.addStockForConfirmedItems();
     }
 
     // ---------------- Public API ----------------
@@ -255,7 +255,7 @@ public class UnPackingController {
 
         TableColumnUtil.makeBigDecimalCurrencyColumn(colItemOldPriceIn, UnpackItem::oldPriceinProperty, false, true, TableColumnUtil.RIGHT, null);
         TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceIn, UnpackItem::priceinProperty, false, true, TableColumnUtil.RIGHT, null);
-        TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceOutEstimated, UnpackItem::priceoutEstimatedProperty, true, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceOutEstimated, UnpackItem::priceoutEstimatedProperty, false, true, TableColumnUtil.RIGHT, null);
         TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceOut, UnpackItem::priceoutProperty, true, true, TableColumnUtil.RIGHT, null);
 
         if (colItemCategory != null) {
