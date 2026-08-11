@@ -27,6 +27,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +52,7 @@ public class UnPackingController {
     @FXML private BorderPane rightPane;
     @FXML private SplitPane splitPane;
 
-    @FXML public Button buttonReload;
+    @FXML private Button buttonReload;
     @FXML private Button buttonExcelRead;
     @FXML private Button buttonAddStock;
     @FXML private Button buttonEPrice;
@@ -111,7 +112,7 @@ public class UnPackingController {
     @FXML
     private void handleEPrice(ActionEvent event) {
         log.info("[Action] E-Price button clicked");
-        viewModel.applyEstimatedPriceMultiplier(textFieldPriceMultiplier.getText(), tableViewItems.getItems());
+        viewModel.applyEstimatedPriceMultiplier();
     }
 
     @FXML
@@ -151,6 +152,18 @@ public class UnPackingController {
         datePickerEnd.valueProperty().bindBidirectional(viewModel.endDateProperty());
         datePickerStart.setOnAction(e -> viewModel.reload());
         datePickerEnd.setOnAction(e -> viewModel.reload());
+
+        // 2. textFieldPriceMultiplier 양방향 바인딩
+        textFieldPriceMultiplier.textProperty().bindBidirectional(viewModel.priceMultiplierProperty());
+        // 3. 숫자 및 소수점만 입력 허용하는 TextFormatter 적용
+        textFieldPriceMultiplier.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            // 빈 값("") 또는 소수점을 포함한 숫자 패턴만 허용 (예: 2, 2.3, 0.5)
+            if (newText.isEmpty() || newText.matches("^\\d*\\.?\\d*$")) {
+                return change;
+            }
+            return null; // 조건에 맞지 않는 입력(문자 등)은 무시
+        }));
 
         labelUnpacksSummary.textProperty().bind(viewModel.inspectionSummaryProperty());
         labelItemsSummary.textProperty().bind(viewModel.productSummaryProperty());

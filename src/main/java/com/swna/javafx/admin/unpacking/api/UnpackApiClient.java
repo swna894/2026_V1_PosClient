@@ -33,7 +33,7 @@ public class UnpackApiClient {
 
     /** C: Unpack 생성 (POST /api/unpack) */
     public Mono<ApiResponse<UnpackDto>> postUnpack(UnpackDto dto) {
-        log.info("[API] POST {} - body: {}", API_UNPACK, dto);
+        //log.info("[API] POST {} - body: {}", API_UNPACK, dto);
         return webClientCommon.post(API_UNPACK, dto, TypeReferences.single(UnpackDto.class));
     }
 

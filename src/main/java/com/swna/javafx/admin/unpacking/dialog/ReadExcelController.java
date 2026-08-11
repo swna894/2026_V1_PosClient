@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.supplier.domain.Supplier;
 import com.swna.javafx.admin.supplier.viewmodel.SupplierViewModel;
+import com.swna.javafx.admin.unpacking.UnpackingViewModel;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -31,6 +32,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 public class ReadExcelController {
 
     private final ReadExcelViewModel viewModel;
+    private final UnpackingViewModel unpackingViewModel;
     private final SupplierViewModel supplierViewModel;
 
     @FXML private Button buttonReadExcel;
@@ -156,7 +158,8 @@ public class ReadExcelController {
         viewModel.readExcel(
             () -> { // On success
                 buttonReadExcel.setDisable(false);
-                showAlert(Alert.AlertType.INFORMATION, "Success", "Excel file processed successfully.");
+                unpackingViewModel.reload();
+                /* showAlert(Alert.AlertType.INFORMATION, "Success", "Excel file processed successfully."); */
             },
             errorMsg -> { // On failure / error
                 buttonReadExcel.setDisable(false);

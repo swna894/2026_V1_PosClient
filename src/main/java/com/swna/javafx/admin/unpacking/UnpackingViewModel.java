@@ -41,6 +41,7 @@ public class UnpackingViewModel {
     // ---------------- State Properties ----------------
     private final ObjectProperty<LocalDate> startDate = new SimpleObjectProperty<>(LocalDate.now().withDayOfMonth(1));
     private final ObjectProperty<LocalDate> endDate = new SimpleObjectProperty<>(LocalDate.now());
+    private final StringProperty priceMultiplier = new SimpleStringProperty("2.3");
     private final StringProperty unpacksSummary = new SimpleStringProperty("  $0.00 | 0 ITEMS");
     private final StringProperty itemsSummary = new SimpleStringProperty("  $0.00 | 0 ITEMS");
     private final BooleanProperty darkTheme = new SimpleBooleanProperty(false);
@@ -221,12 +222,14 @@ public class UnpackingViewModel {
     }
 
     /** 예상 판매가 배수 적용 (BigDecimal 연산 적용) */
-    public void applyEstimatedPriceMultiplier(String multiplierStr, List<UnpackItem> items) {
-        if (items == null || multiplierStr == null || !multiplierStr.matches("^\\d+(\\.\\d+)?$")) return;
+    public void applyEstimatedPriceMultiplier() {
+        String multiplierStr = priceMultiplier.get();
+        if (multiplierStr == null || !multiplierStr.matches("^\\d+(\\.\\d+)?$")) return;
         
         BigDecimal multiplier = new BigDecimal(multiplierStr);
 
-        items.forEach(item -> {
+        // unpackItems 내부 객체들의 priceoutEstimated 변경
+        unpackItems.forEach(item -> {
             BigDecimal priceIn = item.getPricein() != null ? item.getPricein() : BigDecimal.ZERO;
             BigDecimal estimated = priceIn.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
             item.setPriceoutEstimated(estimated);
@@ -295,6 +298,7 @@ public class UnpackingViewModel {
     public ObjectProperty<LocalDate> endDateProperty() { return endDate; }
     public StringProperty inspectionSummaryProperty() { return unpacksSummary; }
     public StringProperty productSummaryProperty() { return itemsSummary; }
+    public StringProperty priceMultiplierProperty() {  return priceMultiplier;  }
     public BooleanProperty darkThemeProperty() { return darkTheme; }
 
     public ObservableList<Supplier> getSuppliers() { return suppliers; }
