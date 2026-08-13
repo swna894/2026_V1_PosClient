@@ -140,6 +140,7 @@ public class PosViewController {
         clockManager.start(labelClockTime, labelClockDate);
         
         // 5. 바코드 스캐너 설정
+        
         scannerManager.setup(table, safeBarcodeScanner, this::handleBarcode);
         
         // 6. 장바구니 버튼 숨김 처리

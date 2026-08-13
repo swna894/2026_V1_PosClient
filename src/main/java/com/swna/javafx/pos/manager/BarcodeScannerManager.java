@@ -3,6 +3,7 @@ package com.swna.javafx.pos.manager;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
 import javafx.application.Platform;
 import javafx.scene.Node;
+import javafx.scene.input.KeyEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.function.Consumer;
@@ -22,5 +23,13 @@ public class BarcodeScannerManager {
                 log.error("[SCANNER] Scene is null");
             }
         });
+
+        if (sceneRoot.getScene() != null) {
+        sceneRoot.getScene().addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            if (!sceneRoot.isFocused()) {
+                Platform.runLater(sceneRoot::requestFocus);
+            }
+        });
+    }
     }
 }

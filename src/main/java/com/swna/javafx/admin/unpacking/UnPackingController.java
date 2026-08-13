@@ -11,7 +11,10 @@ import com.swna.javafx.admin.unpacking.model.Unpack;
 import com.swna.javafx.admin.unpacking.model.UnpackItem;
 import com.swna.javafx.common.navigation.NavigationService;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
+import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
+import com.swna.javafx.pos.manager.BarcodeScannerManager;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -45,6 +48,8 @@ public class UnPackingController {
     
     private final NavigationService navigationService;
     private final UnpackingViewModel viewModel;
+    private final SafeBarcodeScanner safeBarcodeScanner;
+    private final BarcodeScannerManager scannerManager;
 
     @FXML private BorderPane borderPane;
     @FXML private ToolBar mainToolBar;
@@ -143,6 +148,10 @@ public class UnPackingController {
         wireControls();
         configureUnpackTable();
         configureItemsTable();
+
+        // 5. 바코드 스캐너 설정
+        scannerManager.setup(tableViewItems, safeBarcodeScanner, this::handleBarcode);
+        Platform.runLater(() -> tableViewItems.requestFocus());
     }
 
     private void wireControls() {
@@ -190,6 +199,14 @@ public class UnPackingController {
                 setText(empty || item == null ? "" : item.getCompany());
             }
         };
+    }
+
+        // ========== Handler Methods ==========
+    
+    private void handleBarcode(String code) {
+        if (code == null || code.isBlank()) return;
+        //Platform.runLater(() -> viewModel.scan(code)); 
+        Platform.runLater(() -> log.info("Barcode scanned: {}", code)); 
     }
 
     // ---------------- Table Configurations ----------------
