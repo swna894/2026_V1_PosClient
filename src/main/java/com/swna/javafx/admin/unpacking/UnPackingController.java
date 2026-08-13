@@ -245,16 +245,16 @@ public class UnPackingController {
         TableColumnUtil.createCheckBoxHeaderColumn(tableViewItems, colItemConfirm, UnpackItem::confirmProperty, "", 60);
         TableColumnUtil.createCheckBoxTextColumn(tableViewItems, colItemIsSaved, UnpackItem::isSavedProperty, "ADDED", 70, true);
 
-        TableColumnUtil.makeStringColumn(colItemBarcode, UnpackItem::barcodeProperty, UnpackItem::setBarcode, true, true, TableColumnUtil.CENTER, null);
+        TableColumnUtil.makeStringColumn(colItemBarcode, UnpackItem::barcodeProperty, UnpackItem::setBarcode, false, true, TableColumnUtil.CENTER, null);
         TableColumnUtil.makeStringColumn(colItemDescription, UnpackItem::descriptionProperty, UnpackItem::setDescription, true, true, TableColumnUtil.LEFT, null);
-        TableColumnUtil.makeStringColumn(colItemCode, UnpackItem::codeProperty, UnpackItem::setCode, true, true, TableColumnUtil.LEFT, null);
+        TableColumnUtil.makeStringColumn(colItemCode, UnpackItem::codeProperty, UnpackItem::setCode, false, true, TableColumnUtil.LEFT, null);
         TableColumnUtil.makeStringColumn(colItemComment, UnpackItem::commentProperty, UnpackItem::setComment, true, true, TableColumnUtil.LEFT, null);
 
         TableColumnUtil.makeIntegerColumn(colItemQty, UnpackItem::qtyProperty, UnpackItem::setQty, true, true, TableColumnUtil.CENTER, null);
         TableColumnUtil.makeIntegerColumn(colItemMinStock, UnpackItem::minStockProperty, UnpackItem::setMinStock, true, true, TableColumnUtil.CENTER, null);
 
         TableColumnUtil.makeBigDecimalCurrencyColumn(colItemOldPriceIn, UnpackItem::oldPriceinProperty, false, true, TableColumnUtil.RIGHT, null);
-        TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceIn, UnpackItem::priceinProperty, false, true, TableColumnUtil.RIGHT, null);
+        TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceIn, UnpackItem::priceinProperty, true, true, TableColumnUtil.RIGHT, null);
         TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceOutEstimated, UnpackItem::priceoutEstimatedProperty, false, true, TableColumnUtil.RIGHT, null);
         TableColumnUtil.makeBigDecimalCurrencyColumn(colItemPriceOut, UnpackItem::priceoutProperty, true, true, TableColumnUtil.RIGHT, null);
 

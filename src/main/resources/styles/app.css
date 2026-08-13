@@ -135,7 +135,7 @@
 /* 3. COMMON COMPONENTS - TABLES (공통 테이블 및 셀 뷰 스타일)                */
 /* ========================================================================= */
 .table-view {
-   -fx-selection-bar: #6F4CBB;
+   /* -fx-selection-bar: #5ebb4c; */
 }
 
 /* ------------------------------------------------------------------------- */
@@ -196,7 +196,7 @@
 /* ------------------------------------------------------------------------- */
 .table-row-cell:filled:selected,
 .table-center-header .table-row-cell:selected {
-   -fx-background-color: #6F4CBB;
+   /* -fx-background-color: #6F4CBB; */
 }
 
 .table-row-cell:filled:selected .text,

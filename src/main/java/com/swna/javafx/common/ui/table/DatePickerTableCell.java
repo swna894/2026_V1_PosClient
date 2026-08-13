@@ -6,6 +6,7 @@ import java.util.function.BiConsumer;
 
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableCell;
+import com.swna.javafx.common.ui.table.TableColumnUtil.DirtyConsumer;
 
 public class DatePickerTableCell<T> extends TableCell<T, LocalDateTime> {
 

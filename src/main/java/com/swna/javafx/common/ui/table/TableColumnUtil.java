@@ -13,6 +13,7 @@ import java.util.function.ObjDoubleConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.function.UnaryOperator;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -36,14 +37,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.util.converter.BigDecimalStringConverter;
-import javafx.util.converter.DoubleStringConverter;
-import javafx.util.converter.IntegerStringConverter;
 
 public class TableColumnUtil {
 
@@ -59,10 +56,18 @@ public class TableColumnUtil {
     private static final String STYLE_TRANSPARENT = "-fx-background-color: transparent;";
     private static final String BUTTON_STYLE_DEFAULT = "-fx-background-color:transparent; -fx-alignment: center;";
     private static final String BUTTON_STYLE_HOVER = "-fx-background-color:#6F4CBB;";
-
+    // 편집모드 진입 시 텍스트필드 영역을 명확히 구분하기 위한 스타일 (흰 배경 + 테두리)
+    private static final String STYLE_EDIT_TEXTFIELD =
+            "-fx-background-color: white; -fx-border-color: #6F4CBB; " +
+            "-fx-border-width: 1.5px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-padding: 0 4 0 4; " +
+            "-fx-effect: dropshadow(gaussian, rgba(111,76,187,0.25), 4, 0, 0, 2);";
+    // 편집 중 포커스를 받았을 때 테두리를 한 번 더 강조하는 스타일
+    private static final String STYLE_EDIT_TEXTFIELD_FOCUSED =
+            "-fx-background-color: white; -fx-border-color: #4A90D9; " +
+            "-fx-border-width: 2px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-padding: 0 4 0 4; " +
+            "-fx-effect: dropshadow(gaussian, rgba(74,144,217,0.35), 6, 0, 0, 2);";
 
     // ========== Public API - Number Column ==========
-
 
     public static String formatCurrency(double amount) {
         NumberFormat format = NumberFormat.getCurrencyInstance(Locale.US);
@@ -71,6 +76,7 @@ public class TableColumnUtil {
         format.setMaximumFractionDigits(2);
         return format.format(amount);
     }
+
     /**
      * 테이블 행 번호를 표시하는 컬럼을 생성합니다.
      * 각 행의 순번(1부터 시작)을 자동으로 표시하며, 정렬 및 편집이 불가능합니다.
@@ -85,13 +91,14 @@ public class TableColumnUtil {
         if (width != 0) column.setPrefWidth(width);
         column.setText("NO");
         column.setSortable(false);
+        column.setEditable(false);
         column.setStyle(STYLE_TRANSPARENT + STYLE_CENTER);
         column.setCellValueFactory(p -> new ReadOnlyObjectWrapper<>(" " + (tableView.getItems().indexOf(p.getValue()) + 1) + " "));
         return column;
     }
 
     // ========== Public API - String Column ==========
-    
+
     /**
      * 문자열 값을 표시하는 컬럼을 생성합니다.
      * StringProperty에 바인딩되며, 편집 가능 여부와 정렬 방식을 설정할 수 있습니다.
@@ -120,7 +127,7 @@ public class TableColumnUtil {
         column.setVisible(isVisible);
 
         if (editable) {
-            column.setCellFactory(TextFieldTableCell.forTableColumn());
+            column.setCellFactory(col -> new StringEditingCell<>(alignment));
             column.setOnEditCommit(event -> {
                 T row = event.getRowValue();
                 setter.accept(row, event.getNewValue());
@@ -132,10 +139,10 @@ public class TableColumnUtil {
     }
 
     // ========== Public API - Currency Column ==========
-    
+
     /**
      * 통화(Currency) 형식으로 값을 표시하는 컬럼을 생성합니다.
-     * 시스템 기본 로케일에 맞춰 통화 형식(예: ₩1,234.00)으로 표시됩니다.
+     * 시스템 기본 로케일에 맞춰 통화 형식(예: $1,234.00)으로 표시됩니다.
      *
      * @param <T>           테이블 뷰의 모델 타입
      * @param column        설정할 TableColumn (Double 타입)
@@ -154,25 +161,25 @@ public class TableColumnUtil {
     ) {
         column.setCellValueFactory(cellData -> propertyGetter.apply(cellData.getValue()).asObject());
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-        column.setCellFactory(tc -> new CurrencyCell<>());
 
         column.setVisible(isVisible);
 
         if (editable) {
-            column.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverter()));
+            column.setCellFactory(col -> new CurrencyEditingCell<>(alignment));
             column.setOnEditCommit(event -> {
                 T row = event.getRowValue();
                 DoubleProperty prop = propertyGetter.apply(row);
-                prop.set(event.getNewValue());
+                prop.set(event.getNewValue() != null ? event.getNewValue() : 0.0);
                 if (dirtyConsumer != null) dirtyConsumer.accept(row);
             });
         } else {
+            column.setCellFactory(tc -> new CurrencyCell<>());
             column.setEditable(false);
         }
     }
 
     // ========== Public API - Integer Column ==========
-    
+
     /**
      * 정수(Integer) 값을 표시하는 컬럼을 생성합니다.
      * 숫자만 입력 가능한 편집 셀을 제공하며, 음수 입력도 지원합니다.
@@ -214,7 +221,7 @@ public class TableColumnUtil {
     }
 
     // ========== Public API - Long Column ==========
-    
+
     /**
      * 읽기 전용 Long 값을 표시하는 컬럼을 생성합니다.
      * 편집이 불가능하며, 단순히 값을 표시하는 용도로 사용됩니다.
@@ -231,10 +238,10 @@ public class TableColumnUtil {
     }
 
     // ========== Public API - Double Column ==========
-    
+
     /**
      * 실수(Double) 값을 표시하는 컬럼을 생성합니다.
-     * 소수점을 포함한 숫자 값을 표시하며, 편집 시 기본 DoubleStringConverter를 사용합니다.
+     * 소수점을 포함한 숫자 값을 표시합니다.
      *
      * @param <T>           테이블 뷰의 모델 타입
      * @param column        설정할 TableColumn (Double 타입)
@@ -259,10 +266,12 @@ public class TableColumnUtil {
         column.setVisible(isVisible);
 
         if (editable) {
-            column.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverter()));
+            column.setCellFactory(col -> new DoubleEditingCell<>(alignment));
             column.setOnEditCommit(event -> {
                 T row = event.getRowValue();
-                setter.accept(row, event.getNewValue());
+                if (event.getNewValue() != null) {
+                    setter.accept(row, event.getNewValue());
+                }
                 if (dirtyConsumer != null) dirtyConsumer.accept(row);
             });
         } else {
@@ -271,7 +280,7 @@ public class TableColumnUtil {
     }
 
     // ========== Public API - DateTime Column ==========
-    
+
     /**
      * 날짜/시간(LocalDateTime) 값을 표시하는 컬럼을 생성합니다.
      * 기본 toString() 형식으로 표시되며, 편집 가능 여부를 설정할 수 있습니다.
@@ -352,11 +361,11 @@ public class TableColumnUtil {
      */
     private static class FormattedDateTimeCell<T> extends TableCell<T, LocalDateTime> {
         private final DateTimeFormatter formatter;
-        
+
         public FormattedDateTimeCell(DateTimeFormatter formatter) {
             this.formatter = formatter;
         }
-        
+
         @Override
         protected void updateItem(LocalDateTime item, boolean empty) {
             super.updateItem(item, empty);
@@ -367,9 +376,9 @@ public class TableColumnUtil {
             }
         }
     }
-    
+
     // ========== Public API - DatePicker Column ==========
-    
+
     /**
      * DatePicker 팝업을 통해 날짜를 선택할 수 있는 컬럼을 생성합니다.
      * 셀을 클릭하면 DatePicker가 표시되어 날짜를 선택할 수 있습니다.
@@ -390,10 +399,9 @@ public class TableColumnUtil {
     ) {
         column.setCellValueFactory(cell -> getter.apply(cell.getValue()));
         column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-        column.setCellFactory(col -> new DatePickerTableCell<>(setter, dirtyConsumer));
+        column.setCellFactory(col -> new DatePickerTableCell<T>(setter, dirtyConsumer));
         column.setEditable(true);
     }
-
 
     /**
      * BigDecimal 값을 통화 형식으로 표시하는 컬럼을 생성합니다.
@@ -433,6 +441,352 @@ public class TableColumnUtil {
         }
     }
 
+    // =========================================================================
+    // Custom TextField Editing Cells (리팩토링된 공통 스타일링 셀 목록)
+    // =========================================================================
+
+    /**
+     * String 전용 커스텀 편집 셀
+     */
+    private static class StringEditingCell<T> extends TableCell<T, String> {
+        private final String alignment;
+        private TextField textField;
+
+        public StringEditingCell(String alignment) {
+            this.alignment = alignment;
+            setPadding(Insets.EMPTY);
+        }
+
+        @Override
+        public void startEdit() {
+            if (!isEmpty()) {
+                super.startEdit();
+                createTextField();
+                setText(null);
+                setGraphic(textField);
+                textField.selectAll();
+                Platform.runLater(textField::requestFocus);
+            }
+        }
+
+        @Override
+        public void cancelEdit() {
+            super.cancelEdit();
+            setText(getItem());
+            setGraphic(null);
+        }
+
+        @Override
+        public void updateItem(String item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (empty) {
+                setText(null);
+                setGraphic(null);
+                setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+                return;
+            }
+
+            if (isEditing()) {
+                if (textField != null) {
+                    textField.setText(getItem() != null ? getItem() : "");
+                }
+                setText(null);
+                setGraphic(textField);
+            } else {
+                setText(item);
+                setGraphic(null);
+                setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+            }
+        }
+
+        private void createTextField() {
+            textField = new TextField(getItem() != null ? getItem() : "");
+            setupTextFieldLayoutAndListeners(textField, alignment, this);
+
+            textField.setOnAction(e -> commitEdit(textField.getText()));
+
+            textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+                if (!isFocused && isEditing()) {
+                    Platform.runLater(() -> commitEdit(textField.getText()));
+                }
+            });
+        }
+    }
+
+    /**
+     * Integer 전용 커스텀 편집 셀
+     */
+    private static class IntegerEditingCell<T> extends TableCell<T, Integer> {
+        private final String alignment;
+        private TextField textField;
+
+        public IntegerEditingCell(String alignment) {
+            this.alignment = alignment;
+            setPadding(Insets.EMPTY);
+        }
+
+        @Override
+        public void startEdit() {
+            if (!isEmpty()) {
+                super.startEdit();
+                createTextField();
+                setText(null);
+                setGraphic(textField);
+                textField.selectAll();
+                Platform.runLater(textField::requestFocus);
+            }
+        }
+
+        @Override
+        public void cancelEdit() {
+            super.cancelEdit();
+            setText(getItem() != null ? getItem().toString() : "");
+            setGraphic(null);
+        }
+
+        @Override
+        public void updateItem(Integer item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+                setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+                return;
+            }
+
+            if (isEditing()) {
+                if (textField != null) {
+                    textField.setText(getItem().toString());
+                }
+                setText(null);
+                setGraphic(textField);
+            } else {
+                setText(item.toString());
+                setGraphic(null);
+                setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+            }
+        }
+
+        private void createTextField() {
+            textField = new TextField(getItem() != null ? getItem().toString() : "");
+            setupTextFieldLayoutAndListeners(textField, alignment, this);
+
+            UnaryOperator<TextFormatter.Change> filter = change -> {
+                String newText = change.getControlNewText();
+                if (newText.isEmpty()) return change;
+                return newText.matches("-?\\d*") ? change : null;
+            };
+            textField.setTextFormatter(new TextFormatter<>(filter));
+
+            textField.setOnAction(e -> commitEdit(getParsedValue()));
+
+            textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+                if (!isFocused && isEditing()) {
+                    Platform.runLater(() -> commitEdit(getParsedValue()));
+                }
+            });
+        }
+
+        private Integer getParsedValue() {
+            String text = textField.getText();
+            if (text == null || text.isBlank() || text.equals("-")) return 0;
+            try {
+                return Integer.parseInt(text);
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
+    }
+
+    /**
+     * Double 전용 커스텀 편집 셀
+     */
+    private static class DoubleEditingCell<T> extends TableCell<T, Double> {
+        private final String alignment;
+        private TextField textField;
+
+        public DoubleEditingCell(String alignment) {
+            this.alignment = alignment;
+            setPadding(Insets.EMPTY);
+        }
+
+        @Override
+        public void startEdit() {
+            if (!isEmpty()) {
+                super.startEdit();
+                createTextField();
+                setText(null);
+                setGraphic(textField);
+                textField.selectAll();
+                Platform.runLater(textField::requestFocus);
+            }
+        }
+
+        @Override
+        public void cancelEdit() {
+            super.cancelEdit();
+            setText(getItem() != null ? getItem().toString() : "");
+            setGraphic(null);
+        }
+
+        @Override
+        public void updateItem(Double item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+                setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+                return;
+            }
+
+            if (isEditing()) {
+                if (textField != null) {
+                    textField.setText(getItem().toString());
+                }
+                setText(null);
+                setGraphic(textField);
+            } else {
+                setText(item.toString());
+                setGraphic(null);
+                setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+            }
+        }
+
+        private void createTextField() {
+            textField = new TextField(getItem() != null ? getItem().toString() : "");
+            setupTextFieldLayoutAndListeners(textField, alignment, this);
+
+            UnaryOperator<TextFormatter.Change> filter = change -> {
+                String newText = change.getControlNewText();
+                if (newText.isEmpty()) return change;
+                return newText.matches("-?\\d*(\\.\\d*)?") ? change : null;
+            };
+            textField.setTextFormatter(new TextFormatter<>(filter));
+
+            textField.setOnAction(e -> commitEdit(getParsedValue()));
+
+            textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+                if (!isFocused && isEditing()) {
+                    Platform.runLater(() -> commitEdit(getParsedValue()));
+                }
+            });
+        }
+
+        private Double getParsedValue() {
+            String text = textField.getText();
+            if (text == null || text.isBlank() || text.equals("-")) return 0.0;
+            try {
+                return Double.parseDouble(text);
+            } catch (NumberFormatException e) {
+                return 0.0;
+            }
+        }
+    }
+
+    /**
+     * Double Currency 전용 커스텀 편집 셀
+     */
+    private static class CurrencyEditingCell<T> extends TableCell<T, Double> {
+        private final String alignment;
+        private TextField textField;
+        private final NumberFormat currencyFormat;
+
+        public CurrencyEditingCell(String alignment) {
+            this.alignment = alignment;
+            this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+            currencyFormat.setMinimumFractionDigits(2);
+            currencyFormat.setMaximumFractionDigits(2);
+            setPadding(Insets.EMPTY);
+        }
+
+        @Override
+        public void startEdit() {
+            if (!isEmpty()) {
+                super.startEdit();
+                createTextField();
+                setText(null);
+                setGraphic(textField);
+                textField.selectAll();
+                Platform.runLater(textField::requestFocus);
+            }
+        }
+
+        @Override
+        public void cancelEdit() {
+            super.cancelEdit();
+            setText(formatText(getItem()));
+            setGraphic(null);
+        }
+
+        @Override
+        public void updateItem(Double item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+                setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+                return;
+            }
+
+            if (isEditing()) {
+                if (textField != null) {
+                    textField.setText(getInitialEditText());
+                }
+                setText(null);
+                setGraphic(textField);
+            } else {
+                setText(formatText(item));
+                setGraphic(null);
+                setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+            }
+        }
+
+        private void createTextField() {
+            textField = new TextField(getInitialEditText());
+            setupTextFieldLayoutAndListeners(textField, alignment, this);
+
+            UnaryOperator<TextFormatter.Change> filter = change -> {
+                String newText = change.getControlNewText();
+                if (newText.isEmpty()) return change;
+                return newText.matches("\\d*(\\.\\d{0,2})?") ? change : null;
+            };
+            textField.setTextFormatter(new TextFormatter<>(filter));
+
+            textField.setOnAction(e -> commitEdit(getParsedValue()));
+
+            textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+                if (!isFocused && isEditing()) {
+                    Platform.runLater(() -> commitEdit(getParsedValue()));
+                }
+            });
+        }
+
+        private String getInitialEditText() {
+            Double item = getItem();
+            if (item == null || item == 0.0) return "";
+            return item.toString();
+        }
+
+        private Double getParsedValue() {
+            String text = textField.getText();
+            if (text == null || text.isBlank()) return 0.0;
+            try {
+                return Double.parseDouble(text);
+            } catch (NumberFormatException e) {
+                return 0.0;
+            }
+        }
+
+        private String formatText(Double value) {
+            if (value == null) return "";
+            return currencyFormat.format(value);
+        }
+    }
+
     /**
      * BigDecimal 통화 전용 편집 셀 (클릭 시 '-' 제거 및 숫자만 입력 허용)
      */
@@ -446,6 +800,7 @@ public class TableColumnUtil {
             this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
             currencyFormat.setMinimumFractionDigits(2);
             currencyFormat.setMaximumFractionDigits(2);
+            setPadding(Insets.EMPTY);
         }
 
         @Override
@@ -456,7 +811,7 @@ public class TableColumnUtil {
                 setText(null);
                 setGraphic(textField);
                 textField.selectAll();
-                textField.requestFocus();
+                Platform.runLater(textField::requestFocus);
             }
         }
 
@@ -470,30 +825,33 @@ public class TableColumnUtil {
         @Override
         public void updateItem(BigDecimal item, boolean empty) {
             super.updateItem(item, empty);
-            setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
 
-            if (empty) {
+            if (empty || item == null) {
                 setText(null);
                 setGraphic(null);
-            } else {
-                if (isEditing()) {
-                    if (textField != null) {
-                        textField.setText(getInitialEditText());
-                    }
-                    setText(null);
-                    setGraphic(textField);
-                } else {
-                    setText(formatText(item));
-                    setGraphic(null);
+                setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+                return;
+            }
+
+            if (isEditing()) {
+                if (textField != null) {
+                    textField.setText(getInitialEditText());
                 }
+                setText(null);
+                setGraphic(textField);
+            } else {
+                setText(formatText(item));
+                setGraphic(null);
+                setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
             }
         }
 
         private void createTextField() {
             textField = new TextField(getInitialEditText());
-            textField.setStyle(getAlignmentStyle(alignment));
+            setupTextFieldLayoutAndListeners(textField, alignment, this);
 
-            // 숫자 및 소수점(최대 2자리)만 입력 허용하는 필터
+            textField.setPromptText("0.00");
+
             UnaryOperator<TextFormatter.Change> numberFilter = change -> {
                 String newText = change.getControlNewText();
                 if (newText.isEmpty()) return change;
@@ -501,18 +859,15 @@ public class TableColumnUtil {
             };
             textField.setTextFormatter(new TextFormatter<>(numberFilter));
 
-            // Enter 키 입력 시 반영
             textField.setOnAction(e -> commitEdit(getParsedValue()));
 
-            // 포커스 아웃(외부 클릭) 시 자동 저장
             textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
                 if (!isFocused && isEditing()) {
-                    commitEdit(getParsedValue());
+                    Platform.runLater(() -> commitEdit(getParsedValue()));
                 }
             });
         }
 
-        // 클릭(편집) 시작 시 TextField에 채워넣을 초기 텍스트 (0이나 null, - 일 경우 빈칸 처리)
         private String getInitialEditText() {
             BigDecimal item = getItem();
             if (item == null || item.compareTo(BigDecimal.ZERO) == 0) {
@@ -521,7 +876,6 @@ public class TableColumnUtil {
             return item.toPlainString();
         }
 
-        // 입력된 문자열을 BigDecimal로 변환
         private BigDecimal getParsedValue() {
             String text = textField.getText();
             if (text == null || text.isBlank()) {
@@ -534,7 +888,6 @@ public class TableColumnUtil {
             }
         }
 
-        // 조회 모드 시 표시할 포맷 ($1,234.56 또는 -)
         private String formatText(BigDecimal value) {
             if (value == null) return "";
             if (value.compareTo(BigDecimal.ZERO) == 0) return "-";
@@ -543,64 +896,49 @@ public class TableColumnUtil {
     }
 
     /**
+     * 공통 TextField 레이아웃 및 포커스 스타일 적용 헬퍼 메서드
+     */
+    private static void setupTextFieldLayoutAndListeners(TextField textField, String alignment, TableCell<?, ?> cell) {
+        textField.setMinWidth(cell.getWidth() - cell.getInsets().getLeft() - cell.getInsets().getRight());
+        textField.setMinHeight(cell.getHeight() - cell.getInsets().getTop() - cell.getInsets().getBottom());
+        textField.setPrefWidth(cell.getWidth());
+        textField.setPrefHeight(cell.getHeight());
+
+        textField.setStyle(getAlignmentStyle(alignment) + STYLE_EDIT_TEXTFIELD);
+
+        textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            String base = getAlignmentStyle(alignment);
+            textField.setStyle(base + (isFocused ? STYLE_EDIT_TEXTFIELD_FOCUSED : STYLE_EDIT_TEXTFIELD));
+        });
+    }
+
+    /**
      * BigDecimal 통화 표시 셀 내부 클래스
      */
     private static class BigDecimalCurrencyCell<T> extends TableCell<T, BigDecimal> {
         private final NumberFormat currencyFormat;
-        
+
         public BigDecimalCurrencyCell() {
             this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
             currencyFormat.setMinimumFractionDigits(2);
             currencyFormat.setMaximumFractionDigits(2);
         }
-        
+
         @Override
         protected void updateItem(BigDecimal price, boolean empty) {
             super.updateItem(price, empty);
             if (empty || price == null) {
                 setText(null);
             } else if (price.compareTo(BigDecimal.ZERO) == 0) {
-                setText("-"); 
+                setText("-");
             } else {
                 setText(currencyFormat.format(price));
             }
         }
     }
 
-    /**
-     * BigDecimal 통화 전용 StringConverter (편집 및 조회 시 $ 표시 유지 및 입력 파싱 처리)
-     */
-    private static class BigDecimalCurrencyStringConverter extends javafx.util.StringConverter<BigDecimal> {
-        private final NumberFormat currencyFormat;
-
-        public BigDecimalCurrencyStringConverter() {
-            this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
-            currencyFormat.setMinimumFractionDigits(2);
-            currencyFormat.setMaximumFractionDigits(2);
-        }
-
-        @Override
-        public String toString(BigDecimal value) {
-            if (value == null) return "";
-            if (value.compareTo(BigDecimal.ZERO) == 0) return "-";
-            return currencyFormat.format(value); // $1,234.56 형태로 반환
-        }
-
-        @Override
-        public BigDecimal fromString(String string) {
-            if (string == null || string.isBlank() || string.equals("-")) {
-                return BigDecimal.ZERO;
-            }
-            // 사용자가 $ 나 쉼표(,)를 포함하여 수정 입력하더라도 숫자와 소수점만 추출하여 파싱
-            String cleanString = string.replaceAll("[^0-9.-]", "");
-            if (cleanString.isEmpty()) {
-                return BigDecimal.ZERO;
-            }
-            return new BigDecimal(cleanString);
-        }
-    }
     // ========== Public API - Boolean Column ==========
-    
+
     /**
      * 불리언(Boolean) 값을 체크박스로 표시하는 컬럼을 생성합니다.
      * 체크박스를 클릭하여 값을 변경할 수 있으며, 변경 시 dirtyConsumer가 호출됩니다.
@@ -634,7 +972,7 @@ public class TableColumnUtil {
     }
 
     // ========== Public API - Button Column ==========
-    
+
     /**
      * 버튼이 포함된 액션 컬럼을 생성합니다.
      * 각 행에 버튼을 표시하며, 버튼 클릭 시 지정된 액션을 실행합니다.
@@ -660,7 +998,7 @@ public class TableColumnUtil {
     }
 
     // ========== Public API - Label Column ==========
-    
+
     /**
      * 클릭 가능한 라벨이 포함된 액션 컬럼을 생성합니다.
      * 각 행에 라벨을 표시하며, 라벨 클릭 시 지정된 마우스 이벤트를 실행합니다.
@@ -684,6 +1022,7 @@ public class TableColumnUtil {
     }
 
     // ========== Public API - CheckBox Header Column ==========
+
     /**
      * Header에는 일반 텍스트(Title)만 표시하고, 셀에는 CheckBox를 표시하는 컬럼을 생성/설정합니다.
      *
@@ -711,20 +1050,17 @@ public class TableColumnUtil {
         column.setSortable(false);
         column.setPrefWidth(width > 0 ? width : 50);
 
-        // Value Factory 설정
         column.setCellValueFactory(cellData -> property.apply(cellData.getValue()));
-
-        // Cell Factory 설정 (기본 CheckBoxTableCell 사용)
         column.setCellFactory(CheckBoxTableCell.forTableColumn(column));
         column.setEditable(editable);
 
-        // TableView에 해당 컬럼이 없다면 추가
         if (!tableView.getColumns().contains(column)) {
             tableView.getColumns().add(column);
         }
 
         return column;
     }
+
     /**
      * 헤더에 전체 선택/해제용 체크박스가 있는 컬럼을 생성합니다.
      * 헤더의 체크박스를 통해 테이블의 모든 행을 일괄 선택하거나 해제할 수 있습니다.
@@ -735,7 +1071,7 @@ public class TableColumnUtil {
      * @return 생성되어 TableView에 추가된 TableColumn
      */
     public static <T> TableColumn<T, Boolean> createCheckBoxHeaderColumn(
-            TableView<T> tableView, 
+            TableView<T> tableView,
             Function<T, BooleanProperty> property
     ) {
         CheckBox headerCheckBox = createHeaderCheckBox(tableView, property);
@@ -773,7 +1109,7 @@ public class TableColumnUtil {
         column.setCellValueFactory(cellData -> property.apply(cellData.getValue()));
         column.setCellFactory(tc -> createCheckBoxCell(tableView, headerCheckBox, property));
         column.setEditable(true);
-        
+
         return column;
     }
 
@@ -808,16 +1144,16 @@ public class TableColumnUtil {
                 super.updateItem(item, empty);
                 updateCellContent(empty);
             }
-            
+
             private void updateCellContent(boolean empty) {
                 if (isInvalidCell(empty)) {
                     setGraphic(null);
                     return;
                 }
-                
+
                 T rowItem = getTableRow().getItem();
                 BooleanProperty prop = property.apply(rowItem);
-                
+
                 if (prop != null) {
                     checkBox.setSelected(prop.get());
                     setGraphic(container);
@@ -826,11 +1162,11 @@ public class TableColumnUtil {
                     setGraphic(null);
                 }
             }
-            
+
             private boolean isInvalidCell(boolean empty) {
                 return empty || getTableRow() == null || getTableRow().getItem() == null;
             }
-            
+
             private void setupCheckBoxListener(
                     TableView<T> tableView,
                     CheckBox headerCheckBox,
@@ -839,10 +1175,10 @@ public class TableColumnUtil {
                 checkBox.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
                     T item = getTableRow().getItem();
                     if (item == null) return;
-                    
+
                     BooleanProperty prop = property.apply(item);
                     if (prop == null || prop.get() == isSelected) return;
-                    
+
                     prop.set(isSelected);
                     updateHeaderCheckBoxState(tableView, headerCheckBox, property);
                 });
@@ -864,22 +1200,11 @@ public class TableColumnUtil {
     }
 
     // ========== Private Helper Methods for CheckBox Header ==========
-    
-    /**
-     * 헤더에 표시될 전체 선택/해제용 체크박스를 생성합니다.
-     * 헤더 체크박스의 상태는 모든 행의 체크박스 상태에 따라 자동으로 업데이트되며,
-     * 헤더 체크박스를 클릭하면 모든 행의 체크박스 상태가 일괄 변경됩니다.
-     *
-     * @param <T>       테이블 뷰의 모델 타입
-     * @param tableView 체크박스가 속한 TableView
-     * @param property  체크박스 상태에 매핑될 BooleanProperty를 가져오는 함수
-     * @return 설정이 완료된 헤더용 CheckBox
-     */
+
     private static <T> CheckBox createHeaderCheckBox(TableView<T> tableView, Function<T, BooleanProperty> property) {
         CheckBox headerCheckBox = new CheckBox();
         headerCheckBox.setStyle(STYLE_TRANSPARENT);
-        
-        // 모든 행의 선택 상태를 감시하여 헤더 체크박스 상태 업데이트
+
         headerCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
             for (T item : tableView.getItems()) {
                 BooleanProperty prop = property.apply(item);
@@ -888,13 +1213,11 @@ public class TableColumnUtil {
                 }
             }
         });
-        
-        // 테이블 데이터 변경 시 헤더 체크박스 상태 갱신
+
         tableView.itemsProperty().addListener((obs, oldList, newList) -> {
             updateHeaderCheckBoxState(tableView, headerCheckBox, property);
         });
-        
-        // 각 행의 체크박스 상태 변경을 감시하여 헤더 체크박스 상태 갱신
+
         tableView.getItems().addListener((ListChangeListener<T>) c -> {
             updateHeaderCheckBoxState(tableView, headerCheckBox, property);
             while (c.next()) {
@@ -904,24 +1227,13 @@ public class TableColumnUtil {
                 }
             }
         });
-        
+
         return headerCheckBox;
     }
-    
-    /**
-     * 모든 행의 체크 상태를 확인하여 헤더 체크박스의 상태를 업데이트합니다.
-     * 모든 행이 선택됨 → 헤더 체크박스 선택됨
-     * 일부 행만 선택됨 → 헤더 체크박스 INDETERMINATE 상태
-     * 모든 행이 선택 해제됨 → 헤더 체크박스 선택 해제됨
-     *
-     * @param <T>            테이블 뷰의 모델 타입
-     * @param tableView      대상 TableView
-     * @param headerCheckBox 업데이트할 헤더 체크박스
-     * @param property       체크박스 상태에 매핑될 BooleanProperty를 가져오는 함수
-     */
+
     private static <T> void updateHeaderCheckBoxState(
-            TableView<T> tableView, 
-            CheckBox headerCheckBox, 
+            TableView<T> tableView,
+            CheckBox headerCheckBox,
             Function<T, BooleanProperty> property
     ) {
         int totalCount = tableView.getItems().size();
@@ -930,7 +1242,7 @@ public class TableColumnUtil {
             headerCheckBox.setIndeterminate(false);
             return;
         }
-        
+
         int selectedCount = 0;
         for (T item : tableView.getItems()) {
             BooleanProperty prop = property.apply(item);
@@ -938,7 +1250,7 @@ public class TableColumnUtil {
                 selectedCount++;
             }
         }
-        
+
         if (selectedCount == totalCount) {
             headerCheckBox.setSelected(true);
             headerCheckBox.setIndeterminate(false);
@@ -949,66 +1261,21 @@ public class TableColumnUtil {
             headerCheckBox.setIndeterminate(true);
         }
     }
+
     // ========== Inner Classes ==========
-    
-    /**
-     * Integer 편집 셀 내부 클래스
-     */
-    private static class IntegerEditingCell<T> extends TextFieldTableCell<T, Integer> {
-        private final String alignment;
-        private final UnaryOperator<TextFormatter.Change> numberFilter;
-        
-        public IntegerEditingCell(String alignment) {
-            super(new IntegerStringConverter());
-            this.alignment = alignment;
-            this.numberFilter = change -> {
-                String newText = change.getControlNewText();
-                if (newText.isEmpty()) return change;
-                return newText.matches("-?\\d*") ? change : null;
-            };
-            applyStyle();
-        }
-        
-        private void applyStyle() {
-            setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-        }
-        
-        @Override
-        public void startEdit() {
-            super.startEdit();
-            applyStyle();
-            configureTextField();
-        }
-        
-        @Override
-        public void updateItem(Integer item, boolean empty) {
-            super.updateItem(item, empty);
-            applyStyle();
-        }
-        
-        private void configureTextField() {
-            TextField textField = (TextField) getGraphic();
-            if (textField == null) return;
-            
-            textField.setTextFormatter(new TextFormatter<>(
-                new IntegerStringConverter(), null, numberFilter
-            ));
-            textField.setStyle(getAlignmentStyle(alignment));
-        }
-    }
-    
+
     /**
      * 통화 표시 셀 내부 클래스
      */
     private static class CurrencyCell<T> extends TableCell<T, Double> {
         private final NumberFormat currencyFormat;
-        
+
         public CurrencyCell() {
             this.currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
             currencyFormat.setMinimumFractionDigits(2);
             currencyFormat.setMaximumFractionDigits(2);
         }
-        
+
         @Override
         protected void updateItem(Double price, boolean empty) {
             super.updateItem(price, empty);
@@ -1019,7 +1286,7 @@ public class TableColumnUtil {
             }
         }
     }
-    
+
     /**
      * 날짜/시간 표시 셀 내부 클래스
      */
@@ -1034,18 +1301,18 @@ public class TableColumnUtil {
             }
         }
     }
-    
+
     /**
      * 버튼 컨테이너 셀 내부 클래스
      */
     private static class ButtonCell<T> extends TableCell<T, Void> {
         private final Button button;
-        
+
         public ButtonCell(String iconPath, Consumer<T> action) {
             this.button = createButton(iconPath);
             configureButton(action);
         }
-        
+
         private Button createButton(String iconPath) {
             Button btn = new Button();
             if (iconPath != null) {
@@ -1061,7 +1328,7 @@ public class TableColumnUtil {
             btn.setStyle(BUTTON_STYLE_DEFAULT);
             return btn;
         }
-        
+
         private void configureButton(Consumer<T> action) {
             button.setOnMouseEntered(e -> {
                 getTableView().getSelectionModel().select(getIndex());
@@ -1073,7 +1340,7 @@ public class TableColumnUtil {
                 if (item != null) action.accept(item);
             });
         }
-        
+
         @Override
         public void updateItem(Void item, boolean empty) {
             super.updateItem(item, empty);
@@ -1081,18 +1348,18 @@ public class TableColumnUtil {
             setAlignment(Pos.CENTER);
         }
     }
-    
+
     /**
      * 라벨 컨테이너 셀 내부 클래스
      */
     private static class LabelCell<T> extends TableCell<T, Void> {
         private final Label label;
-        
+
         public LabelCell(String iconPath, EventHandler<MouseEvent> actionEvent) {
             this.label = createLabel(iconPath);
             configureLabel(actionEvent);
         }
-        
+
         private Label createLabel(String iconPath) {
             Label lbl = new Label();
             if (iconPath != null) {
@@ -1109,7 +1376,7 @@ public class TableColumnUtil {
             lbl.setCursor(Cursor.HAND);
             return lbl;
         }
-        
+
         private void configureLabel(EventHandler<MouseEvent> actionEvent) {
             label.setOnMouseEntered(e -> {
                 getTableView().getSelectionModel().select(getIndex());
@@ -1118,7 +1385,7 @@ public class TableColumnUtil {
             label.setOnMouseExited(e -> label.setStyle("-fx-background-color: transparent; -fx-padding: 10px;"));
             label.setOnMousePressed(actionEvent);
         }
-        
+
         @Override
         public void updateItem(Void item, boolean empty) {
             super.updateItem(item, empty);
@@ -1132,13 +1399,13 @@ public class TableColumnUtil {
     }
 
     // ========== Private Constructors ==========
-    
+
     private TableColumnUtil() {
         throw new UnsupportedOperationException("Utility class cannot be instantiated");
     }
 
     // ========== Private Helper Methods ==========
-    
+
     private static String getAlignmentStyle(String alignment) {
         if (alignment == null) return STYLE_CENTER;
         return switch (alignment.toUpperCase()) {
@@ -1147,19 +1414,19 @@ public class TableColumnUtil {
             default -> STYLE_CENTER;
         };
     }
-    
+
     private static ImageView loadIconView(String iconPath) {
         if (iconPath == null) return null;
         URL url = TableColumnUtil.class.getResource(iconPath);
         if (url == null) return null;
-        
+
         ImageView imageView = new ImageView(new Image(url.toExternalForm()));
         imageView.setPreserveRatio(true);
         imageView.setFitWidth(22);
         imageView.setFitHeight(22);
         return imageView;
     }
-    
+
     private static <T> void setupStaticColumnProps(TableColumn<T, Void> column, String title, String iconPath, Integer width) {
         if (title != null) column.setText(title);
         if (width != null) column.setPrefWidth(width);
@@ -1168,5 +1435,8 @@ public class TableColumnUtil {
         column.setStyle(STYLE_TRANSPARENT + STYLE_CENTER);
     }
 
- 
+    @FunctionalInterface
+    public interface DirtyConsumer<T> {
+        void accept(T t);
+    }
 }
