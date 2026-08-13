@@ -113,7 +113,8 @@
 
                                 <TextField fx:id="textFieldPriceMultiplier" maxWidth="60"
                                     style="-fx-alignment: center; -fx-font-weight: bold;" text="2.3" />
-                                <Button fx:id="buttonEPrice" text="_E-Price">
+                                <Button fx:id="buttonEPrice" onAction="#handleEPrice"
+                                    text="_E-Price">
                                     <graphic>
                                         <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true"
                                             preserveRatio="true">
@@ -123,7 +124,8 @@
                                 </Button>
                                 <Separator orientation="VERTICAL" />
 
-                                <Button fx:id="buttonAddStock" minWidth="120" text="_Add Stock">
+                                <Button fx:id="buttonAddStock" onAction="#handleAddStock"
+                                    minWidth="120" text="_Add Stock">
                                     <graphic>
                                         <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true"
                                             preserveRatio="true">

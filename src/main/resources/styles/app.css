@@ -196,7 +196,8 @@
 /* ------------------------------------------------------------------------- */
 .table-row-cell:filled:selected,
 .table-center-header .table-row-cell:selected {
-   /* -fx-background-color: #6F4CBB; */
+   -fx-background-color: #80ffd4;
+
 }
 
 .table-row-cell:filled:selected .text,
