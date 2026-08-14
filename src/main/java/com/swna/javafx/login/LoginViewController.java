@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Circle;
@@ -25,17 +26,15 @@ public class LoginViewController implements ViewInfo{
     @FXML private Label errorLabel;
     @FXML private Button loginButton;
     @FXML private Circle onClose;
+    @FXML private RadioButton radioPos;
+    @FXML private RadioButton radioAdmin;
 
     private final LoginViewModel vm;
 
-    public LoginViewController(LoginViewModel vm) {
-        this.vm = vm;
-    }
+    public LoginViewController(LoginViewModel vm) {this.vm = vm; }
 
     @Override
-    public String getTitle() {
-        return "Login";
-    }
+    public String getTitle() {  return "Login"; }
 
     @FXML
     public void initialize() {
@@ -50,6 +49,8 @@ public class LoginViewController implements ViewInfo{
 
         // 🔹 로딩 상태 → 버튼 disable
         loginButton.disableProperty().bind(vm.loadingProperty());
+        // 💡 radioPos가 선택되어 있으면 true(POS 모드), 선택 해제되면 false(ADMIN 모드)로 ViewModel에 바인딩
+        vm.isPosModeProperty().bind(radioPos.selectedProperty());
 
     }
 

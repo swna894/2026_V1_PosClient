@@ -2,6 +2,7 @@ package com.swna.javafx.common.navigation;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.MenuController;
 import com.swna.javafx.common.store.AuthState;
 import com.swna.javafx.common.store.AuthStore;
 import com.swna.javafx.login.LoginViewController;
@@ -60,7 +61,12 @@ public class NavigationService {
                 (obs, oldVal, newVal) ->
                         Platform.runLater(() -> {
                             if (newVal == AuthState.AUTHENTICATED) {
-                                openWindow(PosViewController.class);
+                                // 💡 login 선택된 모드에 따라 실행할 Controller 분기
+                                if (authStore.getSelectedMode() == AuthStore.AppMode.POS) {
+                                    openWindow(PosViewController.class);
+                                } else {
+                                    openWindow(MenuController.class); // ADMIN 선택 시 MenuController 실행
+                                }
                             } else {
                                 navigate(LoginViewController.class);
                             }
@@ -73,7 +79,11 @@ public class NavigationService {
         AuthState current = authStore.getAuthState();
 
         if (current == AuthState.AUTHENTICATED) {
-            navigate(PosViewController.class);
+            if (authStore.getSelectedMode() == AuthStore.AppMode.POS) {
+                openWindow(PosViewController.class);
+            } else {
+                openWindow(MenuController.class);
+            }
         } else {
             Application.setUserAgentStylesheet( new PrimerLight().getUserAgentStylesheet() );
             navigate(LoginViewController.class);

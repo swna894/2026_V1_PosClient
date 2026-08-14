@@ -16,6 +16,8 @@ import com.swna.javafx.common.viewmodel.BaseViewModel;
 import com.swna.javafx.login.auth.AuthService;
 import com.swna.javafx.login.dto.LoginResponse;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -29,6 +31,8 @@ public class LoginViewModel extends BaseViewModel {
     private final StringProperty email = new SimpleStringProperty();
     private final StringProperty password = new SimpleStringProperty();
     private final StringProperty status = new SimpleStringProperty();
+    private final BooleanProperty isPosMode = new SimpleBooleanProperty(true);
+    public BooleanProperty isPosModeProperty() { return isPosMode;}
 
     private static final String LOGIN_FAILED = "Login Failed";
     private static final String LOGIN_SUCCESS = "Login Success";
@@ -92,6 +96,13 @@ public class LoginViewModel extends BaseViewModel {
         applyLoginSuccess(response.data());
 
         status.set(LOGIN_SUCCESS);
+        // 💡 선택된 라디오 버튼에 맞게 AuthStore 모드 설정
+        if (isPosMode.get()) {
+            authStore.setSelectedMode(AuthStore.AppMode.POS);
+        } else {
+            authStore.setSelectedMode(AuthStore.AppMode.ADMIN);
+        }
+
         authStore.setAuthState(AuthState.AUTHENTICATED);
 
         return null;
