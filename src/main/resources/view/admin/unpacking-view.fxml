@@ -150,11 +150,11 @@
                                     text="OdCst" />
                                 <TableColumn fx:id="colItemPriceIn" prefWidth="90" text="COST" />
                                 <TableColumn fx:id="colItemQty" prefWidth="70" text="QTY" />
-                                <TableColumn fx:id="colItemMinStock" prefWidth="90" text="MIN STOCK" />
+                                <TableColumn fx:id="colItemMinStock" prefWidth="90" text="Min Stk" />
                                 <TableColumn fx:id="colItemPriceOutEstimated" prefWidth="90"
                                     text="EP" />
                                 <TableColumn fx:id="colItemPriceOut" prefWidth="90" text="RP" />
-                                <TableColumn fx:id="colItemIsSaved" prefWidth="80" text="ADDED" />
+                                <TableColumn fx:id="colItemIsSaved" prefWidth="80" text="Added" />
                                 <TableColumn fx:id="colItemCode" prefWidth="150" text="CODE" />
                                 <TableColumn fx:id="colItemComment" prefWidth="150" text="COMMENT" />
                             </columns>

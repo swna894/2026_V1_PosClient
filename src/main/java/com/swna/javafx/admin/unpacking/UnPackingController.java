@@ -260,7 +260,7 @@ public class UnPackingController {
 
         TableColumnUtil.createNumberColumn(tableViewItems, colItemNo, 50);
         TableColumnUtil.createCheckBoxHeaderColumn(tableViewItems, colItemConfirm, UnpackItem::confirmProperty, "", 60);
-        TableColumnUtil.createCheckBoxTextColumn(tableViewItems, colItemIsSaved, UnpackItem::isSavedProperty, "ADDED", 70, true);
+        TableColumnUtil.createCheckBoxTextColumn(tableViewItems, colItemIsSaved, UnpackItem::isSavedProperty, "Added", 70, true);
 
         TableColumnUtil.makeStringColumn(colItemBarcode, UnpackItem::barcodeProperty, UnpackItem::setBarcode, false, true, TableColumnUtil.CENTER, null);
         TableColumnUtil.makeStringColumn(colItemDescription, UnpackItem::descriptionProperty, UnpackItem::setDescription, true, true, TableColumnUtil.LEFT, null);
