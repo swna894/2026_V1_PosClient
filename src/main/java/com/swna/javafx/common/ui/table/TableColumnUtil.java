@@ -50,22 +50,26 @@ public class TableColumnUtil {
     public static final String LEFT = "LEFT";
 
     // ========== CSS Style Constants ==========
-    private static final String STYLE_CENTER = "-fx-alignment: CENTER;";
-    private static final String STYLE_RIGHT = "-fx-alignment: CENTER-RIGHT;";
-    private static final String STYLE_LEFT = "-fx-alignment: CENTER-LEFT;";
+    private static final String STYLE_CENTER = "-fx-alignment: CENTER; -fx-padding: 0 4 0 4;";
+    private static final String STYLE_RIGHT = "-fx-alignment: CENTER-RIGHT; -fx-padding: 0 4 0 4;";
+    private static final String STYLE_LEFT = "-fx-alignment: CENTER-LEFT; -fx-padding: 0 4 0 4;";
     private static final String STYLE_TRANSPARENT = "-fx-background-color: transparent;";
     private static final String BUTTON_STYLE_DEFAULT = "-fx-background-color:transparent; -fx-alignment: center;";
     private static final String BUTTON_STYLE_HOVER = "-fx-background-color:#6F4CBB;";
     // 편집모드 진입 시 텍스트필드 영역을 명확히 구분하기 위한 스타일 (흰 배경 + 테두리)
     private static final String STYLE_EDIT_TEXTFIELD =
-            "-fx-background-color: white; -fx-border-color: #6F4CBB; " +
-            "-fx-border-width: 1.5px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-padding: 0 4 0 4; " +
-            "-fx-effect: dropshadow(gaussian, rgba(111,76,187,0.25), 4, 0, 0, 2);";
+        "-fx-background-color: white; -fx-border-color: #6F4CBB; " +
+        "-fx-border-width: 0.5px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-padding: 0 8 0 8; " +
+        "-fx-background-insets: 2 0 2 0; -fx-border-insets: 2 0 2 0; " + // 배경과 테두리 인셋 일치
+        "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; " + // 잔상 생성 원인인 기본 포커스링 제거
+        "-fx-effect: dropshadow(gaussian, rgba(111,76,187,0.25), 4, 0, 0, 2);";
     // 편집 중 포커스를 받았을 때 테두리를 한 번 더 강조하는 스타일
     private static final String STYLE_EDIT_TEXTFIELD_FOCUSED =
-            "-fx-background-color: white; -fx-border-color: #4A90D9; " +
-            "-fx-border-width: 2px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-padding: 0 4 0 4; " +
-            "-fx-effect: dropshadow(gaussian, rgba(74,144,217,0.35), 6, 0, 0, 2);";
+        "-fx-background-color: white; -fx-border-color: #4A90D9; " +
+        "-fx-border-width: 0.5px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-padding: 0 8 0 8; " +
+        "-fx-background-insets: 2 0 2 0; -fx-border-insets: 2 0 2 0; " +
+        "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; " +
+        "-fx-effect: dropshadow(gaussian, rgba(74,144,217,0.35), 6, 0, 0, 2);";
 
     // ========== Public API - Number Column ==========
 
@@ -899,10 +903,13 @@ public class TableColumnUtil {
      * 공통 TextField 레이아웃 및 포커스 스타일 적용 헬퍼 메서드
      */
     private static void setupTextFieldLayoutAndListeners(TextField textField, String alignment, TableCell<?, ?> cell) {
+        double verticalMargin = 4.0; // 상하 여백 합계 (위 2px, 아래 2px 차감)
+        double targetHeight = Math.max(10, cell.getHeight() - verticalMargin);
+
         textField.setMinWidth(cell.getWidth() - cell.getInsets().getLeft() - cell.getInsets().getRight());
-        textField.setMinHeight(cell.getHeight() - cell.getInsets().getTop() - cell.getInsets().getBottom());
+        textField.setMinHeight(targetHeight);
         textField.setPrefWidth(cell.getWidth());
-        textField.setPrefHeight(cell.getHeight());
+        textField.setPrefHeight(targetHeight); // <- 셀 높이보다 4px 작게 설정하여 상하 2px 마진 확보
 
         textField.setStyle(getAlignmentStyle(alignment) + STYLE_EDIT_TEXTFIELD);
 
