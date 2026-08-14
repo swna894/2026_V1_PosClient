@@ -4,7 +4,9 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -15,25 +17,37 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="800.0" stylesheets="@../../styles/login.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.login.LoginViewController">
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="800.0"
+   stylesheets="@../../styles/login.css" xmlns="http://javafx.com/javafx/22"
+   xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.login.LoginViewController">
    <children>
+      <!-- ToggleGroup 정의 -->
+      <fx:define>
+         <ToggleGroup fx:id="modeToggleGroup" />
+      </fx:define>
+
       <BorderPane prefHeight="400.0" prefWidth="800.0" style="-fx-background-color: #fff;">
          <left>
-            <Pane prefHeight="400.0" prefWidth="400.0" style="-fx-background-color: linear-gradient(to bottom left, #34186E, #34186E);" BorderPane.alignment="CENTER">
+            <Pane prefHeight="400.0" prefWidth="400.0"
+               style="-fx-background-color: linear-gradient(to bottom left, #34186E, #34186E);"
+               BorderPane.alignment="CENTER">
                <children>
-                  <ImageView fitHeight="147.0" fitWidth="195.0" layoutX="93.0" layoutY="109.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="147.0" fitWidth="195.0" layoutX="93.0" layoutY="109.0"
+                     pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@../../images/DNA%20logo.png" />
                      </image>
                   </ImageView>
-                  <Label layoutX="112.0" layoutY="251.0" text="David Na 027-652-1111" textFill="#e8e8e8">
+                  <Label layoutX="112.0" layoutY="251.0" text="David Na 027-652-1111"
+                     textFill="#e8e8e8">
                      <font>
                         <Font name="Bookman Old Style" size="14.0" />
                      </font>
                   </Label>
                   <HBox layoutX="14.0" layoutY="14.0" spacing="5.0">
                      <children>
-                        <Circle fx:id="onClose" fill="#fc5d57" onMouseClicked="#onClose" radius="6.0" stroke="WHITE" strokeType="INSIDE" />
+                        <Circle fx:id="onClose" fill="#fc5d57" onMouseClicked="#onClose"
+                           radius="6.0" stroke="WHITE" strokeType="INSIDE" />
                         <Circle fill="#fdbb2d" radius="6.0" stroke="WHITE" strokeType="INSIDE" />
                         <Circle fill="#27c941" radius="6.0" stroke="WHITE" strokeType="INSIDE" />
                      </children>
@@ -46,8 +60,11 @@
                <children>
                   <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #fff;">
                      <children>
-                        <Button layoutX="203.0" layoutY="229.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="120.0" styleClass="button1" text="Get Started" />
-                        <TextField layoutX="78.0" layoutY="173.0" prefHeight="35.0" prefWidth="245.0" promptText="Email" />
+                        <Button layoutX="203.0" layoutY="229.0" mnemonicParsing="false"
+                           prefHeight="35.0" prefWidth="120.0" styleClass="button1"
+                           text="Get Started" />
+                        <TextField layoutX="78.0" layoutY="173.0" prefHeight="35.0"
+                           prefWidth="245.0" promptText="Email" />
                         <Label layoutX="78.0" layoutY="136.0" text="Sign in">
                            <font>
                               <Font name="System Bold" size="18.0" />
@@ -57,37 +74,59 @@
                   </Pane>
                   <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #fff;">
                      <children>
-                        <Button fx:id="loginButton" layoutX="76.0" layoutY="242.0" mnemonicParsing="false" onAction="#onLogin" prefHeight="35.0" prefWidth="120.0" styleClass="btn-primary" text="Sign in">
+                        <Button fx:id="loginButton" layoutX="76.0" layoutY="252.0"
+                           mnemonicParsing="false" onAction="#onLogin" prefHeight="35.0"
+                           prefWidth="120.0" styleClass="btn-primary" text="Sign in">
                            <font>
                               <Font size="18.0" />
                            </font>
                         </Button>
-                        <Button layoutX="75.0" layoutY="292.0" mnemonicParsing="false" opacity="0.6" prefHeight="35.0" prefWidth="248.0" styleClass="btn-secondary" text=" Copyright ⓒ SWNA" />
-                        <Label layoutX="77.0" layoutY="72.0" styleClass="font_26" text="Sign in">
+                        <Button layoutX="75.0" layoutY="302.0" mnemonicParsing="false" opacity="0.6"
+                           prefHeight="35.0" prefWidth="248.0" styleClass="btn-secondary"
+                           text=" Copyright ⓒ SWNA" />
+                        <Label layoutX="77.0" layoutY="51.0" styleClass="font_26" text="Sign in">
                            <font>
                               <Font name="System Bold" size="34.0" />
                            </font>
                         </Label>
-                        <Label fx:id="errorLabel" layoutX="78.0" layoutY="336.0" prefHeight="27.0" prefWidth="248.0" style="-fx-font-size: 12; -fx-text-fill: red;" />
-                        <TextField fx:id="usernameField" alignment="CENTER" layoutX="78.0" layoutY="116.0" onAction="#onName" prefHeight="35.0" prefWidth="245.0" promptText="Email" style="-fx-font-size: 16; -fx-font-family: System;">
+                        <Label fx:id="errorLabel" layoutX="78.0" layoutY="336.0" prefHeight="27.0"
+                           prefWidth="248.0" style="-fx-font-size: 12; -fx-text-fill: red;" />
+                        <TextField fx:id="usernameField" alignment="CENTER" layoutX="78.0"
+                           layoutY="96.0" onAction="#onName" prefHeight="35.0" prefWidth="245.0"
+                           promptText="Email" style="-fx-font-size: 16; -fx-font-family: System;">
                            <font>
                               <Font size="14.0" />
                            </font>
                         </TextField>
-                        <PasswordField fx:id="passwordField" alignment="CENTER" layoutX="78.0" layoutY="164.0" onAction="#onPassword" prefHeight="35.0" prefWidth="243.0" promptText="Password" style="-fx-font-size: 16; -fx-font-family: System;">
+                        <PasswordField fx:id="passwordField" alignment="CENTER" layoutX="78.0"
+                           layoutY="144.0" onAction="#onPassword" prefHeight="35.0"
+                           prefWidth="243.0" promptText="Password"
+                           style="-fx-font-size: 16; -fx-font-family: System;">
                            <font>
                               <Font size="14.0" />
                            </font>
                         </PasswordField>
-                        <Button fx:id="buttonCancel" layoutX="202.0" layoutY="241.0" mnemonicParsing="false" onAction="#onCancel" prefHeight="35.0" prefWidth="120.0" styleClass="btn-secondary" text="Cancel">
+                        <Button fx:id="buttonCancel" layoutX="202.0" layoutY="251.0"
+                           mnemonicParsing="false" onAction="#onCancel" prefHeight="35.0"
+                           prefWidth="120.0" styleClass="btn-secondary" text="Cancel">
                            <font>
                               <Font size="18.0" />
                            </font>
                         </Button>
-                        <CheckBox fx:id="checkBoxRememberMe" layoutX="78.0" layoutY="210.0" mnemonicParsing="false" text="Remenber Me" />
-                        <Label fx:id="statusLabel" layoutX="78.0" layoutY="349.0" prefHeight="27.0" prefWidth="248.0" style="-fx-font-size: 12; -fx-text-fill: red;" />
-                        <!-- <FontAwesomeIconView glyphName="HAND_ALT_RIGHT" layoutX="168.0"
-                        layoutY="263.0" size="14" /> -->
+
+                        <!-- Remember Me (CheckBox로 복원) -->
+                        <CheckBox fx:id="checkBoxRememberMe" layoutX="78.0" layoutY="220.0"
+                           mnemonicParsing="false" text="Remember Me" />
+
+                        <Label fx:id="statusLabel" layoutX="78.0" layoutY="349.0" prefHeight="27.0"
+                           prefWidth="248.0" style="-fx-font-size: 12; -fx-text-fill: red;" />
+
+                        <!-- POS / ADMIN 모드 선택 (RadioButton + ToggleGroup) -->
+                        <RadioButton fx:id="radioPos" layoutX="77.0" layoutY="192.0"
+                           mnemonicParsing="false" selected="true" text="POS"
+                           toggleGroup="$modeToggleGroup" />
+                        <RadioButton fx:id="radioAdmin" layoutX="202.0" layoutY="192.0"
+                           mnemonicParsing="false" text="ADMIN" toggleGroup="$modeToggleGroup" />
                      </children>
                   </Pane>
                </children>
