@@ -230,33 +230,47 @@ public class UnPackingController {
         tableViewItems.setItems(viewModel.getUnpackItems());
 
         // isNew가 true인 경우 글자색을 붉은색으로 표시
-        // PseudoClass 기반 RowFactory 적용
-        tableViewItems.setRowFactory(tv -> new TableRow<>() {
-            private final javafx.beans.value.ChangeListener<Boolean> isNewListener = 
-                    (obs, oldVal, newVal) -> updatePseudoState(newVal);
+        // PseudoClass 기반 및 클릭 이벤트가 추가된 RowFactory
+            tableViewItems.setRowFactory(tv -> {
+                TableRow<UnpackItem> row = new TableRow<>() {
+                    private final javafx.beans.value.ChangeListener<Boolean> isNewListener = 
+                            (obs, oldVal, newVal) -> updatePseudoState(newVal);
 
-            @Override
-            protected void updateItem(UnpackItem item, boolean empty) {
-                UnpackItem prevItem = getItem();
-                if (prevItem != null) {
-                    prevItem.isNewProperty().removeListener(isNewListener);
-                }
+                    @Override
+                    protected void updateItem(UnpackItem item, boolean empty) {
+                        UnpackItem prevItem = getItem();
+                        if (prevItem != null) {
+                            prevItem.isNewProperty().removeListener(isNewListener);
+                        }
 
-                super.updateItem(item, empty);
+                        super.updateItem(item, empty);
 
-                if (empty || item == null) {
-                    updatePseudoState(false);
-                } else {
-                    item.isNewProperty().addListener(isNewListener);
-                    updatePseudoState(item.getIsNew());
-                }
-            }
+                        if (empty || item == null) {
+                            updatePseudoState(false);
+                        } else {
+                            item.isNewProperty().addListener(isNewListener);
+                            updatePseudoState(item.getIsNew());
+                        }
+                    }
 
-            private void updatePseudoState(Boolean isNew) {
-                // :new-item 의사 클래스 상태 변경
-                pseudoClassStateChanged(NEW_ITEM_PSEUDO, Boolean.TRUE.equals(isNew));
-            }
-        });
+                    private void updatePseudoState(Boolean isNew) {
+                        pseudoClassStateChanged(NEW_ITEM_PSEUDO, Boolean.TRUE.equals(isNew));
+                    }
+                };
+
+                // 행(Row) 클릭 이벤트 핸들러 추가
+                row.setOnMouseClicked(event -> {
+                    if (!row.isEmpty() && row.getItem() != null) {
+                        // 클릭 시 confirmProperty를 true로 변경
+                        row.getItem().setConfirm(true);
+                        // (선택 사항) 만약 토글(toggle) 동작을 원하시면 아래 주석 해제 후 적용:
+                        // UnpackItem item = row.getItem();
+                        // item.confirmProperty().set(!item.confirmProperty().get());
+                    }
+                });
+
+                return row;
+            });
 
         TableColumnUtil.createNumberColumn(tableViewItems, colItemNo, 50);
         TableColumnUtil.createCheckBoxHeaderColumn(tableViewItems, colItemConfirm, UnpackItem::confirmProperty, "", 60);
