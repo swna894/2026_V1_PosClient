@@ -251,12 +251,47 @@ public class UnpackingViewModel {
             );
     }
     // ---------------- Scan Helper & Logic ----------------
-    public Object scan(String code) {
-         Platform.runLater(() -> log.info("Barcode scanned: {}", code)); 
+    /**
+     * 스캔된 코드/바코드와 일치하는 UnpackItem을 찾아 confirm=true 설정 및 맨 위로 이동
+     * @param code 스캔한 바코드 또는 코드
+     * @return 찾아서 이동시킨 UnpackItem (없으면 null)
+     */
+    public UnpackItem processScannedCode(String code) {
+        if (code == null || code.isBlank()) return null;
+       
+        String trimmedCode = code.trim();
+        UnpackItem matchedItem = null;
+        int targetIndex = -1;
 
-         return null; // 실제 스캔 처리 로직은 handleBarcode 메서드에서 수행
+        // 1. barcode 또는 code가 일치하는 항목 탐색
+        for (int i = 0; i < unpackItems.size(); i++) {
+            UnpackItem item = unpackItems.get(i);
+            boolean isBarcodeMatch = item.getBarcode() != null && item.getBarcode().trim().equalsIgnoreCase(trimmedCode);
+            boolean isCodeMatch = item.getCode() != null && item.getCode().trim().equalsIgnoreCase(trimmedCode);
+
+            if (isBarcodeMatch || isCodeMatch) {
+                matchedItem = item;
+                targetIndex = i;
+                break;
+            }
+        }
+
+        // 2. 찾았을 경우 처리
+        if (matchedItem != null) {
+            // (1) confirm 속성을 true로 변경
+            matchedItem.setConfirm(true);
+
+            // (2) 이미 맨 앞에 있는 것이 아니라면 첫 번째 위치로 이동 (Index: 0)
+            if (targetIndex > 0) {
+                unpackItems.remove(targetIndex);
+                unpackItems.add(0, matchedItem);
+            }
+            
+            return matchedItem;
+        }
+
+        return null;
     }
-
     // ---------------- UI Helper & Logic ----------------
 
     public void selectInspection(Unpack selected) {

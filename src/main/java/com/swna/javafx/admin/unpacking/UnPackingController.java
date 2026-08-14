@@ -205,8 +205,28 @@ public class UnPackingController {
     
     private void handleBarcode(String code) {
         if (code == null || code.isBlank()) return;
-        Platform.runLater(() -> viewModel.scan(code)); 
-  
+        Platform.runLater(() -> log.info("Barcode scanned: {}", code)); 
+        Platform.runLater(() -> {
+            // 1. ViewModel에서 스캔 로직 수행 (confirm=true 적용 및 리스트 맨 위로 이동)
+            UnpackItem targetItem = viewModel.processScannedCode(code);
+
+            // 2. 일치하는 항목을 찾았으면 TableView UI 업데이트
+            if (targetItem != null) {
+                // TableView 항목 새로고침 (필요 시)
+                tableViewItems.refresh();
+
+                // 첫 번째 행(인덱스 0) 선택
+                tableViewItems.getSelectionModel().clearAndSelect(0);
+
+                // 첫 번째 행이 보이도록 스크롤 이동
+                tableViewItems.scrollTo(0);
+                
+                // Focus 유지
+                tableViewItems.requestFocus();
+            } else {
+                log.warn("Scanned code not found in item list: {}", code);
+            }
+        });
     }
 
     // ---------------- Table Configurations ----------------
