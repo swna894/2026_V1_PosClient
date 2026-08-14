@@ -1058,7 +1058,11 @@ public class TableColumnUtil {
         column.setPrefWidth(width > 0 ? width : 50);
 
         column.setCellValueFactory(cellData -> property.apply(cellData.getValue()));
-        column.setCellFactory(CheckBoxTableCell.forTableColumn(column));
+        column.setCellFactory(col -> {
+            CheckBoxTableCell<T, Boolean> cell = new CheckBoxTableCell<>();
+            cell.setAlignment(Pos.CENTER);
+            return cell;
+        });
         column.setEditable(editable);
 
         if (!tableView.getColumns().contains(column)) {

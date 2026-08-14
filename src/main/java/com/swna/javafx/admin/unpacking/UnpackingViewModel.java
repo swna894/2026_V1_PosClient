@@ -87,6 +87,7 @@ public class UnpackingViewModel {
 
                             if (!unpacks.isEmpty()) {
                                 selectInspection(unpacks.get(0));
+                                applyEstimatedPriceMultiplier();
                             } else {
                                 calculateResults();
                             }
@@ -249,6 +250,12 @@ public class UnpackingViewModel {
                 error -> log.error("Unpack 삭제 실패", error)
             );
     }
+    // ---------------- Scan Helper & Logic ----------------
+    public Object scan(String code) {
+         Platform.runLater(() -> log.info("Barcode scanned: {}", code)); 
+
+         return null; // 실제 스캔 처리 로직은 handleBarcode 메서드에서 수행
+    }
 
     // ---------------- UI Helper & Logic ----------------
 
@@ -351,4 +358,5 @@ public class UnpackingViewModel {
     public ObservableList<String> getConfirmFilterOptions() { return confirmFilterOptions; }
     public ObservableList<Unpack> getUnpacks() { return unpacks; }
     public ObservableList<UnpackItem> getUnpackItems() { return unpackItems; }
+
 }

@@ -146,7 +146,7 @@
                                 <TableColumn fx:id="colItemDescription" prefWidth="200"
                                     text="DESCRIPTION" />
                                 <TableColumn fx:id="colItemCategory" prefWidth="150" text="CATEGORY" />
-                                <TableColumn fx:id="colItemOldPriceIn" prefWidth="80"
+                                <TableColumn fx:id="colItemOldPriceIn" prefWidth="90"
                                     text="OdCst" />
                                 <TableColumn fx:id="colItemPriceIn" prefWidth="90" text="COST" />
                                 <TableColumn fx:id="colItemQty" prefWidth="70" text="QTY" />
@@ -154,7 +154,7 @@
                                 <TableColumn fx:id="colItemPriceOutEstimated" prefWidth="90"
                                     text="EP" />
                                 <TableColumn fx:id="colItemPriceOut" prefWidth="90" text="RP" />
-                                <TableColumn fx:id="colItemIsSaved" prefWidth="80" text="Added" />
+                                <TableColumn fx:id="colItemIsSaved" prefWidth="70" text="Added" />
                                 <TableColumn fx:id="colItemCode" prefWidth="150" text="CODE" />
                                 <TableColumn fx:id="colItemComment" prefWidth="150" text="COMMENT" />
                             </columns>

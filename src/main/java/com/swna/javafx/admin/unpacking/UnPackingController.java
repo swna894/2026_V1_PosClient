@@ -205,8 +205,8 @@ public class UnPackingController {
     
     private void handleBarcode(String code) {
         if (code == null || code.isBlank()) return;
-        //Platform.runLater(() -> viewModel.scan(code)); 
-        Platform.runLater(() -> log.info("Barcode scanned: {}", code)); 
+        Platform.runLater(() -> viewModel.scan(code)); 
+  
     }
 
     // ---------------- Table Configurations ----------------
@@ -260,7 +260,7 @@ public class UnPackingController {
 
         TableColumnUtil.createNumberColumn(tableViewItems, colItemNo, 50);
         TableColumnUtil.createCheckBoxHeaderColumn(tableViewItems, colItemConfirm, UnpackItem::confirmProperty, "", 60);
-        TableColumnUtil.createCheckBoxTextColumn(tableViewItems, colItemIsSaved, UnpackItem::isSavedProperty, "Added", 70, true);
+        TableColumnUtil.createCheckBoxTextColumn(tableViewItems, colItemIsSaved, UnpackItem::isSavedProperty, "Added", 65, false);
 
         TableColumnUtil.makeStringColumn(colItemBarcode, UnpackItem::barcodeProperty, UnpackItem::setBarcode, false, true, TableColumnUtil.CENTER, null);
         TableColumnUtil.makeStringColumn(colItemDescription, UnpackItem::descriptionProperty, UnpackItem::setDescription, true, true, TableColumnUtil.LEFT, null);

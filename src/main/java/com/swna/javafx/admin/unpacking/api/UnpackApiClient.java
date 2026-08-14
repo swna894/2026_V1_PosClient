@@ -23,7 +23,7 @@ public class UnpackApiClient {
     private final SimpleApiClient webClientCommon;
 
     // 서버 Controller 매핑 URL과 동일하게 설정
-    private static final String API_UNPACK = "/api/unpack";
+    private static final String API_UNPACK = "/api/unpacks";
     private static final String API_UNPACK_ITEM = "/api/unpackItem";
     private static final String API_UNPACK_ITEMS = "/api/unpackItems";
 
@@ -33,7 +33,7 @@ public class UnpackApiClient {
 
     /** C: Unpack 생성 (POST /api/unpack) */
     public Mono<ApiResponse<UnpackDto>> postUnpack(UnpackDto dto) {
-        //log.info("[API] POST {} - body: {}", API_UNPACK, dto);
+        log.info("[API] POST {} - body: {}", API_UNPACK, dto.amount());
         return webClientCommon.post(API_UNPACK, dto, TypeReferences.single(UnpackDto.class));
     }
 
