@@ -165,11 +165,6 @@ public class UnpackingViewModel {
             return;
         }
 
-        // 1. 라인 번호(LineNo) 순차 부여
-        for (int i = 0; i < unpackItems.size(); i++) {
-            unpackItems.get(i).setLineNo(i + 1);
-        }
-
         // 2. 대상 품목 필터링 (확정, 미저장, 판매가 또는 예상가 존재)
         List<UnpackItem> targetItems = unpackItems.stream()
                 .filter(item -> Boolean.TRUE.equals(item.getConfirm()) && !Boolean.TRUE.equals(item.getIsSaved()))
