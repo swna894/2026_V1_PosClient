@@ -2,6 +2,7 @@ package com.swna.javafx.admin.unpacking;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
@@ -154,6 +155,8 @@ public class UnPackingController {
         Platform.runLater(() -> tableViewItems.requestFocus());
     }
 
+    private static final Pattern PRICE_PATTERN = Pattern.compile("^\\d*(\\.\\d*)?$");
+
     private void wireControls() {
         datePickerStart.setValue(viewModel.startDateProperty().get());
         datePickerEnd.setValue(viewModel.endDateProperty().get());
@@ -168,9 +171,9 @@ public class UnPackingController {
         textFieldPriceMultiplier.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
             // 빈 값("") 또는 소수점을 포함한 숫자 패턴만 허용 (예: 2, 2.3, 0.5)
-            if (newText.isEmpty() || newText.matches("^\\d*\\.?\\d*$")) {
-                return change;
-            }
+              if (newText.isEmpty() || PRICE_PATTERN.matcher(newText).matches()) {
+            return change;
+        }
             return null; // 조건에 맞지 않는 입력(문자 등)은 무시
         }));
 

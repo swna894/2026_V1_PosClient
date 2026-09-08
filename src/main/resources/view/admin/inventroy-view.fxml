@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+
+<BorderPane fx:id="borderPane" prefHeight="694.0" prefWidth="1817.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.admin.inventory.InventoryController">
+   <padding>
+      <Insets bottom="10" left="10" right="10" top="0" />
+   </padding>
+
+   <!-- ============ Top Main ToolBar ============ -->
+   <top>
+      <ToolBar fx:id="mainToolBar">
+         <items>
+            <ComboBox fx:id="comboBoxSupplier" minWidth="150.0" onAction="#actionComboBoxSupplier" prefHeight="36.0" promptText="SUPPLIER" styleClass="button2" />
+            <ComboBox fx:id="comboBoxCategory" minWidth="150.0" onAction="#actionComboBoxCategory" prefHeight="36.0" promptText="CATEGORY" styleClass="button2" />
+
+            <TextField fx:id="textFieldSearch" minWidth="180.0" prefHeight="36.0" promptText="SEARCH" />
+
+            <Label fx:id="labelInformStock" alignment="BOTTOM_LEFT" minWidth="200.0" prefHeight="36.0" />
+
+            <!-- 가변 공간 채움 Region -->
+            <Region HBox.hgrow="ALWAYS" />
+
+            <!-- SAVE 버튼 -->
+            <Button fx:id="buttonSave" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonSave" prefHeight="36.0" styleClass="button2" text="SAVE">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../images/delete_24px.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+
+            <!-- RELOAD 버튼 -->
+            <Button fx:id="buttonReload" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonReload" prefHeight="36.0" styleClass="button2" text="RELOAD">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../images/delete_24px.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+
+            <!-- DELETE 버튼 -->
+            <Button fx:id="buttonDelete" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonDelete" prefHeight="36.0" styleClass="button2" text="DELETE">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../images/delete_24px.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+
+            <!-- PRINT (Barcode) 버튼 -->
+            <Button fx:id="buttonPrintBarcode" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonPrintBarcode" prefHeight="36.0" styleClass="button2" text="PRINT">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../images/delete_24px.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+
+            <!-- PRINT (Stock) 버튼 -->
+            <Button fx:id="buttonPrintStock" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonPrintStock" prefHeight="36.0" styleClass="button2" text="PRINT">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../images/delete_24px.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+
+            <!-- UPLOAD 버튼 -->
+            <Button fx:id="buttonUploadExcel" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonUploadExcel" prefHeight="36.0" styleClass="button2" text="UPLOAD">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../images/delete_24px.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+
+            <!-- SAMPLE 버튼 -->
+            <Button fx:id="buttonDownExcelSampleFile" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonDonwExcelSample" prefHeight="36.0" styleClass="button2" text="SAMPLE">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../images/delete_24px.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+
+            <!-- STOCK 버튼 -->
+            <Button fx:id="buttonStock" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonStock" prefHeight="36.0" styleClass="button2" text="STOCK">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../images/delete_24px.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+         </items>
+      </ToolBar>
+   </top>
+
+   <!-- ============ Center TableView ============ -->
+   <center>
+      <TableView fx:id="tableView" editable="true" styleClass="tableView" tableMenuButtonVisible="true">
+         <BorderPane.margin>
+            <Insets top="10.0" />
+         </BorderPane.margin>
+      </TableView>
+   </center>
+
+</BorderPane>

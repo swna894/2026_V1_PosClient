@@ -40,7 +40,7 @@
             <SeparatorMenuItem />
             <MenuItem fx:id="purchaseOrderingMenuItem" text="Purchase Ordering"
                onAction="#handlePurchaseOrdering" />
-            <MenuItem fx:id="goodsUnpackingMenuItem" text="Unpacking Goods"
+            <MenuItem fx:id="goodsUnpackingMenuItem" text="Unpacking Goods*"
                onAction="#handleGoodsUnpacking" />
             <SeparatorMenuItem />
             <MenuItem fx:id="stockBySupplierMenuItem" text="Stock by Supplier"
@@ -68,7 +68,7 @@
       <!-- Settings -->
       <Menu text="Settings">
          <items>
-            <MenuItem fx:id="generateBarcodeMenuItem" text="Generate Barcode"
+            <MenuItem fx:id="generateBarcodeMenuItem" text="Generate Barcode*"
                onAction="#handleGenerateBarcode" />
             <MenuItem fx:id="printerSettingsMenuItem" text="Printer Settings"
                onAction="#handlePrinterSettings" />

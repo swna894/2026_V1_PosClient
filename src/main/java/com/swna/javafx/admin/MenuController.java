@@ -2,6 +2,7 @@ package com.swna.javafx.admin;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.inventory.InventoryController;
 import com.swna.javafx.admin.sale.SalesController;
 import com.swna.javafx.admin.supplier.SupplierController;
 import com.swna.javafx.admin.unpacking.UnPackingController;
@@ -78,7 +79,7 @@ public class MenuController {
     // ==========================================
     // Inventory Handlers
     // ==========================================
-    @FXML public void handleInventoryStatus(ActionEvent event) { viewModel.openInventoryStatus(); }
+    @FXML public void handleInventoryStatus(ActionEvent event) { setCenterView(InventoryController.class, "Inventory Adjustment"); }
     @FXML public void handleInventoryAdjustment(ActionEvent event) { viewModel.openInventoryAdjustment(); }
     @FXML public void handlePurchaseOrdering(ActionEvent event) { viewModel.openPurchaseOrdering(); }
     @FXML public void handleGoodsUnpacking(ActionEvent event) { setCenterView(UnPackingController.class, "Goods Unpacking"); }
