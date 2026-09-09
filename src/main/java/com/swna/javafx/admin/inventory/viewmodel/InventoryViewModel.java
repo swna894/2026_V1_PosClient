@@ -9,6 +9,7 @@ import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,9 @@ public class InventoryViewModel {
     private final ObservableList<Supplier> suppliers = FXCollections.observableArrayList(); // 👈 String -> Supplier
     private final ObservableList<String> categories = FXCollections.observableArrayList();
     private final ObservableList<Inventory> inventoryList = FXCollections.observableArrayList();
+
+    // FilteredList 추가
+    private FilteredList<Inventory> filteredInventoryList;
 
     // UI input / state properties
     private final ObjectProperty<Supplier> selectedSupplier = new SimpleObjectProperty<>(); // 👈 StringProperty -> ObjectProperty<Supplier>

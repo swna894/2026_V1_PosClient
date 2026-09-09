@@ -80,7 +80,7 @@ public class MenuController {
     // Inventory Handlers
     // ==========================================
     @FXML public void handleInventoryStatus(ActionEvent event) { viewModel.openInventoryStatus(); }
-    @FXML public void handleInventoryAdjustment(ActionEvent event) { setCenterView(InventoryController.class, "Inventory Adjustment*"); }
+    @FXML public void handleInventoryAdjustment(ActionEvent event) { setCenterView(InventoryController.class, "Inventory Adjustment"); }
     @FXML public void handlePurchaseOrdering(ActionEvent event) { viewModel.openPurchaseOrdering(); }
     @FXML public void handleGoodsUnpacking(ActionEvent event) { setCenterView(UnPackingController.class, "Goods Unpacking"); }
     @FXML public void handleStockBySupplier(ActionEvent event) { viewModel.openStockBySupplier(); }

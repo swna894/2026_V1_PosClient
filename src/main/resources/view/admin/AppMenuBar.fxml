@@ -35,7 +35,7 @@
          <items>
             <MenuItem fx:id="inventoryStatusMenuItem" text="Inventory Status"
                onAction="#handleInventoryStatus" />
-            <MenuItem fx:id="inventoryAdjustmentMenuItem" text="Inventory Adjustment"
+            <MenuItem fx:id="inventoryAdjustmentMenuItem" text="Inventory Adjustment*"
                onAction="#handleInventoryAdjustment" />
             <SeparatorMenuItem />
             <MenuItem fx:id="purchaseOrderingMenuItem" text="Purchase Ordering"

@@ -695,6 +695,7 @@ public class TableUtil {
             CheckBox headerCheckBox, 
             Function<S, BooleanProperty> property
     ) {
+        
         int totalCount = tableView.getItems().size();
         if (totalCount == 0) {
             headerCheckBox.setSelected(false);
