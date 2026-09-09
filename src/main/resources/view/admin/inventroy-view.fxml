@@ -22,99 +22,77 @@
    <top>
       <ToolBar fx:id="mainToolBar">
          <items>
-            <ComboBox fx:id="comboBoxSupplier" minWidth="150.0" onAction="#actionComboBoxSupplier" prefHeight="36.0" promptText="SUPPLIER" styleClass="button2" />
-            <ComboBox fx:id="comboBoxCategory" minWidth="150.0" onAction="#actionComboBoxCategory" prefHeight="36.0" promptText="CATEGORY" styleClass="button2" />
+            <ComboBox fx:id="comboBoxSupplier" minWidth="150.0" onAction="#actionComboBoxSupplier" prefHeight="36.0" promptText="SUPPLIER" />
+            <!-- <ComboBox fx:id="comboBoxCategory" minWidth="150.0" onAction="#actionComboBoxCategory" prefHeight="36.0" promptText="CATEGORY" /> -->
 
-            <TextField fx:id="textFieldSearch" minWidth="180.0" prefHeight="36.0" promptText="SEARCH" />
+            <TextField fx:id="textFieldSearch" minWidth="180.0" prefWidth="250.0" prefHeight="36.0" promptText="SEARCH" />
 
-            <Label fx:id="labelInformStock" alignment="BOTTOM_LEFT" minWidth="200.0" prefHeight="36.0" />
+            <Label fx:id="labelInformStock" alignment="BOTTOM_LEFT" prefHeight="36.0" />
 
             <!-- 가변 공간 채움 Region -->
             <Region HBox.hgrow="ALWAYS" />
 
             <!-- SAVE 버튼 -->
-            <Button fx:id="buttonSave" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonSave" prefHeight="36.0" styleClass="button2" text="SAVE">
+            <Button fx:id="buttonSave" minWidth="80.0" prefWidth="120.0" mnemonicParsing="false" onAction="#actionButtonSave" prefHeight="36.0" text="SAVE">
                <graphic>
                   <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../../images/delete_24px.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Button>
-
-            <!-- RELOAD 버튼 -->
-            <Button fx:id="buttonReload" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonReload" prefHeight="36.0" styleClass="button2" text="RELOAD">
-               <graphic>
-                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../../images/delete_24px.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Button>
-
-            <!-- DELETE 버튼 -->
-            <Button fx:id="buttonDelete" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonDelete" prefHeight="36.0" styleClass="button2" text="DELETE">
-               <graphic>
-                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../../images/delete_24px.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Button>
-
-            <!-- PRINT (Barcode) 버튼 -->
-            <Button fx:id="buttonPrintBarcode" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonPrintBarcode" prefHeight="36.0" styleClass="button2" text="PRINT">
-               <graphic>
-                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../../images/delete_24px.png" />
+                        <Image url="@../../images/save_24px.png" />
                      </image>
                   </ImageView>
                </graphic>
             </Button>
 
             <!-- PRINT (Stock) 버튼 -->
-            <Button fx:id="buttonPrintStock" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonPrintStock" prefHeight="36.0" styleClass="button2" text="PRINT">
+            <Button fx:id="buttonPrintStock" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonPrintStock" prefHeight="36.0" text="IMPORT">
                <graphic>
                   <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../../images/delete_24px.png" />
+                        <Image url="@../../images/file_upload_24px.png" />
                      </image>
                   </ImageView>
                </graphic>
             </Button>
 
             <!-- UPLOAD 버튼 -->
-            <Button fx:id="buttonUploadExcel" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonUploadExcel" prefHeight="36.0" styleClass="button2" text="UPLOAD">
+            <Button fx:id="buttonUploadExcel" minWidth="80.0" prefWidth="120.0" mnemonicParsing="false" onAction="#actionButtonUploadExcel" prefHeight="36.0" text="EXCEL">
                <graphic>
                   <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../../images/delete_24px.png" />
+                        <Image url="@../../images/excel_24px.png" />
                      </image>
                   </ImageView>
                </graphic>
             </Button>
 
             <!-- SAMPLE 버튼 -->
-            <Button fx:id="buttonDownExcelSampleFile" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonDonwExcelSample" prefHeight="36.0" styleClass="button2" text="SAMPLE">
+            <Button fx:id="buttonDownExcelSampleFile" minWidth="80.0" prefWidth="120.0" mnemonicParsing="false" onAction="#actionButtonDonwExcelSample" prefHeight="36.0" text="SAMPLE">
                <graphic>
                   <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../../images/delete_24px.png" />
+                        <Image url="@../../images/print_24px.png" />
                      </image>
                   </ImageView>
                </graphic>
             </Button>
 
-            <!-- STOCK 버튼 -->
-            <Button fx:id="buttonStock" minWidth="80.0" mnemonicParsing="false" onAction="#actionButtonStock" prefHeight="36.0" styleClass="button2" text="STOCK">
+            <!-- DELETE 버튼 -->
+            <Button fx:id="buttonDelete" minWidth="80.0" prefWidth="120.0" mnemonicParsing="false" onAction="#actionButtonDelete" prefHeight="36.0" text="DELETE">
                <graphic>
                   <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../../images/delete_24px.png" />
+                        <Image url="@../../images/delete_item_24px.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+
+            <!-- RELOAD 버튼 -->
+            <Button fx:id="buttonReload" minWidth="80.0" prefWidth="120.0" mnemonicParsing="false" onAction="#actionButtonReload" prefHeight="36.0" text="RELOAD">
+               <graphic>
+                  <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../images/reload_24px.png" />
                      </image>
                   </ImageView>
                </graphic>

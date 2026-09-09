@@ -19,8 +19,7 @@ public class SupplierRepository {
      * 전체 조회
      */
     public Mono<List<SupplierResponseRecord>> findAll() {
-        return apiClient.getAllSuppliers()
-                .flatMap(ResponseHandler::unwrap);
+        return apiClient.getAllSuppliers().flatMap(ResponseHandler::unwrap);
     }
 
     /**

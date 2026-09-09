@@ -27,8 +27,8 @@ public class BarcodeLabelApiClient {
     private final SimpleApiClient webClientCommon;
     
     // 1. 백엔드 매핑 경로와 일치하도록 수정
-    private static final String API_PRODUCT_LABELS = "/api/v1/products/labels";
-    private static final String API_SEARCH_SUPPLIER = "/api/v1/products/labels/search/supplier";
+    private static final String API_PRODUCT_LABELS = "/products/labels";
+    private static final String API_SEARCH_SUPPLIER = "/products/labels/search/supplier";
     
     // 타임아웃 및 재시도 설정
     private static final int API_TIMEOUT_SECONDS = 30;
