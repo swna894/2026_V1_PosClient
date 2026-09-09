@@ -21,6 +21,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -696,7 +697,14 @@ public class TableUtil {
             Function<S, BooleanProperty> property
     ) {
         
-        int totalCount = tableView.getItems().size();
+        ObservableList<?> items = tableView.getItems();
+        if (items == null) {
+            headerCheckBox.setSelected(false);
+            headerCheckBox.setIndeterminate(false);
+            return;
+        }
+
+        int totalCount = items.size();
         if (totalCount == 0) {
             headerCheckBox.setSelected(false);
             headerCheckBox.setIndeterminate(false);

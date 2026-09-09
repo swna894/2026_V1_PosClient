@@ -31,8 +31,9 @@ public class InventoryViewModel {
     private final ObservableList<String> categories = FXCollections.observableArrayList();
     private final ObservableList<Inventory> inventoryList = FXCollections.observableArrayList();
 
-    // FilteredList 추가
-    private FilteredList<Inventory> filteredInventoryList;
+    // FilteredList 추가 — inventoryList보다 아래에 선언 + 즉시 초기화 (초기화 순서 중요)
+    private final FilteredList<Inventory> filteredInventoryList =
+            new FilteredList<>(inventoryList, item -> true);
 
     // UI input / state properties
     private final ObjectProperty<Supplier> selectedSupplier = new SimpleObjectProperty<>(); // 👈 StringProperty -> ObjectProperty<Supplier>
@@ -43,6 +44,7 @@ public class InventoryViewModel {
     public void initializeData() {
         categories.setAll("Category 1", "Category 2");
         registerSelectedSupplierListener();
+        registerSearchTextListener(); // 👈 검색어 변경 시 필터 predicate 갱신
         loadSuppliers(); // 👈 replaced hardcoded list with API call
         loadInventoryList();
     }
@@ -59,6 +61,38 @@ public class InventoryViewModel {
             }
             loadInventoryByAbbr(newSupplier.getAbbr());
         });
+    }
+
+    /**
+     * textFieldSearch 입력값(searchText)이 바뀔 때마다 FilteredList의 predicate를 재설정.
+     */
+    private void registerSearchTextListener() {
+        searchText.addListener((obs, oldVal, newVal) -> applySearchFilter(newVal));
+    }
+
+    /**
+     * 검색어 기준으로 inventory 항목을 필터링.
+     * 검색 대상 필드: code, barcode, description, comment (OR 조건)
+     */
+    private void applySearchFilter(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            filteredInventoryList.setPredicate(item -> true);
+            return;
+        }
+
+        String lower = keyword.trim().toLowerCase();
+        filteredInventoryList.setPredicate(item ->
+                containsIgnoreCase(item.getCode(), lower)
+                || containsIgnoreCase(item.getBarcode(), lower)
+                || containsIgnoreCase(item.getDescription(), lower)
+                || containsIgnoreCase(item.getComment(), lower));
+    }
+
+    /**
+     * null-safe 대소문자 무시 부분 일치 체크.
+     */
+    private boolean containsIgnoreCase(String value, String keywordLower) {
+        return value != null && value.toLowerCase().contains(keywordLower);
     }
 
     /**

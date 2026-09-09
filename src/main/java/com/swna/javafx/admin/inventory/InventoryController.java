@@ -58,7 +58,7 @@ public class InventoryController {
 
     private void initTableView() {
         tableFactory.initializeTable(tableView);
-        tableView.setItems(viewModel.getInventoryList());
+        tableView.setItems(viewModel.getFilteredInventoryList());
     }
 
     // ---------------- Setup: Supplier ComboBox ----------------
