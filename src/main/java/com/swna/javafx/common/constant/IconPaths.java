@@ -4,6 +4,9 @@ public final class IconPaths {
 
     private IconPaths() {}
 
+    
+    public static final int BUTTOM_WIDTH = 50;
+
     public static final String QTY = "/icons/qty.png";
     public static final String DELETE = "/images/delete_24px.png";
     public static final String DISCOUNT = "/images/coupon_24px.png";
@@ -11,5 +14,7 @@ public final class IconPaths {
     public static final String MINUS = "/images/minus_16px.png";
     public static final String PLUS = "/images/plus_16px.png";
     public static final String PRICE_22= "/images/price_22px.png";
+    public static final String BARGRAPH_32 = "/images/bargraph_32px.png";
+    public static final String SAVE         = "/images/20_save.png";
 
 }

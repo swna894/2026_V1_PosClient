@@ -6,6 +6,7 @@ import static com.swna.javafx.common.tableutils.TableColumnUtils.stringColumn;
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.inventory.model.Inventory;
+import com.swna.javafx.common.constant.IconPaths;
 import com.swna.javafx.common.tableutils.TableUtil;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -34,7 +35,8 @@ public class InventoryTableFactory {
     private TableColumn<Inventory, String> colMinOrderQuantity;
     private TableColumn<Inventory, String> colLastOrderedAt;
     private TableColumn<Inventory, String> colComment;
-    private TableColumn<Inventory, Void>   colAction;
+    private TableColumn<Inventory, Void>   colButtonSave;
+    private TableColumn<Inventory, Void>   colButtonOrderHistory;
 
 
     public TableView<Inventory> initializeTable(TableView<Inventory> existingTable) {
@@ -50,8 +52,8 @@ public class InventoryTableFactory {
 
         this.colBarcode = stringColumn(table, "BARCODE", Inventory::barcodeProperty).visible(true).alignment(TableUtil.CENTER).fixedWidth(200).build();
         this.colCode = stringColumn(table, "CODE", Inventory::codeProperty).visible(true).alignment(TableUtil.CENTER).fixedWidth(120).build();
-        this.colDescription = stringColumn(table, "DESCRIPTION", Inventory::descriptionProperty).visible(true).wrapText(true).alignment(TableUtil.LEFT).fixedWidth(300).build();
-        this.colPrice = stringColumn(table, "RP", item -> 
+        this.colDescription = stringColumn(table, "DESCRIPTION", Inventory::descriptionProperty).visible(true).wrapText(true).alignment(TableUtil.LEFT).fixedWidth(350).build();
+        this.colPrice = stringColumn(table, "RETAIL\nPRICE", item -> 
                 new SimpleStringProperty(item.getPrice() != null ? item.getPrice().toString() : "0"))
                 .visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
         
@@ -59,18 +61,20 @@ public class InventoryTableFactory {
                 new SimpleStringProperty(item.getCost() != null ? item.getCost().toString() : "0"))
                 .visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
         
-        this.colPriceOld = stringColumn(table, "PREVIOUS_SELLING_PRICE", item -> 
+        this.colPriceOld = stringColumn(table, "OLD\nPRICE", item -> 
                 new SimpleStringProperty(item.getPriceOld() != null ? item.getPriceOld().toString() : ""))
-                .visible(false).alignment(TableUtil.RIGHT).fixedWidth(90).build();
+                .visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
         
 
-        this.colCostOld = stringColumn(table, "Old\nCost", item -> 
+        this.colCostOld = stringColumn(table, "OLD\nCOST", item -> 
                 new SimpleStringProperty(item.getCostOld() != null ? item.getCostOld().toString() : ""))
-                .visible(false).alignment(TableUtil.RIGHT).fixedWidth(90).build();
+                .visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
         
         this.colQuantity = stringColumn(table, "STOCK", item -> 
                 new SimpleStringProperty(String.valueOf(item.getQuantity())))
-                .visible(true).alignment(TableUtil.RIGHT).fixedWidth(100).build();
+                .setter((item, newVal) -> item.setQuantity(Integer.parseInt(newVal)))
+                .dirtyConsumer(item -> item.setSelected(true))
+                .editable(true).alignment(TableUtil.RIGHT).fixedWidth(100).build();
         
         this.colMinStock = stringColumn(table, "MIN\nSTOCK", item -> 
                 new SimpleStringProperty(String.valueOf(item.getMinStock())))
@@ -84,17 +88,10 @@ public class InventoryTableFactory {
                 new SimpleStringProperty(item.getLastOrderedAtFormatted()))
                 .visible(true).alignment(TableUtil.CENTER).fixedWidth(140).build();
 
-        this.colAction = buttonColumn(table)
-                .title("action").visible(true).fixedWidth(100)
-                .bgColor("gray").textColor("green")
-                .action(this::onClickAction).build();
+        this.colButtonOrderHistory = buttonColumn(table).title("").iconPath(IconPaths.BARGRAPH_32).width(IconPaths.BUTTOM_WIDTH).build();
+        this.colButtonSave = buttonColumn(table).title("").iconPath(IconPaths.SAVE).width(IconPaths.BUTTOM_WIDTH).action(this::onClickSave).build();
 
         this.colComment = stringColumn(table, "COMMENT", Inventory::commentProperty).visible(true).alignment(TableUtil.LEFT).fixedWidth(250).build();
-    }
-
-    private void onClickAction(Inventory item, ActionEvent event) {
-        log.info("Action clicked for inventory code: {}", item.getCode());
-        // 필요 시 stageService 등을 통해 상세/수정 모달 팝업 호출
     }
 
     // =========================================================================
@@ -111,6 +108,10 @@ public class InventoryTableFactory {
             TableColumn<?, ?> col = posList.get(0).getTableColumn();
             if (col == null || col.getText() == null) return;
         });
+    }
+
+    private void onClickSave(Inventory item) {
+        //item.setSelected(true);
     }
 
     // private void handleDescriptionClick(Inventory item) {
