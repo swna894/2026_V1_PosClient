@@ -2,6 +2,7 @@ package com.swna.javafx.admin.inventory.viewmodel;
 
 import com.swna.javafx.admin.inventory.api.InventoryApiClient;
 import com.swna.javafx.admin.inventory.model.Inventory;
+import com.swna.javafx.admin.inventory.model.InventoryUpdateRequest;
 import com.swna.javafx.admin.supplier.api.SupplierApiClient;
 import com.swna.javafx.admin.supplier.domain.Supplier;
 import javafx.application.Platform;
@@ -112,6 +113,37 @@ public class InventoryViewModel {
         loadInventoryByAbbr(current.getAbbr());
     }
 
+    /**
+     * 🔥 단건 재고/상품 수정 서버 반영 및 UI 모델 갱신
+     */
+    public void updateProduct(Inventory item) {
+        if (item == null || item.getId() == null) {
+            log.warn("Cannot update item with null ID: {}", item);
+            return;
+        }
+
+        log.info("Updating product on server for item ID: {}", item.getId());
+        InventoryUpdateRequest request = item.toUpdateRequest();
+
+        inventoryApiClient.updateProduct(item.getId(), request)
+                .subscribe(
+                        response -> {
+                            if (response != null && response.data() != null) {
+                                var updatedDto = response.data();
+                                log.info("Successfully updated product ID: {}", updatedDto.id());
+
+                                // JavaFX 스레드에서 UI 모델 필드 반영
+                                Platform.runLater(() -> {
+                                    item.setQuantity(updatedDto.quantity());
+                                    item.setLastOrderedAt(updatedDto.lastOrderedAt());
+                                    item.setSelected(false);
+                                });
+                            }
+                        },
+                        error -> log.error("Failed to update product ID: {}", item.getId(), error)
+                        
+                );
+    }
     // ---------------- Commands (Action Handlers) ----------------
 
     public void handleSave() {

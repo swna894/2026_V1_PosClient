@@ -19,6 +19,8 @@ import lombok.ToString;
 @ToString
 public class Inventory {
 
+    private Long id;
+
     private BooleanProperty selected = new SimpleBooleanProperty(false);
     private StringProperty code = new SimpleStringProperty();
     private StringProperty barcode = new SimpleStringProperty();
@@ -40,6 +42,9 @@ public class Inventory {
     }
 
     // ---------------- Property Getters/Setters ----------------
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }    
 
     public Boolean isSelected() { return selected.get(); }
     public void setSelected(Boolean selected) { this.selected.set(selected); }
@@ -99,6 +104,7 @@ public class Inventory {
     public static Inventory from(InvoentoryResponse dto) {
         if (dto == null) return null;
         Inventory inventory = new Inventory();
+        inventory.setId(dto.id());
         inventory.setCode(dto.code());
         inventory.setBarcode(dto.barcode());
         inventory.setDescription(dto.description());
@@ -112,6 +118,23 @@ public class Inventory {
         inventory.setMinOrderQuantity(dto.minOrderQuantity());
         inventory.setLastOrderedAt(dto.lastOrderedAt());
         return inventory;
+    }
+
+    /**
+     * 🔥 현재 Inventory 객체 상태를 바탕으로 Update DTO 생성
+     */
+    public InventoryUpdateRequest toUpdateRequest() {
+        return new InventoryUpdateRequest(
+                getId(),
+                getDescription(),
+                getPrice(),
+                getCost(),
+                null, // category (필요 시 필드 추가 후 매핑)
+                getQuantity(),
+                getMinStock(),
+                null, // maxStock
+                getMinOrderQuantity()
+        );
     }
 
     public String getLastOrderedAtFormatted() {

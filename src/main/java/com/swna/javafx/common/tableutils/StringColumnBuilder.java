@@ -173,13 +173,9 @@ public class StringColumnBuilder<S> {
             column.setCellFactory(col -> new StringEditingCell<>(alignment));
             column.setOnEditCommit(event -> {
                 S row = event.getRowValue();
-                if (setter != null) {
-                    setter.accept(row, event.getNewValue());
-                }
-                // 표준 Consumer 실행[cite: 5]
-                if (dirtyConsumer != null) {
-                    dirtyConsumer.accept(row);
-                }
+                if (setter != null) { setter.accept(row, event.getNewValue()); }
+                // 표준 Consumer 실행
+                if (dirtyConsumer != null) { dirtyConsumer.accept(row); }
             });
         } else if (wrapText || !Color.BLACK.equals(textColor) || lineSpacing > 0) {
             column.setEditable(false);
@@ -219,7 +215,8 @@ public class StringColumnBuilder<S> {
         textField.setStyle(base + STYLE_EDIT_TEXTFIELD);
 
         textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            textField.setStyle(base + (isFocused ? STYLE_EDIT_TEXTFIELD_FOCUSED : STYLE_EDIT_TEXTFIELD));
+            boolean focused = Boolean.TRUE.equals(isFocused);
+            textField.setStyle(base + (focused ? STYLE_EDIT_TEXTFIELD_FOCUSED : STYLE_EDIT_TEXTFIELD));
         });
     }
 
@@ -283,7 +280,7 @@ public class StringColumnBuilder<S> {
             textField.setOnAction(e -> commitEdit(textField.getText()));
 
             textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-                if (!isFocused && isEditing()) {
+                if (Boolean.FALSE.equals(isFocused) && isEditing()) {
                     Platform.runLater(() -> commitEdit(textField.getText()));
                 }
             });

@@ -3,23 +3,29 @@ package com.swna.javafx.admin.inventory.factory;
 import static com.swna.javafx.common.tableutils.TableColumnUtils.buttonColumn;
 import static com.swna.javafx.common.tableutils.TableColumnUtils.stringColumn;
 
+import java.math.BigDecimal;
+
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.inventory.model.Inventory;
+import com.swna.javafx.admin.inventory.viewmodel.InventoryViewModel;
 import com.swna.javafx.common.constant.IconPaths;
 import com.swna.javafx.common.tableutils.TableUtil;
 
 import javafx.beans.property.SimpleStringProperty;
-import javafx.event.ActionEvent;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Getter
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class InventoryTableFactory {
+
+    private final InventoryViewModel viewModel;
 
     private TableView<Inventory> table;
 
@@ -55,14 +61,19 @@ public class InventoryTableFactory {
         this.colDescription = stringColumn(table, "DESCRIPTION", Inventory::descriptionProperty).visible(true).wrapText(true).alignment(TableUtil.LEFT).fixedWidth(350).build();
         this.colPrice = stringColumn(table, "RETAIL\nPRICE", item -> 
                 new SimpleStringProperty(item.getPrice() != null ? item.getPrice().toString() : "0"))
-                .visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
+                .setter((item, newVal) -> item.setPrice(new BigDecimal(newVal)))
+                .dirtyConsumer(item -> item.setSelected(true))
+                .editable(true).visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
         
         this.colCost = stringColumn(table, "COST", item -> 
                 new SimpleStringProperty(item.getCost() != null ? item.getCost().toString() : "0"))
-                .visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
+                .setter((item, newVal) -> item.setCost(new BigDecimal(newVal)))
+                .dirtyConsumer(item -> item.setSelected(true))
+                .editable(true).visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
         
         this.colPriceOld = stringColumn(table, "OLD\nPRICE", item -> 
                 new SimpleStringProperty(item.getPriceOld() != null ? item.getPriceOld().toString() : ""))
+                .setter((item, newVal) -> item.setPrice(new BigDecimal(newVal)))
                 .visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
         
 
@@ -78,18 +89,22 @@ public class InventoryTableFactory {
         
         this.colMinStock = stringColumn(table, "MIN\nSTOCK", item -> 
                 new SimpleStringProperty(String.valueOf(item.getMinStock())))
-                .visible(true).alignment(TableUtil.RIGHT).fixedWidth(100).build();
+                .setter((item, newVal) -> item.setMinStock(Integer.parseInt(newVal)))
+                .dirtyConsumer(item -> item.setSelected(true))
+                .editable(true).alignment(TableUtil.RIGHT).fixedWidth(100).build();
         
         this.colMinOrderQuantity = stringColumn(table, "MIN QTY", item -> 
                 new SimpleStringProperty(String.valueOf(item.getMinOrderQuantity())))
-                .visible(true).alignment(TableUtil.RIGHT).fixedWidth(100).build();
+                 .setter((item, newVal) -> item.setMinOrderQuantity(Integer.parseInt(newVal)))
+                 .dirtyConsumer(item -> item.setSelected(true))
+                .editable(true).alignment(TableUtil.RIGHT).fixedWidth(100).build();
 
         this.colLastOrderedAt = stringColumn(table, "LAST\nORDERED", item -> 
                 new SimpleStringProperty(item.getLastOrderedAtFormatted()))
                 .visible(true).alignment(TableUtil.CENTER).fixedWidth(140).build();
 
         this.colButtonOrderHistory = buttonColumn(table).title("").iconPath(IconPaths.BARGRAPH_32).width(IconPaths.BUTTOM_WIDTH).build();
-        this.colButtonSave = buttonColumn(table).title("").iconPath(IconPaths.SAVE).width(IconPaths.BUTTOM_WIDTH).action(this::onClickSave).build();
+        this.colButtonSave = buttonColumn(table).title("").iconPath(IconPaths.SAVE).width(IconPaths.BUTTOM_WIDTH).action(viewModel::updateProduct).build();
 
         this.colComment = stringColumn(table, "COMMENT", Inventory::commentProperty).visible(true).alignment(TableUtil.LEFT).fixedWidth(250).build();
     }
@@ -110,9 +125,6 @@ public class InventoryTableFactory {
         });
     }
 
-    private void onClickSave(Inventory item) {
-        //item.setSelected(true);
-    }
 
     // private void handleDescriptionClick(Inventory item) {
     //     item.selectedProperty().set(true);

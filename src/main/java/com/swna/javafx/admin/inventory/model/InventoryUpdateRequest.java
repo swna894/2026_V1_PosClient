@@ -11,8 +11,6 @@ public record InventoryUpdateRequest(
         String description,
         BigDecimal price,
         BigDecimal cost,
-        BigDecimal priceOld,
-        BigDecimal costOld,
         String category,
         Integer quantity,
         Integer minStock,
