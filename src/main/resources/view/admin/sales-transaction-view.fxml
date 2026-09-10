@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+
+<BorderPane prefHeight="550.0" prefWidth="973.0" stylesheets="@../../styles/app.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.admin.inventory.SalesTransactionController">
+
+   <!-- Top Control Area -->
+   <top>
+      <HBox alignment="CENTER_LEFT" spacing="10.0" BorderPane.alignment="CENTER">
+         <padding>
+            <Insets bottom="10.0" left="15.0" right="15.0" top="10.0" />
+         </padding>
+         <children>
+            <Label fx:id="labelTitle" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Product Sales Information" />
+            <HBox HBox.hgrow="ALWAYS" />
+            <Label text="Year:" />
+            <ComboBox fx:id="comboBoxYear" prefWidth="100.0" />
+            <Label text="Period:" />
+            <ComboBox fx:id="comboBoxPeriod" prefWidth="120.0" />
+            <Button fx:id="buttonReload" onAction="#actionButtonReload" text="Search" />
+         </children>
+      </HBox>
+   </top>
+
+   <!-- Center Area: LineChart (Left) + TableView (Right) -->
+   <center>
+      <HBox spacing="15.0" BorderPane.alignment="CENTER">
+         <padding>
+            <Insets bottom="15.0" left="15.0" right="15.0" top="5.0" />
+         </padding>
+         <children>
+            <!-- Left: LineChart -->
+            <LineChart fx:id="lineChartSales" animated="false" title="Sales Trend" HBox.hgrow="ALWAYS">
+               <xAxis>
+                  <CategoryAxis fx:id="xAxisDate" label="Period" />
+               </xAxis>
+               <yAxis>
+                  <NumberAxis fx:id="yAxisQty" label="Quantity Sold" />
+               </yAxis>
+            </LineChart>
+
+            <!-- Right: Sales Data TableView (컬럼 생성을 Factory로 위임) -->
+            <TableView fx:id="tableView" prefWidth="320.0" HBox.hgrow="NEVER" />
+         </children>
+      </HBox>
+   </center>
+
+</BorderPane>

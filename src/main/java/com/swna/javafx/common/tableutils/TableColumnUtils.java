@@ -89,5 +89,14 @@ public class TableColumnUtils {
         return new HighlightedTextColumnBuilder<>(tableView, title, propertyGetter);
     }
 
+    /**
+     * 숫자(Integer, Long, Double 등) 전용 컬럼 빌더를 반환합니다.
+     */
+    public static <S, N extends Number> NumberColumnBuilder<S, N> numberColumn(
+            TableView<S> tableView,
+            String title,
+            Function<S, ObservableValue<N>> propertyGetter) {
+        return new NumberColumnBuilder<>(tableView, title, propertyGetter);
+    }
 
 }

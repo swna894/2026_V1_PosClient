@@ -10,6 +10,7 @@ import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,12 @@ public class InventoryViewModel {
     // FilteredList 추가 — inventoryList보다 아래에 선언 + 즉시 초기화 (초기화 순서 중요)
     private final FilteredList<Inventory> filteredInventoryList =
             new FilteredList<>(inventoryList, item -> true);
+
+    // SortedList 추가 — 헤더 클릭 정렬 지원. comparator는 Controller에서
+    // tableView.comparatorProperty()와 바인딩해야 실제로 동작함.
+    // 반드시 filteredInventoryList보다 아래에 선언 (초기화 순서 중요).
+    private final SortedList<Inventory> sortedInventoryList =
+            new SortedList<>(filteredInventoryList);
 
     // UI input / state properties
     private final ObjectProperty<Supplier> selectedSupplier = new SimpleObjectProperty<>(); // 👈 StringProperty -> ObjectProperty<Supplier>

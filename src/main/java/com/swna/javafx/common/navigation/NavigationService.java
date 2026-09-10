@@ -1,5 +1,7 @@
 package com.swna.javafx.common.navigation;
 
+import java.util.function.Consumer;
+
 import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.MenuController;
@@ -116,18 +118,28 @@ public class NavigationService {
     // 모달 창 열기 (Title 지정)
     // =========================
     public <T> void openModalWindow(Class<T> controllerClass, String title) {
+        openModalWindow(controllerClass, title, null);
+    }
+
+    // =========================
+    // 💡 모달 창 열기 + 컨트롤러 초기화 콜백
+    // show 되기 전에 컨트롤러(뷰모델)에 데이터를 주입할 수 있도록 Consumer<T>를 받는 오버로드.
+    // ex) openModalWindow(SalesTransactionController.class, title,
+    //         controller -> controller.getViewModel().initializeData(barcode, title));
+    // =========================
+    public <T> void openModalWindow(Class<T> controllerClass, String title, Consumer<T> initializer) {
         try {
             Stage newStage = new Stage();
-            
+
             // 1. 창 타이틀 설정
             newStage.setTitle(title);
-            
+
             // 2. 모달 설정 (앱 전체에 대한 모달)
             newStage.initModality(Modality.APPLICATION_MODAL);
-            
+
             // 3. 부모 Stage 지정 (서브 창이 켜져 있으면 서브 창을, 아니면 메인 stage를 Owner로 지정)
-            Stage parentStage = (adminWindowStage != null && adminWindowStage.isShowing()) 
-                                ? adminWindowStage 
+            Stage parentStage = (adminWindowStage != null && adminWindowStage.isShowing())
+                                ? adminWindowStage
                                 : this.stage;
 
             if (parentStage != null) {
@@ -137,12 +149,18 @@ public class NavigationService {
             newStage.getIcons().add(new Image("/images/pos_system.png"));
 
             Parent root = fxWeaver.loadView(controllerClass);
-            
+            T controller = fxWeaver.getBean(controllerClass); // 👈 스프링 빈으로 컨트롤러 인스턴스 획득
+
+            // 4. show 되기 전에 컨트롤러(뷰모델)에 데이터 주입
+            if (initializer != null && controller != null) {
+                initializer.accept(controller);
+            }
+
             Scene scene = new Scene(root);
             newStage.initStyle(StageStyle.DECORATED);
             newStage.setScene(scene);
-        
-            // 4. showAndWait() 호출하여 대기
+
+            // 5. showAndWait() 호출하여 대기
             newStage.showAndWait();
 
         } catch (Exception e) {

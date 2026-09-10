@@ -58,7 +58,12 @@ public class InventoryController {
 
     private void initTableView() {
         tableFactory.initializeTable(tableView);
-        tableView.setItems(viewModel.getFilteredInventoryList());
+
+        // FilteredList → SortedList 순으로 감싼 뷰를 TableView에 연결.
+        // SortedList의 comparator를 TableView의 comparatorProperty에 바인딩해야
+        // 헤더 클릭 시 정렬이 실제로 동작함 (SortedList 단독으로는 정렬 트리거가 없음).
+        viewModel.getSortedInventoryList().comparatorProperty().bind(tableView.comparatorProperty());
+        tableView.setItems(viewModel.getSortedInventoryList());
     }
 
     // ---------------- Setup: Supplier ComboBox ----------------

@@ -7,9 +7,11 @@ import java.math.BigDecimal;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.inventory.SalesTransactionController;
 import com.swna.javafx.admin.inventory.model.Inventory;
 import com.swna.javafx.admin.inventory.viewmodel.InventoryViewModel;
 import com.swna.javafx.common.constant.IconPaths;
+import com.swna.javafx.common.navigation.NavigationService;
 import com.swna.javafx.common.tableutils.TableUtil;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -26,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class InventoryTableFactory {
 
     private final InventoryViewModel viewModel;
+    private final NavigationService navigationService;
 
     private TableView<Inventory> table;
 
@@ -43,7 +46,6 @@ public class InventoryTableFactory {
     private TableColumn<Inventory, String> colComment;
     private TableColumn<Inventory, Void>   colButtonSave;
     private TableColumn<Inventory, Void>   colButtonOrderHistory;
-
 
     public TableView<Inventory> initializeTable(TableView<Inventory> existingTable) {
         this.table = existingTable;
@@ -76,7 +78,6 @@ public class InventoryTableFactory {
                 .setter((item, newVal) -> item.setPrice(new BigDecimal(newVal)))
                 .visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
         
-
         this.colCostOld = stringColumn(table, "OLD\nCOST", item -> 
                 new SimpleStringProperty(item.getCostOld() != null ? item.getCostOld().toString() : ""))
                 .visible(true).alignment(TableUtil.RIGHT).fixedWidth(90).build();
@@ -103,14 +104,14 @@ public class InventoryTableFactory {
                 new SimpleStringProperty(item.getLastOrderedAtFormatted()))
                 .visible(true).alignment(TableUtil.CENTER).fixedWidth(140).build();
 
-        this.colButtonOrderHistory = buttonColumn(table).title("").iconPath(IconPaths.BARGRAPH_32).width(IconPaths.BUTTOM_WIDTH).build();
+        this.colButtonOrderHistory = buttonColumn(table).title("").iconPath(IconPaths.BARGRAPH_32).width(IconPaths.BUTTOM_WIDTH).action(this::openSalesHistoryModal).build();
         this.colButtonSave = buttonColumn(table).title("").iconPath(IconPaths.SAVE).width(IconPaths.BUTTOM_WIDTH).action(viewModel::updateProduct).build();
 
         this.colComment = stringColumn(table, "COMMENT", Inventory::commentProperty).visible(true).alignment(TableUtil.LEFT).fixedWidth(250).build();
     }
 
     // =========================================================================
-    // 🌟 테이블 뷰 컬럼 클릭 이벤트 핸들러
+    // TableView Click Handlers
     // =========================================================================
     private void initTableClickHandlers() {
         table.setOnMouseClicked(event -> {
@@ -125,21 +126,21 @@ public class InventoryTableFactory {
         });
     }
 
+    /**
+     * Open Sales History (BARGRAPH) Modal Window
+     */
+    private void openSalesHistoryModal(Inventory item) {
+        if (item == null || item.getBarcode() == null || item.getBarcode().isBlank()) {
+            log.warn("Cannot open sales history: barcode is null/blank");
+            return;
+        }
 
-    // private void handleDescriptionClick(Inventory item) {
-    //     item.selectedProperty().set(true);
-    //     String description = item.getDescription();
+        String modalTitle = (item.getDescription() != null ? item.getDescription() : item.getCode()) + " Sales History";
 
-    //     if (description != null && !description.isBlank()) {
-    //         AlertUtil.showInform("상품 설명", description);
-    //     }
-    // }
-
-    // private void resetColumnsVisibility() {
-    //     if ("guest".equalsIgnoreCase(userContext.getUser().getName())) {
-    //         SecurityUtils.setColumnsVisibility(false, colPriceOld, colCostOld);
-    //     } else {
-    //         // 기타 권한 처리 logic
-    //     }
-    // }
+        navigationService.openModalWindow(
+                SalesTransactionController.class,
+                modalTitle,
+                controller -> controller.getViewModel().initializeData(item.getBarcode(), modalTitle)
+        );
+    }
 }
