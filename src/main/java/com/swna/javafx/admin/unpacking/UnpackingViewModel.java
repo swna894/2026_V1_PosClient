@@ -3,6 +3,7 @@ package com.swna.javafx.admin.unpacking;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,14 +43,12 @@ public class UnpackingViewModel {
     private final AlertDialog alertDialog;
 
     // ---------------- State Properties ----------------
-    private final ObjectProperty<LocalDate> startDate = new SimpleObjectProperty<>(LocalDate.now().withDayOfMonth(1));
-    private final ObjectProperty<LocalDate> endDate = new SimpleObjectProperty<>(LocalDate.now());
+    private final ObjectProperty<LocalDate> startDate = new SimpleObjectProperty<>(LocalDate.now(ZoneId.systemDefault()).withDayOfMonth(1));
+    private final ObjectProperty<LocalDate> endDate = new SimpleObjectProperty<>(LocalDate.now(ZoneId.systemDefault()));
     private final StringProperty priceMultiplier = new SimpleStringProperty("2.3");
     private final StringProperty unpacksSummary = new SimpleStringProperty("  $0.00 | 0 ITEMS");
     private final StringProperty itemsSummary = new SimpleStringProperty("  $0.00 | 0 ITEMS");
     private final BooleanProperty darkTheme = new SimpleBooleanProperty(false);
-
-    private String currentFilterStatus = "ALL";
 
     // ---------------- Collections ----------------
     private final ObservableList<Supplier> suppliers = FXCollections.observableArrayList();
@@ -318,7 +317,7 @@ public class UnpackingViewModel {
     }
 
     public List<UnpackItem> filterByConfirmStatus(String status) {
-        this.currentFilterStatus = status;
+        //this.currentFilterStatus = status;
         List<UnpackItem> filtered = switch (status) {
             case "Checked" -> unpackItems.stream().filter(UnpackItem::getConfirm).toList();
             case "Unchecked" -> unpackItems.stream().filter(i -> !i.getConfirm()).toList();

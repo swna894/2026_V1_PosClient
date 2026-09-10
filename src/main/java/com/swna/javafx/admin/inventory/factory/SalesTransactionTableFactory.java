@@ -5,13 +5,10 @@ import static com.swna.javafx.common.tableutils.TableColumnUtils.stringColumn;
 
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.admin.inventory.model.Inventory;
 import com.swna.javafx.admin.inventory.model.SalesTransactionDate;
 import com.swna.javafx.admin.inventory.viewmodel.SalesTransactionViewModel;
 import com.swna.javafx.common.tableutils.TableUtil;
 
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import lombok.Getter;

@@ -7,8 +7,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
