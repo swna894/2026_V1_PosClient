@@ -2,6 +2,7 @@ package com.swna.javafx.common.tableutils;
 
 import java.util.function.Function;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -50,6 +51,16 @@ public class TableColumnUtils {
         return new ButtonColumnBuilder<>(tableView);
     }
 
+    /**
+     * 불리언(Checkbox) 전용 컬럼 빌더를 반환합니다.
+     */
+    public static <S> BooleanColumnBuilder<S> booleanColumn(
+            TableView<S> tableView,
+            String title,
+            Function<S, BooleanProperty> propertyGetter) {
+        return new BooleanColumnBuilder<>(tableView, title, propertyGetter);
+        
+    }
     /**
      * 콤보박스 컬럼 생성을 위한 빌더를 반환합니다.
      */
