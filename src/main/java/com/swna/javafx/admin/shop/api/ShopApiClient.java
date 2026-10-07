@@ -186,7 +186,8 @@ public class ShopApiClient {
         } else {
             String message = (response != null) ? response.message() : "Null response received";
             log.warn("[ShopApiClient] Void operation failed: {}", message);
-            return Mono.empty();
+            // Return Mono.error so the error block in subscribe() gets triggered
+            return Mono.error(new RuntimeException(message)); 
         }
     }
 }

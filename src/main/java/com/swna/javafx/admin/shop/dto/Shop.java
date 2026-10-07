@@ -83,6 +83,9 @@ public class Shop {
         return shop;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
     // =========================
     // Business Methods
     // =========================
