@@ -1,4 +1,4 @@
-package com.swna.javafx.admin.shop;
+package com.swna.javafx.admin.shop.dto;
 
 import org.springframework.stereotype.Component;
 

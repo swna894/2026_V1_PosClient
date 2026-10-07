@@ -1,6 +1,6 @@
 package com.swna.javafx.pos.event.listener;
 
-import com.swna.javafx.admin.shop.Shop;
+import com.swna.javafx.admin.shop.dto.Shop;
 import com.swna.javafx.admin.shop.viewmodel.ShopViewModel;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.PaymentResult;

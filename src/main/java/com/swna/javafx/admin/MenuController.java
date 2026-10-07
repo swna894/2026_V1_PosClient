@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.inventory.InventoryController;
 import com.swna.javafx.admin.sale.SalesController;
+import com.swna.javafx.admin.shop.CompanySettingsController;
 import com.swna.javafx.admin.supplier.SupplierController;
 import com.swna.javafx.admin.unpacking.UnPackingController;
 import com.swna.javafx.barcode.LabelController;
@@ -84,13 +85,13 @@ public class MenuController {
     @FXML public void handlePurchaseOrdering(ActionEvent event) { viewModel.openPurchaseOrdering(); }
     @FXML public void handleGoodsUnpacking(ActionEvent event) { setCenterView(UnPackingController.class, "Goods Unpacking"); }
     @FXML public void handleStockBySupplier(ActionEvent event) { viewModel.openStockBySupplier(); }
-    @FXML public void handleSuppliersManagement(ActionEvent event) { setCenterView(SupplierController.class, "Suppliers Management"); }
-
+    
     // ==========================================
     // Management Handlers
     // ==========================================
     @FXML public void handleStaffManagement(ActionEvent event) { viewModel.openStaffManagement(); }
-    @FXML public void handleShopManagement(ActionEvent event) { viewModel.openShopManagement(); }
+    @FXML public void handleShopManagement(ActionEvent event) { setCenterView(CompanySettingsController.class, "Company Management"); }
+    @FXML public void handleSuppliersManagement(ActionEvent event) { setCenterView(SupplierController.class, "Suppliers Management"); }
     @FXML public void handlePosQuickButtons(ActionEvent event) { viewModel.openPosQuickButtons(); }
     @FXML public void handleExcelTemplates(ActionEvent event) { viewModel.openExcelTemplates(); }
 

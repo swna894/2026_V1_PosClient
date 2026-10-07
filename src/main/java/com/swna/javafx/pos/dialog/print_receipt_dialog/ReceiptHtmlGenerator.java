@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.sale.model.SaleItemModel;
 import com.swna.javafx.admin.sale.model.SaleModel;
-import com.swna.javafx.admin.shop.Shop;
+import com.swna.javafx.admin.shop.dto.Shop;
 
 import lombok.extern.slf4j.Slf4j;
 

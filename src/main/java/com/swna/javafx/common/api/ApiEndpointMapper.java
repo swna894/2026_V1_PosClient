@@ -7,7 +7,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.admin.shop.Shop;
+import com.swna.javafx.admin.shop.dto.Shop;
 import com.swna.javafx.barcode.dto.BarcodeLabelDto;
 import com.swna.javafx.common.response.ApiResponse;
 import com.swna.javafx.pos.dto.response.SaleResponse;

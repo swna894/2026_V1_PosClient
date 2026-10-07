@@ -2,7 +2,7 @@ package com.swna.javafx.admin.shop.api;
 
 import org.springframework.stereotype.Service;
 
-import com.swna.javafx.admin.shop.Shop;
+import com.swna.javafx.admin.shop.dto.Shop;
 import com.swna.javafx.common.api.SimpleApiClient;
 import com.swna.javafx.common.api.TypeReferences;
 import com.swna.javafx.common.response.ApiResponse;

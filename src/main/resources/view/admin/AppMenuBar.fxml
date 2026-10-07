@@ -45,21 +45,21 @@
             <SeparatorMenuItem />
             <MenuItem fx:id="stockBySupplierMenuItem" text="Stock by Supplier"
                onAction="#handleStockBySupplier" />
-            <MenuItem fx:id="supplierManagementMenuItem" text="Suppliers Management"
-               onAction="#handleSuppliersManagement" />
          </items>
       </Menu>
 
       <!-- Management -->
       <Menu text="Management">
          <items>
-            <MenuItem fx:id="staffManagementMenuItem" text="Staff Management"
-               onAction="#handleStaffManagement" />
             <MenuItem fx:id="shopManagementMenuItem" text="Shop Management"
                onAction="#handleShopManagement" />
+            <MenuItem fx:id="supplierManagementMenuItem" text="Suppliers Management"
+               onAction="#handleSuppliersManagement" />
+            <MenuItem fx:id="staffManagementMenuItem" text="Staff Management"
+               onAction="#handleStaffManagement" />
+            <SeparatorMenuItem />
             <MenuItem fx:id="posQuickButtonsMenuItem" text="POS Quick Buttons"
                onAction="#handlePosQuickButtons" />
-            <SeparatorMenuItem />
             <MenuItem fx:id="excelTemplatesMenuItem" text="Excel Templates"
                onAction="#handleExcelTemplates" />
          </items>

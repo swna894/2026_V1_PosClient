@@ -30,11 +30,11 @@ public class MenuViewModel {
     public void openPurchaseOrdering() { log.info("Execute: Purchase Ordering"); }
     public void openGoodsReceiving() { log.info("Execute: Goods Receiving"); }
     public void openStockBySupplier() { log.info("Execute: Stock by Supplier"); }
-    public void openSupplierManagement() { log.info("Execute: Supplier Management"); }
-
+    
     // Management
-    public void openStaffManagement() { log.info("Execute: Staff Management"); }
     public void openShopManagement() { log.info("Execute: Shop Management"); }
+    public void openStaffManagement() { log.info("Execute: Staff Management"); }
+    public void openSupplierManagement() { log.info("Execute: Supplier Management"); }
     public void openPosQuickButtons() { log.info("Execute: POS Quick Buttons"); }
     public void openExcelTemplates() { log.info("Execute: Excel Templates"); }
 

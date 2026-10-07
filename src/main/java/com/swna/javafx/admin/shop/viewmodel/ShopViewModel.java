@@ -2,8 +2,8 @@ package com.swna.javafx.admin.shop.viewmodel;
 
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.admin.shop.Shop;
 import com.swna.javafx.admin.shop.api.ShopApiClient;
+import com.swna.javafx.admin.shop.dto.Shop;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;

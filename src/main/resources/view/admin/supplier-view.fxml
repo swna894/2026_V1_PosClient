@@ -42,6 +42,12 @@
             <Label text="&#x1f5d1;" />
          </graphic>
       </Button>
+      <Separator orientation="VERTICAL" />
+      <!-- 상태 표시줄 -->
+      <HBox spacing="10" alignment="CENTER_LEFT">
+         <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="20" prefWidth="20" />
+         <Label fx:id="statusLabel" text="Ready" style="-fx-text-fill: #666;" />
+      </HBox>
    </ToolBar>
 
    <!-- 검색 영역 -->
@@ -52,11 +58,6 @@
       <Label fx:id="countLabel" text="Total: 0 / Filtered: 0" style="-fx-text-fill: #666;" />
    </HBox>
 
-   <!-- 상태 표시줄 -->
-   <HBox spacing="10" alignment="CENTER_LEFT">
-      <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="20" prefWidth="20" />
-      <Label fx:id="statusLabel" text="Ready" style="-fx-text-fill: #666;" />
-   </HBox>
 
    <!-- 거래처 테이블 (rowFactory는 Controller에서 설정) -->
    <TableView fx:id="supplierTable" VBox.vgrow="ALWAYS">

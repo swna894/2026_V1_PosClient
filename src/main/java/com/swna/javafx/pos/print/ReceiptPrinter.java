@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.sale.model.SaleItemModel;
 import com.swna.javafx.admin.sale.model.SaleModel;
-import com.swna.javafx.admin.shop.Shop;
+import com.swna.javafx.admin.shop.dto.Shop;
 import com.swna.javafx.pos.dto.request.SaleRequest;
 import com.swna.javafx.pos.dto.response.PaymentResult;
 import com.swna.javafx.pos.model.PosItem;

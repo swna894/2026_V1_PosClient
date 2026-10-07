@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.admin.sale.model.SaleItemModel;
 import com.swna.javafx.admin.sale.model.SaleModel;
 import com.swna.javafx.admin.sale.viewmodel.SalesViewModel;
-import com.swna.javafx.admin.shop.Shop;
+import com.swna.javafx.admin.shop.dto.Shop;
 import com.swna.javafx.admin.shop.viewmodel.ShopViewModel;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
 import com.swna.javafx.pos.dialog.BasePosDialog;
