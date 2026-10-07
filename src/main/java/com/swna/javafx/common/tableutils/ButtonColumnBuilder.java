@@ -207,6 +207,7 @@ public class ButtonColumnBuilder<S> {
         public UnifiedButtonTableCell() {
             initImageView();
             initButton();
+            setPadding(Insets.EMPTY);
         }
 
         private void initImageView() {
@@ -267,10 +268,10 @@ public class ButtonColumnBuilder<S> {
         protected void layoutChildren() {
             super.layoutChildren();
             if (getGraphic() == button) {
-                var insets = getInsets();
-                double w = Math.max(0, getWidth() - insets.getLeft() - insets.getRight());
-                double h = Math.max(0, getHeight() - insets.getTop() - insets.getBottom());
-                button.resizeRelocate(insets.getLeft(), insets.getTop(), w, h);
+                // 2. insets를 고려하지 않고 TableCell의 전체 width, height를 그대로 채웁니다.
+                double w = Math.max(0, getWidth());
+                double h = Math.max(0, getHeight());
+                button.resizeRelocate(0, 0, w, h);
             }
         }
 
