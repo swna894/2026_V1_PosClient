@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 @Component
 public class ShopViewModel {
 
+    private final Shop shop;
     private final ShopApiClient shopService;
 
     // 클라이언트 측 메모리 캐시
@@ -19,8 +20,9 @@ public class ShopViewModel {
     private boolean isLoading = false;
     private Mono<Shop> loadingMono = null;
 
-    public ShopViewModel(ShopApiClient shopService) {
+    public ShopViewModel(ShopApiClient shopService, Shop shop) {
         this.shopService = shopService;
+        this.shop = shop;
     }
 
     /**
@@ -105,7 +107,7 @@ public class ShopViewModel {
             log.error("Error blocking loading shop: {}", e.getMessage());
         }
         
-        return createDefaultShop();
+        return shop.createDefaultShop();
     }
 
     /**
@@ -115,19 +117,4 @@ public class ShopViewModel {
         return this.cachedShop;
     }
     
-    /**
-     * 기본 Shop 생성 (API 실패 시 사용)
-     */
-    private Shop createDefaultShop() {
-        log.debug("Creating default shop using factory method");
-        return Shop.create(
-            "My Store",
-            "Store Address",
-            "000-0000-0000",
-            "000-00-00000",
-            "company",
-            "email",
-            "000-0000-0000"
-        );
-    }
 }

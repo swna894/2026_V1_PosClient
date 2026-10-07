@@ -29,6 +29,7 @@ public class ReceiptPrintListener {
 
     private final ApplicationEventPublisher eventPublisher;
     private final ReceiptPrinter receiptPrinter;
+    private final Shop shop;
     private final ShopViewModel shopViewModel;
     private final PrintToggleService printToggleService;  // 추가
 
@@ -108,30 +109,19 @@ public class ReceiptPrintListener {
         
         // 2. 캐시가 없으면 ShopViewModel의 블로킹 메서드 사용
         log.info("No cached shop, loading from API via ShopViewModel...");
-        Shop shop = shopViewModel.getShopBlocking();
+        Shop shopReceived = shopViewModel.getShopBlocking();
         
-        if (shop != null) {
+        if (shopReceived != null) {
             log.info("Shop loaded: {}", shop.getName());
         } else {
             log.warn("Shop is null after getShopBlocking(), using default");
-            shop = createDefaultShop();
+            shopReceived = shop.createDefaultShop();
         }
         
         return shop;
     }
     
-    private Shop createDefaultShop() {
-        log.debug("Creating default shop using factory method");
-        return Shop.create(
-            "My Store",
-            "Store Address",
-            "000-0000-0000",
-            "000-00-00000",
-            "company",
-            "email",
-            "000-0000-0000"
-        );
-    }
+
 
     private void publishPrintFailure(String receiptNo, String customMessage) {
         eventPublisher.publishEvent(new PrintFailureEvent(receiptNo, customMessage));

@@ -92,7 +92,7 @@
 
                         <!-- 7. MOBILE PHONE -->
                         <Label style="-fx-text-fill: #333333;" text="MOBILE PHONE" GridPane.rowIndex="6" />
-                        <TextField fx:id="tfMobilePhone" style="-fx-background-color: #ffffff; -fx-text-fill: #333333; -fx-border-color: #cccccc;" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                        <TextField fx:id="tfmobilePhone" style="-fx-background-color: #ffffff; -fx-text-fill: #333333; -fx-border-color: #cccccc;" GridPane.columnIndex="1" GridPane.rowIndex="6" />
 
                         <!-- 8. PHONE -->
                         <Label style="-fx-text-fill: #333333;" text="PHONE" GridPane.rowIndex="7" />

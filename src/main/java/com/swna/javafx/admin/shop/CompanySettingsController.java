@@ -4,6 +4,9 @@ import java.io.File;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.shop.api.ShopApiClient;
+import com.swna.javafx.admin.shop.dto.Shop;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -20,6 +23,8 @@ import net.rgielen.fxweaver.core.FxmlView;
 @FxmlView("/view/admin/shop-view.fxml")
 public class CompanySettingsController {
 
+    private final ShopApiClient shopApiClient;
+
     // --- 상단 버튼 ---
     @FXML private Button btnSave;
     @FXML private Button btnReload;
@@ -32,7 +37,7 @@ public class CompanySettingsController {
     @FXML private TextField tfEmail;
     @FXML private PasswordField pfPassword;
     @FXML private TextField tfCcEmail;
-    @FXML private TextField tfMobilePhone;
+    @FXML private TextField tfmobilePhone;
     @FXML private TextField tfPhone;
     @FXML private TextField tfStreet;
     @FXML private TextField tfSurburb;
@@ -51,6 +56,50 @@ public class CompanySettingsController {
     @FXML
     public void initialize() {
         setupEnterKeyFocusTraversal();
+        loadFirstShopData(); // 화면 로딩 시 서버에서 첫 번째 샵 데이터를 가져와 세팅
+    }
+
+    /**
+     * 서버에서 첫 번째 매장 데이터를 가져와 폼에 채워 넣는 메서드
+     */
+    private void loadFirstShopData() {
+        log.info("서버에서 첫 번째 매장 정보를 불러오는 중...");
+        
+        shopApiClient.fetchShop()
+            .subscribe(
+                shop -> {
+                    // JavaFX UI 스레드 안전하게 반영
+                    javafx.application.Platform.runLater(() -> setShopToFields(shop));
+                },
+                error -> log.error("매장 정보를 불러오는데 실패했습니다: {}", error.getMessage())
+            );
+    }
+
+    /**
+     * Shop 객체의 데이터를 TextField에 매핑
+     */
+    private void setShopToFields(Shop shop) {
+        if (shop == null) {
+            log.warn("불러온 매장 데이터가 없습니다.");
+            return;
+        }
+
+        tfCompany.setText(shop.getCompany());
+        tfBusinessNo.setText(shop.getBusinessNo());
+        tfName.setText(shop.getName());
+        tfEmail.setText(shop.getEmail());
+        pfPassword.setText(shop.getPassword());
+        tfCcEmail.setText(shop.getCcEmail());
+        tfmobilePhone.setText(shop.getMobilePhone()); // Shop_5.java의 필드명(mobilePhone)에 맞춤
+        tfPhone.setText(shop.getPhone());
+        tfStreet.setText(shop.getStreet());
+        tfSurburb.setText(shop.getSuburb());
+        tfCity.setText(shop.getCity());
+        tfComment.setText(shop.getComment());
+        tfBackupFolder.setText(shop.getBackupFolder());
+        tfReportFolder.setText(shop.getReportFolder());
+
+        log.info("매장 정보가 입력 폼에 성공적으로 세팅되었습니다.");
     }
 
     /**
@@ -64,7 +113,7 @@ public class CompanySettingsController {
         String password = pfPassword.getText();
         
         log.info("저장 실행: Company = {}, Business No = {}, Email = {}", company, businessNo, email);
-        // TODO: 데이터 베이스 저장 또는 파일 저장 로직 구현
+        // TODO: 서버로 Update 요청 전송 로직 구현 (shopApiClient.updateShop(...))
     }
 
     /**
@@ -73,7 +122,7 @@ public class CompanySettingsController {
     @FXML
     private void handleReload(ActionEvent event) {
         log.info("데이터 새로고침(Reload) 실행");
-        // TODO: 데이터를 다시 불러와 TextField에 세팅하는 로직 구현
+        loadFirstShopData(); // 새로고침 시 다시 데이터를 서버에서 호출
     }
 
     /**
@@ -87,7 +136,7 @@ public class CompanySettingsController {
         tfEmail.clear();
         pfPassword.clear();
         tfCcEmail.clear();
-        tfMobilePhone.clear();
+        tfmobilePhone.clear();
         tfPhone.clear();
         tfStreet.clear();
         tfSurburb.clear();
@@ -146,7 +195,7 @@ public class CompanySettingsController {
             tfEmail,         // Row 3[cite: 13]
             pfPassword,      // Row 4[cite: 13]
             tfCcEmail,       // Row 5[cite: 13]
-            tfMobilePhone,   // Row 6[cite: 13]
+            tfmobilePhone,     // Row 6[cite: 13]
             tfPhone,         // Row 7[cite: 13]
             tfStreet,        // Row 8[cite: 13]
             tfSurburb,       // Row 9[cite: 13]
