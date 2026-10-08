@@ -20,6 +20,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,12 +33,13 @@ public class SupplierViewModel {
 
     // ===== 원본 데이터 =====
     @Getter private final ObservableList<Supplier> allSuppliers = FXCollections.observableArrayList();
-    
-    // ===== 필터링된 데이터 (테이블에 표시) =====
+
+    // ===== 필터링된 데이터 =====
     private final FilteredList<Supplier> filteredSuppliers = new FilteredList<>(allSuppliers, supplier -> true);
-    
-    @Getter 
-    private final ObservableList<Supplier> suppliers = FXCollections.unmodifiableObservableList(filteredSuppliers);
+
+    // ===== 정렬된 데이터 (테이블에 표시) =====
+    // allSuppliers -> FilteredList(검색/Active 필터) -> SortedList(헤더 클릭 정렬) -> TableView
+    private final SortedList<Supplier> sortedSuppliers = new SortedList<>(filteredSuppliers);
 
     // ===== Property =====
     private final BooleanProperty loading = new SimpleBooleanProperty(false);
@@ -45,10 +47,10 @@ public class SupplierViewModel {
     private final StringProperty statusMessage = new SimpleStringProperty("Ready");
     private final BooleanProperty showActiveOnly = new SimpleBooleanProperty(false);
     private final ObjectProperty<Supplier> selectedSupplier = new SimpleObjectProperty<>();
-    
+
     // ===== 더티 트래킹 =====
     private final Set<Supplier> dirtySuppliers = new HashSet<>();
-    
+
     // ===== 카운트 =====
     private final ReadOnlyIntegerWrapper totalCount = new ReadOnlyIntegerWrapper(0);
     private final ReadOnlyIntegerWrapper filteredCount = new ReadOnlyIntegerWrapper(0);
@@ -56,7 +58,7 @@ public class SupplierViewModel {
     // ===== 생성자 =====
     public SupplierViewModel(SupplierService supplierService) {
         this.supplierService = supplierService;
-        
+
         // 필터 조건 설정
         filteredSuppliers.predicateProperty().bind(
             javafx.beans.binding.Bindings.createObjectBinding(
@@ -64,10 +66,21 @@ public class SupplierViewModel {
                 searchKeyword, showActiveOnly
             )
         );
-        
+
         // 카운트 업데이트 리스너
         filteredSuppliers.addListener((javafx.collections.ListChangeListener<Supplier>) c -> updateCounts());
         allSuppliers.addListener((javafx.collections.ListChangeListener<Supplier>) c -> updateCounts());
+    }
+
+    // =================================================
+    // TABLE ITEMS (Controller / TableFactory 바인딩용)
+    // =================================================
+
+    /**
+     * 테이블에 표시할 리스트 (필터 + 정렬이 적용된 읽기 전용 리스트).
+     */
+    public ObservableList<Supplier> getSuppliers() {
+        return sortedSuppliers;
     }
 
     // =================================================
@@ -81,41 +94,41 @@ public class SupplierViewModel {
     public StringProperty searchKeywordProperty() {
         return searchKeyword;
     }
-    
+
     public StringProperty statusMessageProperty() {
         return statusMessage;
     }
-    
+
     public BooleanProperty showActiveOnlyProperty() {
         return showActiveOnly;
     }
-    
+
     public ObjectProperty<Supplier> selectedSupplierProperty() {
         return selectedSupplier;
     }
-    
+
     public ReadOnlyIntegerProperty totalCountProperty() {
         return totalCount.getReadOnlyProperty();
     }
-    
+
     public ReadOnlyIntegerProperty filteredCountProperty() {
         return filteredCount.getReadOnlyProperty();
     }
-    
+
     // ===== 일반 Getter/Setter =====
-    
+
     public Supplier getSelectedSupplier() {
         return selectedSupplier.get();
     }
-    
+
     public void setSelectedSupplier(Supplier supplier) {
         selectedSupplier.set(supplier);
     }
-    
+
     public int getTotalCount() {
         return totalCount.get();
     }
-    
+
     public int getFilteredCount() {
         return filteredCount.get();
     }
@@ -127,7 +140,7 @@ public class SupplierViewModel {
     public void initialize() {
         load();
     }
-    
+
     public void reload() {
         load();
     }
@@ -160,7 +173,7 @@ public class SupplierViewModel {
         // searchKeyword 속성만 변경하면 필터가 자동으로 적용됨
         statusMessage.set("Searching: \"" + searchKeyword.get() + "\"");
     }
-    
+
     /**
      * 서버 측 검색이 필요한 경우 호출
      */
@@ -277,11 +290,11 @@ public class SupplierViewModel {
                         result -> Platform.runLater(() -> {
                             allSuppliers.remove(supplier);
                             dirtySuppliers.remove(supplier);
-                            
+
                             if (selectedSupplier.get() == supplier) {
                                 selectedSupplier.set(null);
                             }
-                            
+
                             loading.set(false);
                             statusMessage.set("Deleted: " + supplier.getFullName());
                             log.info("Deleted supplier: {}", supplier.getFullName());
