@@ -16,6 +16,7 @@ public class User {
     private final BooleanProperty selected = new SimpleBooleanProperty(false);
     private final StringProperty email = new SimpleStringProperty();
     private final StringProperty name = new SimpleStringProperty();
+    private final StringProperty comment = new SimpleStringProperty();
     
     // 별도로 분리된 Role Enum을 ObjectProperty로 관리
     private final ObjectProperty<Role> role = new SimpleObjectProperty<>(Role.USER); 
@@ -23,7 +24,7 @@ public class User {
     // Address Embeddable 필드 평탄화 (Flat)[cite: 1]
     private final StringProperty city = new SimpleStringProperty();
     private final StringProperty street = new SimpleStringProperty();
-    private final StringProperty zipcode = new SimpleStringProperty();
+    private final StringProperty surburb = new SimpleStringProperty();
     
     // ContactInfo Embeddable 필드 평탄화 (Flat)[cite: 2]
     private final StringProperty phone = new SimpleStringProperty();
@@ -43,7 +44,7 @@ public class User {
         
         domain.setCity(dto.city() != null ? dto.city() : "");
         domain.setStreet(dto.street() != null ? dto.street() : "");
-        domain.setZipcode(dto.zipcode() != null ? dto.zipcode() : "");
+        domain.setSurburb(dto.surburb() != null ? dto.surburb() : "");
         domain.setPhone(dto.phone() != null ? dto.phone() : "");
         domain.setMobile(dto.mobile() != null ? dto.mobile() : "");
         
@@ -80,9 +81,9 @@ public class User {
     public void setStreet(String value) { street.set(value); }
     public StringProperty streetProperty() { return street; }
 
-    public String getZipcode() { return zipcode.get(); }
-    public void setZipcode(String value) { zipcode.set(value); }
-    public StringProperty zipcodeProperty() { return zipcode; }
+    public String getSurburb() { return surburb.get(); }
+    public void setSurburb(String value) { surburb.set(value); }
+    public StringProperty surburbProperty() { return surburb; }
 
     public String getPhone() { return phone.get(); }
     public void setPhone(String value) { phone.set(value); }
@@ -92,13 +93,17 @@ public class User {
     public void setMobile(String value) { mobile.set(value); }
     public StringProperty mobileProperty() { return mobile; }
 
+    public String getComment() { return comment.get(); }
+    public void setComment(String value) { comment.set(value); }
+    public StringProperty commentProperty() { return comment; }
+
     // ===== 편의 메서드 =====
     
     public String getFullAddress() {
         if (getCity().isEmpty() && getStreet().isEmpty()) {
             return "";
         }
-        return String.format("[%s] %s, %s", getZipcode(), getCity(), getStreet());
+        return String.format("[%s] %s, %s", getSurburb(), getCity(), getStreet());
     }
 
     public String getContactSummary() {

@@ -40,7 +40,6 @@ public class UserViewModel {
     /**
      * 전체 사용자 목록 로드
      */
-
     public void loadUsers() {
         // 네트워크 요청 직전 상태 변경은 스레드 안전할 수 있으나 안전하게 묶어줍니다.
         loading.set(true);
@@ -73,6 +72,27 @@ public class UserViewModel {
                 });
     }
 
+    /**
+     * 신규 사용자 등록 요청
+     */
+    public Mono<Boolean> createUser(UserRecordDto request) {
+        log.info("[ViewModel] Creating new user: {}", request.email());
+
+        return userApiClient.createUser(request)
+                .map(response -> {
+                    if (response.isSuccess() && response.data() != null) {
+                        User newUser = User.from(response.data());
+                        users.add(newUser);
+                        statusMessage.set("사용자 [" + newUser.getName() + "]가 성공적으로 등록되었습니다.");
+                        return true;
+                    } else {
+                        statusMessage.set("사용자 등록 실패");
+                        return false;
+                    }
+                })
+                .onErrorReturn(false);
+    }
+    
     /**
      * 특정 사용자 정보 수정 요청 (단건 저장)
      */

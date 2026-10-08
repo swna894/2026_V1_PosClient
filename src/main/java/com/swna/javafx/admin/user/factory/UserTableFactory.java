@@ -40,6 +40,7 @@ public class UserTableFactory {
     private TableColumn<User, String> zipcodeColumn;
     private TableColumn<User, String> phoneColumn;
     private TableColumn<User, String> mobileColumn;
+    private TableColumn<User, String> commentColumn;
     private TableColumn<User, Void> colButtonEdit;
     private TableColumn<User, Void> colButtonDelete;
 
@@ -78,7 +79,27 @@ public class UserTableFactory {
                 .editable(true)
                 .visible(true)
                 .alignment(TableUtil.LEFT)
-                .fixedWidth(130)
+                .fixedWidth(200)
+                .build();
+
+        // 8. 전화번호 컬럼 (편집 가능)
+        this.phoneColumn = stringColumn(tableView, "PHONE", User::phoneProperty)
+                .setter(User::setPhone)
+                .dirtyConsumer(viewModel::markAsDirty)
+                .editable(true)
+                .visible(true)
+                .alignment(TableUtil.CENTER)
+                .fixedWidth(180)
+                .build();
+
+        // 9. 휴대전화 컬럼 (편집 가능)
+        this.mobileColumn = stringColumn(tableView, "MOBILE", User::mobileProperty)
+                .setter(User::setMobile)
+                .dirtyConsumer(viewModel::markAsDirty)
+                .editable(true)
+                .visible(true)
+                .alignment(TableUtil.CENTER)
+                .fixedWidth(180)
                 .build();
 
         // 4. 권한(Role) 컬럼 - ObjectProperty 활용
@@ -89,15 +110,15 @@ public class UserTableFactory {
       //           .width(100)
       //           .build();
 
-        // 5. 우편번호 컬럼 (편집 가능)
-        this.zipcodeColumn = stringColumn(tableView, "ZIPCODE", User::zipcodeProperty)
-                .setter(User::setZipcode)
-                .dirtyConsumer(viewModel::markAsDirty)
-                .editable(true)
-                .visible(true)
-                .alignment(TableUtil.CENTER)
-                .fixedWidth(90)
-                .build();
+        // // 5. 우편번호 컬럼 (편집 가능)
+        // this.zipcodeColumn = stringColumn(tableView, "ZIPCODE", User::zipcodeProperty)
+        //         .setter(User::setZipcode)
+        //         .dirtyConsumer(viewModel::markAsDirty)
+        //         .editable(true)
+        //         .visible(true)
+        //         .alignment(TableUtil.CENTER)
+        //         .fixedWidth(90)
+        //         .build();
 
         // 6. 도시 컬럼 (편집 가능)
         this.cityColumn = stringColumn(tableView, "CITY", User::cityProperty)
@@ -106,7 +127,7 @@ public class UserTableFactory {
                 .editable(true)
                 .visible(true)
                 .alignment(TableUtil.LEFT)
-                .fixedWidth(130)
+                .fixedWidth(150)
                 .build();
 
         // 7. 상세 주소 컬럼 (편집 가능)
@@ -116,28 +137,10 @@ public class UserTableFactory {
                 .editable(true)
                 .visible(true)
                 .alignment(TableUtil.LEFT)
-                .fixedWidth(220)
+                .fixedWidth(250)
                 .build();
 
-        // 8. 전화번호 컬럼 (편집 가능)
-        this.phoneColumn = stringColumn(tableView, "PHONE", User::phoneProperty)
-                .setter(User::setPhone)
-                .dirtyConsumer(viewModel::markAsDirty)
-                .editable(true)
-                .visible(true)
-                .alignment(TableUtil.CENTER)
-                .fixedWidth(140)
-                .build();
 
-        // 9. 휴대전화 컬럼 (편집 가능)
-        this.mobileColumn = stringColumn(tableView, "MOBILE", User::mobileProperty)
-                .setter(User::setMobile)
-                .dirtyConsumer(viewModel::markAsDirty)
-                .editable(true)
-                .visible(true)
-                .alignment(TableUtil.CENTER)
-                .fixedWidth(140)
-                .build();
 
         // 10. 액션 버튼 컬럼들 (수정 / 삭제)
         this.colButtonDelete = buttonColumn(tableView)
@@ -150,6 +153,15 @@ public class UserTableFactory {
                 .iconPath(IconPaths.SAVE)
                 .width(IconPaths.BUTTOM_WIDTH)
                 .action(onEditAction)
+                .build();
+
+        this.commentColumn = stringColumn(tableView, "COMMENT", User::commentProperty)
+                .setter(User::setComment)
+                .dirtyConsumer(viewModel::markAsDirty)
+                .editable(true)
+                .visible(true)
+                .alignment(TableUtil.LEFT)
+                .fixedWidth(400)
                 .build();
     }
 

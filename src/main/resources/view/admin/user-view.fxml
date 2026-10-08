@@ -45,11 +45,11 @@
                <ProgressIndicator fx:id="progressIndicator" visible="false" prefHeight="20" prefWidth="20" />
                <Label fx:id="statusLabel" text="Ready" />
             </HBox>
-            <CheckBox fx:id="activeOnlyCheckBox" text="Active Only" />
+            <CheckBox fx:id="activeOnlyCheckBox" text="Active Only" visible="false" managed="${activeOnlyCheckBox.visible}" />
 
 
             <!-- Add 버튼 -->
-            <Button fx:id="newButton" minWidth="80.0" prefWidth="110.0" mnemonicParsing="false" prefHeight="36.0" text="NEW">
+            <Button fx:id="newButton" onAction="#handleNewUser" minWidth="80.0" prefWidth="110.0" mnemonicParsing="false" prefHeight="36.0" text="NEW">
                <graphic>
                   <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -60,7 +60,7 @@
             </Button>
 
             <!-- Delete 버튼 -->
-            <Button fx:id="deleteButton" minWidth="80.0" prefWidth="110.0" mnemonicParsing="false" prefHeight="36.0" text="DELETE">
+            <Button fx:id="deleteButton" minWidth="80.0" prefWidth="110.0" mnemonicParsing="false" prefHeight="36.0" text="DELETE" visible="false" managed="${deleteButton.visible}">
                <graphic>
                   <ImageView fitHeight="24" fitWidth="24" pickOnBounds="true" preserveRatio="true">
                      <image>

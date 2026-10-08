@@ -5,10 +5,13 @@ import java.util.ResourceBundle;
 
 import org.springframework.stereotype.Component;
 
+import com.swna.javafx.admin.supplier.SupplierAddDialogController;
 import com.swna.javafx.admin.user.domain.User;
 import com.swna.javafx.admin.user.factory.UserTableFactory;
 import com.swna.javafx.admin.user.viewmodel.UserViewModel;
+import com.swna.javafx.common.navigation.NavigationService;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -30,6 +33,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 public class UserController implements Initializable {
 
     private final UserViewModel viewModel;
+    private final NavigationService navigationService;
     private final UserTableFactory userTableFactory;
 
     @FXML private BorderPane borderPane;
@@ -49,8 +53,7 @@ public class UserController implements Initializable {
     @FXML private TextField searchField;
     @FXML private TableView<User> tableView; // 와일드카드에서 User 타입으로 구체화
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    @Override public void initialize(URL location, ResourceBundle resources) {
         // 1. TableView 및 컬럼 초기화 (수정/삭제 액션 핸들러 연결)[cite: 3]
         userTableFactory.initializeTable(
                 tableView,
@@ -75,12 +78,16 @@ public class UserController implements Initializable {
         viewModel.loadUsers();
     }
 
+
+    @FXML void handleNewUser(ActionEvent event) {
+        navigationService.openModalWindow(UserAddDialogController.class, "Add User");
+    }
     /**
      * 행 수정(저장) 버튼 클릭 시 동작
      */
     private void handleEditUser(User user) {
         viewModel.updateUser(user).subscribe(success -> {
-            if (success) {
+            if (Boolean.TRUE.equals(success)) {
                 log.info("[Controller] User successfully updated: ID={}", user.getId());
             } else {
                 log.error("[Controller] Failed to update user: ID={}", user.getId());
@@ -93,7 +100,7 @@ public class UserController implements Initializable {
      */
     private void handleDeleteUser(User user) {
         viewModel.deleteUser(user.getId()).subscribe(success -> {
-            if (success) {
+            if (Boolean.TRUE.equals(success)) {
                 log.info("[Controller] User successfully deleted: ID={}", user.getId());
             } else {
                 log.error("[Controller] Failed to delete user: ID={}", user.getId());
