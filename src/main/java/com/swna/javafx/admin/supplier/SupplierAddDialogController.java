@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.admin.supplier.domain.Supplier;
 import com.swna.javafx.admin.supplier.viewmodel.SupplierViewModel;
 
+import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -19,6 +20,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputControl;
+import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
@@ -35,13 +37,11 @@ import net.rgielen.fxweaver.core.FxmlView;
 public class SupplierAddDialogController implements Initializable {
 
     // 서버 SupplierRequestRecord 의 abbr 검증 규칙과 동일하게 맞춘다.
-    // 대문자, 숫자, 특수문자(ASCII 기호: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~)만 허용. 공백/한글은 불가.
     private static final String ABBR_REGEX = "[A-Z0-9\\p{Punct}]+";
     private static final Pattern ABBR_PATTERN = Pattern.compile("^" + ABBR_REGEX + "$");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 
-    // 서버 엔티티(Supplier)의 컬럼 길이와 동일
-    private static final int MIN_ABBR = 2;   // 서버 @Size(min = 2, max = 8)
+    private static final int MIN_ABBR = 2;   
     private static final int MAX_ABBR = 8;
     private static final int MAX_NAME = 32;
     private static final int MAX_COMPANY = 64;
@@ -65,6 +65,7 @@ public class SupplierAddDialogController implements Initializable {
     @FXML private Label lblError;
 
     private boolean saved;
+    private PauseTransition errorClearTimer; // 에러 메시지 자동 삭제 타이머
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -83,17 +84,36 @@ public class SupplierAddDialogController implements Initializable {
         limitLength(tfAddress, MAX_ADDRESS);
 
         setupEnterNavigation();
+        setupErrorTimer();
+        setupErrorClearingOnInput();
 
         javafx.application.Platform.runLater(() -> tfAbbr.requestFocus());
     }
 
     /**
+     * 일정 시간(4초) 후 에러 메시지를 자동으로 숨기는 타이머 설정
+     */
+    private void setupErrorTimer() {
+        errorClearTimer = new PauseTransition(Duration.seconds(4));
+        errorClearTimer.setOnFinished(e -> hideError());
+    }
+
+    /**
+     * 모든 텍스트 필드에 변경 리스너를 달아 입력 시 기존 에러 메시지 초기화
+     */
+    private void setupErrorClearingOnInput() {
+        TextField[] textFields = {tfAbbr, tfName, tfCompany, tfEmail, tfPhone, tfCellphone, tfAddress};
+        for (TextField tf : textFields) {
+            tf.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (lblError.isVisible() && !newValue.equals(oldValue)) {
+                    hideError();
+                }
+            });
+        }
+    }
+
+    /**
      * Enter 키를 누르면 다음 입력 필드로 포커스를 이동한다.
-     * ABBR -> NAME -> COMPANY -> E-MAIL -> PHONE -> MOBILE -> ADDRESS -> ACTIVE
-     * 마지막 ACTIVE 체크박스에서 Enter 를 누르면 기본 버튼(SAVE)이 실행된다.
-     *
-     * TextField 는 onAction 핸들러가 있으면 Enter 이벤트를 소비하므로,
-     * 중간 필드에서 Enter 를 눌러도 기본 버튼(SAVE)이 실행되지 않는다.
      */
     private void setupEnterNavigation() {
         moveFocusOnEnter(tfAbbr, tfName);
@@ -109,18 +129,9 @@ public class SupplierAddDialogController implements Initializable {
         current.setOnAction(e -> next.requestFocus());
     }
 
-    // =================================================
-    // 외부에서 사용하는 메서드
-    // =================================================
-
-    /** 저장에 성공해서 닫혔는지 여부 */
     public boolean isSaved() {
         return saved;
     }
-
-    // =================================================
-    // 버튼 핸들러
-    // =================================================
 
     @FXML
     private void handleSave() {
@@ -130,7 +141,6 @@ public class SupplierAddDialogController implements Initializable {
         String name = trim(tfName.getText());
         String email = trim(tfEmail.getText());
 
-        // 1. 클라이언트 사전 검증
         if (abbr.isEmpty()) {
             fail("ABBR is required.", tfAbbr);
             return;
@@ -152,7 +162,6 @@ public class SupplierAddDialogController implements Initializable {
             return;
         }
 
-        // 2. 도메인 객체 생성
         Supplier supplier = new Supplier();
         supplier.setAbbr(abbr);
         supplier.setName(name);
@@ -163,7 +172,6 @@ public class SupplierAddDialogController implements Initializable {
         supplier.setAddress(trim(tfAddress.getText()));
         supplier.setActive(cbActive.isSelected());
 
-        // 3. 서버 저장 (성공 시 닫고, 실패 시 열어둔 채 메시지 표시)
         setBusy(true);
         viewModel.addSupplier(
                 supplier,
@@ -181,10 +189,6 @@ public class SupplierAddDialogController implements Initializable {
     private void handleCancel() {
         closeDialog();
     }
-
-    // =================================================
-    // 내부 헬퍼
-    // =================================================
 
     private void limitLength(TextInputControl control, int max) {
         control.setTextFormatter(new TextFormatter<String>(
@@ -204,9 +208,11 @@ public class SupplierAddDialogController implements Initializable {
         lblError.setText(message);
         lblError.setVisible(true);
         lblError.setManaged(true);
+        errorClearTimer.playFromStart(); // 에러가 표시될 때 타이머 시작/재시작
     }
 
     private void hideError() {
+        errorClearTimer.stop(); // 타이머 중지
         lblError.setText("");
         lblError.setVisible(false);
         lblError.setManaged(false);
@@ -217,7 +223,6 @@ public class SupplierAddDialogController implements Initializable {
         btnCancel.setDisable(busy);
     }
 
-    /** NavigationService 가 만든 Stage 를 직접 알 필요 없이 Scene 에서 창을 찾아 닫는다. */
     private void closeDialog() {
         if (btnCancel != null && btnCancel.getScene() != null) {
             btnCancel.getScene().getWindow().hide();

@@ -9,6 +9,8 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -96,8 +98,24 @@
                   <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0" />
                </columnConstraints>
                <children>
-                  <Button fx:id="btnSave" defaultButton="true" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleSave" prefHeight="36.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="💾 SAVE" GridPane.columnIndex="0" />
-                  <Button fx:id="btnCancel" cancelButton="true" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleCancel" prefHeight="36.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="✖ CANCEL" GridPane.columnIndex="1" />
+                  <Button fx:id="btnSave" defaultButton="true" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleSave" prefHeight="36.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="SAVE" GridPane.columnIndex="0">
+                     <graphic>
+                        <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../images/save_24px.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button fx:id="btnCancel" cancelButton="true" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleCancel" prefHeight="36.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="CANCEL" GridPane.columnIndex="1">
+                     <graphic>
+                        <ImageView fitHeight="12" fitWidth="12" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../images/24_cross.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
                </children>
                <padding>
                   <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
