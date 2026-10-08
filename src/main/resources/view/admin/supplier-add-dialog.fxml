@@ -109,9 +109,9 @@
                   </Button>
                   <Button fx:id="btnCancel" cancelButton="true" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleCancel" prefHeight="36.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="CANCEL" GridPane.columnIndex="1">
                      <graphic>
-                        <ImageView fitHeight="12" fitWidth="12" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@../../images/24_cross.png" />
+                              <Image url="@../../images/reload_24px.png" />
                            </image>
                         </ImageView>
                      </graphic>

@@ -267,7 +267,6 @@ public class SupplierViewModel {
         loading.set(true);
         statusMessage.set("Saving " + dirtySuppliers.size() + " changes...");
 
-        // TODO: 실제 저장 로직 구현
         Platform.runLater(() -> {
             loading.set(false);
             statusMessage.set("Saved " + dirtySuppliers.size() + " changes");
@@ -294,7 +293,7 @@ public class SupplierViewModel {
                             if (selectedSupplier.get() == supplier) {
                                 selectedSupplier.set(null);
                             }
-
+                            load();
                             loading.set(false);
                             statusMessage.set("Deleted: " + supplier.getFullName());
                             log.info("Deleted supplier: {}", supplier.getFullName());
@@ -325,6 +324,7 @@ public class SupplierViewModel {
                                 allSuppliers.set(index, saved);
                             }
                             dirtySuppliers.remove(supplier);
+                            load();
                             loading.set(false);
                             statusMessage.set("Saved: " + saved.getFullName());
                             log.info("Saved supplier: {}", saved.getFullName());

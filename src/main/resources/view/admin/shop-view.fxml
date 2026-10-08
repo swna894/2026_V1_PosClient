@@ -10,6 +10,8 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -27,9 +29,34 @@
 
                   <HBox alignment="CENTER_RIGHT" spacing="10.0">
                      <children>
-                        <Button fx:id="btnSave" mnemonicParsing="false" onAction="#handleSave" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="💾 SAVE" />
-                        <Button fx:id="btnReload" mnemonicParsing="false" onAction="#handleReload" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="🔄 RLOAD" />
-                        <Button fx:id="btnClean" mnemonicParsing="false" onAction="#handleClean" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="🔔 CLEAN" />
+                        <Button fx:id="btnSave" prefWidth="100.0" mnemonicParsing="false" onAction="#handleSave" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="SAVE">
+                           <graphic>
+                              <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../images/save_24px.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                        <Button fx:id="btnReload" prefWidth="100.0" mnemonicParsing="false" onAction="#handleReload" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="RELOAD">
+                           <graphic>
+                              <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../images/reload_24px.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                        <Button fx:id="btnClean" prefWidth="100.0" mnemonicParsing="false" onAction="#handleClean" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="CLEAN">
+                           <graphic>
+                              <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../images/24_bell.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+
                      </children>
                   </HBox>
                </children>
