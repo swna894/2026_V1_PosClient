@@ -391,26 +391,6 @@
    -fx-font-size: 13px;
 }
 
-
-/* ========================================================================= */
-/* 7. SUPPLIER SCREEN & SPECIFIC PANELS (공급처 및 요약 영역 특수 컴포넌트)    */
-/* ========================================================================= */
-.supplier-row {
-   -fx-background-color: transparent;
-}
-
-.supplier-row:hover {
-   -fx-background-color: #f8fafc;
-}
-
-.supplier-active {
-   -fx-background-color: #f0fdf4;
-}
-
-.supplier-active:hover {
-   -fx-background-color: #dcfce7;
-}
-
 .preview-container {
    -fx-background-color: #f8fafc;
    -fx-background-radius: 8px;

@@ -329,7 +329,20 @@ public class SupplierViewModel {
     // =================================================
 
     public void addSupplier(Supplier supplier) {
-        if (supplier == null) return;
+        addSupplier(supplier, null, null);
+    }
+
+    /**
+     * 신규 거래처 추가 (다이얼로그용).
+     * 콜백은 모두 JavaFX Application Thread 에서 호출된다.
+     *
+     * @param onSuccess 저장 성공 시 호출 (null 허용)
+     * @param onError   저장 실패 시 서버/에러 메시지와 함께 호출 (null 허용)
+     */
+    public void addSupplier(Supplier supplier,
+                            Runnable onSuccess,
+                            java.util.function.Consumer<String> onError) {
+        if (supplier == null || loading.get()) return;
 
         loading.set(true);
         statusMessage.set("Adding new supplier...");
@@ -341,11 +354,13 @@ public class SupplierViewModel {
                             loading.set(false);
                             statusMessage.set("Added: " + created.getFullName());
                             log.info("Added new supplier: {}", created.getFullName());
+                            if (onSuccess != null) onSuccess.run();
                         }),
                         error -> Platform.runLater(() -> {
                             loading.set(false);
                             statusMessage.set("Add failed: " + error.getMessage());
                             log.error("Failed to add supplier", error);
+                            if (onError != null) onError.accept(error.getMessage());
                         })
                 );
     }

@@ -58,6 +58,9 @@ public class HighlightedTextColumnBuilder<S, T> {
     /** 기본 텍스트 글자 색상 (기본값: WHITE - 다크 배경 대응) */
     private Color textColor = Color.WHITE;
 
+    /** 줄 간격 (기본값: 0.0) */
+    private double lineSpacing = 0.0;
+
     /**
      * HighlightedTextColumnBuilder 생성자
      *
@@ -156,6 +159,17 @@ public class HighlightedTextColumnBuilder<S, T> {
      */
     public HighlightedTextColumnBuilder<S, T> textColor(Color textColor) {
         this.textColor = textColor;
+        return this;
+    }
+
+    /**
+     * 셀 텍스트의 줄 간격을 설정합니다.
+     *
+     * @param lineSpacing 줄 간격 (픽셀 단위)
+     * @return 현재 빌더 인스턴스 (Fluent API)
+     */
+    public HighlightedTextColumnBuilder<S, T> lineSpacing(double lineSpacing) {
+        this.lineSpacing = lineSpacing;
         return this;
     }
 
@@ -290,6 +304,13 @@ public class HighlightedTextColumnBuilder<S, T> {
             setText(null);
             textFlow.getChildren().clear();
 
+            resetHeights();
+        }
+
+        /**
+         * 셀과 부모 TableRow의 높이를 기본(계산) 크기로 되돌립니다.
+         */
+        private void resetHeights() {
             setPrefHeight(Region.USE_COMPUTED_SIZE);
             setMinHeight(Region.USE_COMPUTED_SIZE);
             setMaxHeight(Region.USE_COMPUTED_SIZE);
@@ -331,6 +352,7 @@ public class HighlightedTextColumnBuilder<S, T> {
             populateHighlightedTextFlow(textFlow, textValue, keyword);
             textFlow.setMaxWidth(targetWidth);
             textFlow.setPrefWidth(targetWidth);
+            textFlow.setLineSpacing(lineSpacing);
             setText(null);
 
             recalculateAndApplyHeight(item);
@@ -351,15 +373,20 @@ public class HighlightedTextColumnBuilder<S, T> {
                 return;
             }
 
+            // CSS(폰트) 적용 후, "현재 크기"가 아닌 "해당 너비에서 필요한 높이"를 계산합니다.
+            // (getBoundsInLocal()은 재사용 중인 노드의 이전 크기가 남아 있어,
+            //  한 줄짜리 내용도 가장 높은 행의 높이로 측정되는 문제가 있었음)
+            double targetWidth = Math.max(column.getWidth() - 20, 50);
             textFlow.applyCss();
-            textFlow.layout();
+            double measuredHeight = textFlow.prefHeight(targetWidth);
 
-            double measuredHeight = textFlow.getBoundsInLocal().getHeight();
             if (measuredHeight <= 0) {
+                // 내용이 없으면 이전(재사용) 높이가 남지 않도록 기본 높이로 복원
+                resetHeights();
                 return;
             }
 
-            applyHeight(measuredHeight + 14.0);
+            applyHeight(measuredHeight + 10.0);
         }
 
         /**

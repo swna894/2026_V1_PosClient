@@ -14,7 +14,7 @@
       <Menu text="Sales &amp; Reports">
          <items>
             <MenuItem fx:id="dailySalesMenuItem" text="Daily Sales" onAction="#handleDailySales" />
-            <MenuItem fx:id="salesHistoryMenuItem" text="Sales History"
+            <MenuItem fx:id="salesHistoryMenuItem" text="Sales History*"
                onAction="#handleSalesHistory" />
             <MenuItem fx:id="productSalesRankingMenuItem" text="Product Sales Ranking"
                onAction="#handleProductSalesRanking" />
@@ -51,12 +51,12 @@
       <!-- Management -->
       <Menu text="Management">
          <items>
-            <MenuItem fx:id="shopManagementMenuItem" text="Shop Management"
+            <MenuItem fx:id="shopManagementMenuItem" text="Shop Management*"
                onAction="#handleShopManagement" />
-            <MenuItem fx:id="supplierManagementMenuItem" text="Suppliers Management"
+            <MenuItem fx:id="supplierManagementMenuItem" text="Suppliers Management*"
                onAction="#handleSuppliersManagement" />
             <MenuItem fx:id="staffManagementMenuItem" text="Staff Management"
-               onAction="#handleStaffManagement" />
+               onAction="#handleUserManagement" />
             <SeparatorMenuItem />
             <MenuItem fx:id="posQuickButtonsMenuItem" text="POS Quick Buttons"
                onAction="#handlePosQuickButtons" />

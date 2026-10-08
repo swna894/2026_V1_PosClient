@@ -20,6 +20,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import lombok.extern.slf4j.Slf4j;
+import net.rgielen.fxweaver.core.FxControllerAndView;
 import net.rgielen.fxweaver.core.FxWeaver;
 
 @Slf4j
@@ -148,8 +149,11 @@ public class NavigationService {
 
             newStage.getIcons().add(new Image("/images/pos_system.png"));
 
-            Parent root = fxWeaver.loadView(controllerClass);
-            T controller = fxWeaver.getBean(controllerClass); // 👈 스프링 빈으로 컨트롤러 인스턴스 획득
+            // load() 는 뷰와 "그 뷰에 연결된" 컨트롤러를 함께 돌려준다.
+            // (getBean() 은 prototype 스코프 컨트롤러에서 별도의 새 인스턴스를 만들기 때문에 사용하지 않는다)
+            FxControllerAndView<T, Parent> cv = fxWeaver.load(controllerClass);
+            Parent root = cv.getView().orElseThrow();
+            T controller = cv.getController();
 
             // 4. show 되기 전에 컨트롤러(뷰모델)에 데이터 주입
             if (initializer != null && controller != null) {

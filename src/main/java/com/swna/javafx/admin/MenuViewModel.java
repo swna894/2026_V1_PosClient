@@ -33,7 +33,7 @@ public class MenuViewModel {
     
     // Management
     public void openShopManagement() { log.info("Execute: Shop Management"); }
-    public void openStaffManagement() { log.info("Execute: Staff Management"); }
+    public void openUserManagement() { log.info("Execute: User Management"); }
     public void openSupplierManagement() { log.info("Execute: Supplier Management"); }
     public void openPosQuickButtons() { log.info("Execute: POS Quick Buttons"); }
     public void openExcelTemplates() { log.info("Execute: Excel Templates"); }

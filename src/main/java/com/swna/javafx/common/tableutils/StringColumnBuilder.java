@@ -1,10 +1,5 @@
 package com.swna.javafx.common.tableutils;
 
-import java.util.function.BiConsumer;
-import java.util.function.Consumer; // 자바 표준 Consumer 임포트
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
@@ -13,9 +8,17 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
+
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StringColumnBuilder<S> {
 
@@ -54,7 +57,8 @@ public class StringColumnBuilder<S> {
     private boolean editable = false;
     private boolean isVisible = true;
     private String alignment = null;
-
+    
+    // 너비 및 리사이즈 관련 필드
     private int width = -1;
     private int minWidth = -1;
     private int maxWidth = -1;
@@ -100,31 +104,36 @@ public class StringColumnBuilder<S> {
         return this;
     }
 
+    // 기본 선호 너비 (가변 컬럼 기본값으로 활용)
     public StringColumnBuilder<S> width(int width) {
         this.width = width;
         return this;
     }
 
+    // 최소 너비 설정
     public StringColumnBuilder<S> minWidth(int minWidth) {
         this.minWidth = minWidth;
         return this;
     }
 
+    // 최대 너비 설정
     public StringColumnBuilder<S> maxWidth(int maxWidth) {
         this.maxWidth = maxWidth;
         return this;
     }
 
+    // 컬럼 리사이즈 가능 여부 설정
     public StringColumnBuilder<S> resizable(boolean resizable) {
         this.resizable = resizable;
         return this;
     }
 
+    // [고정 컬럼 전용] 너비를 완전히 고정하고 리사이즈를 방지
     public StringColumnBuilder<S> fixedWidth(int width) {
         this.width = width;
         this.minWidth = width;
         this.maxWidth = width;
-        this.resizable = false;
+        this.resizable = true;
         return this;
     }
 
@@ -161,11 +170,18 @@ public class StringColumnBuilder<S> {
         column.setVisible(isVisible);
 
         if (alignment != null) {
-            column.setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
+            column.setStyle(TableColumnUtils.STYLE_TRANSPARENT +
+                            TableColumnUtils.getAlignmentStyle(alignment));
         }
 
+        // 컬럼 alignment(-fx-alignment)를 셀 내부 텍스트 정렬(TextAlignment)로 변환
+        // (wrapText 시 Text가 셀 전체 폭을 차지하므로, 박스 정렬만으로는 글자 정렬이 되지 않음)
+        final TextAlignment textAlignment = toTextAlignment(alignment);
+
+        // CellFactory 분기
         if (searchField != null) {
-            column.setCellFactory(col -> new HighlightTableCell<>(searchField, textColor, wrapText, lineSpacing));
+            column.setCellFactory(col -> new HighlightTableCell<>(searchField, textColor, wrapText, lineSpacing, textAlignment));
+
             if (tableView != null) {
                 searchField.textProperty().addListener((obs, oldVal, newVal) -> tableView.refresh());
             }
@@ -179,7 +195,7 @@ public class StringColumnBuilder<S> {
             });
         } else if (wrapText || !Color.BLACK.equals(textColor) || lineSpacing > 0) {
             column.setEditable(false);
-            column.setCellFactory(col -> new CustomTextTableCell<>(textColor, wrapText, lineSpacing));
+            column.setCellFactory(col -> new CustomTextTableCell<>(textColor, wrapText, lineSpacing, textAlignment));
         } else {
             column.setEditable(false);
         }
@@ -238,7 +254,7 @@ public class StringColumnBuilder<S> {
                 setGraphic(textField);
                 textField.selectAll();
                 Platform.runLater(textField::requestFocus);
-            }
+        }
         }
 
         @Override
@@ -258,7 +274,7 @@ public class StringColumnBuilder<S> {
                 setGraphic(null);
                 setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
                 return;
-            }
+        }
 
             if (isEditing()) {
                 if (textField != null) {
@@ -270,7 +286,7 @@ public class StringColumnBuilder<S> {
                 setText(item);
                 setGraphic(null);
                 setStyle(STYLE_TRANSPARENT + getAlignmentStyle(alignment));
-            }
+        }
         }
 
         private void createTextField() {
@@ -287,16 +303,44 @@ public class StringColumnBuilder<S> {
         }
     }
 
+    /**
+     * -fx-alignment 문자열(center, center-left, top-right 등)을 TextAlignment로 변환합니다.
+     * 마지막 단어(left/right/center)를 기준으로 판단하며, 지정하지 않았거나 알 수 없으면 LEFT(기본값)입니다.
+     */
+    private static TextAlignment toTextAlignment(String alignment) {
+        if (alignment == null) {
+            return TextAlignment.LEFT;
+        }
+        String a = alignment.trim().toLowerCase();
+        if (a.endsWith("right")) {
+            return TextAlignment.RIGHT;
+        }
+        if (a.endsWith("left")) {
+            return TextAlignment.LEFT;
+        }
+        if (a.contains("center")) {
+            return TextAlignment.CENTER;
+        }
+        return TextAlignment.LEFT;
+    }
+
+    // [내부 클래스 1] 일반 커스텀 텍스트 셀
     private static class CustomTextTableCell<S> extends TableCell<S, String> {
         private final Text textNode = new Text();
 
-        public CustomTextTableCell(Color textColor, boolean wrapText, double lineSpacing) {
+        public CustomTextTableCell(Color textColor, boolean wrapText, double lineSpacing, TextAlignment textAlignment) {
+            // textColor를 명시적으로 지정한 경우에만 그 색을 고정 적용
+            // 지정하지 않은 경우(기본값 BLACK)에는 CSS 테마의 글자색을 따라가도록 함
             if (textColor != null && !Color.BLACK.equals(textColor)) {
                 textNode.setFill(textColor);
             } else {
                 textNode.getStyleClass().add("table-cell-text");
             }
+
             textNode.setLineSpacing(lineSpacing);
+            // wrapText 시 여러 줄/짧은 글 모두 컬럼 정렬(가운데 등)대로 배치
+            textNode.setTextAlignment(textAlignment);
+
             if (wrapText) {
                 textNode.wrappingWidthProperty().bind(widthProperty().subtract(10));
             }
@@ -315,17 +359,21 @@ public class StringColumnBuilder<S> {
         }
     }
 
+    // [내부 클래스 2] 검색 강조 전용 TableCell
     private static class HighlightTableCell<S> extends TableCell<S, String> {
         private final TextField searchField;
         private final Color defaultTextColor;
         private final boolean wrapText;
         private final double lineSpacing;
+        private final TextAlignment textAlignment;
 
-        public HighlightTableCell(TextField searchField, Color defaultTextColor, boolean wrapText, double lineSpacing) {
+        public HighlightTableCell(TextField searchField, Color defaultTextColor, boolean wrapText,
+                                  double lineSpacing, TextAlignment textAlignment) {
             this.searchField = searchField;
             this.defaultTextColor = defaultTextColor != null ? defaultTextColor : Color.BLACK;
             this.wrapText = wrapText;
             this.lineSpacing = lineSpacing;
+            this.textAlignment = textAlignment != null ? textAlignment : TextAlignment.LEFT;
         }
 
         @Override
@@ -344,6 +392,7 @@ public class StringColumnBuilder<S> {
                 Text textNode = new Text(item);
                 textNode.setFill(defaultTextColor);
                 textNode.setLineSpacing(lineSpacing);
+                textNode.setTextAlignment(textAlignment);
                 if (wrapText) {
                     textNode.wrappingWidthProperty().bind(widthProperty().subtract(10));
                 }
@@ -354,6 +403,7 @@ public class StringColumnBuilder<S> {
 
             TextFlow textFlow = createHighlightedTextFlow(item, filterText.trim());
             textFlow.setLineSpacing(lineSpacing);
+            textFlow.setTextAlignment(textAlignment);
             if (wrapText) {
                 textFlow.prefWidthProperty().bind(widthProperty().subtract(10));
             }
@@ -370,7 +420,7 @@ public class StringColumnBuilder<S> {
             while (matcher.find()) {
                 if (matcher.start() > lastIndex) {
                     Text normalText = new Text(fullText.substring(lastIndex, matcher.start()));
-                    normalText.setFill(defaultTextColor);
+                    normalText.setFill(defaultTextColor); 
                     textFlow.getChildren().add(normalText);
                 }
 

@@ -7,6 +7,7 @@ import com.swna.javafx.admin.sale.SalesController;
 import com.swna.javafx.admin.shop.CompanySettingsController;
 import com.swna.javafx.admin.supplier.SupplierController;
 import com.swna.javafx.admin.unpacking.UnPackingController;
+import com.swna.javafx.admin.user.UserController;
 import com.swna.javafx.barcode.LabelController;
 
 import javafx.event.ActionEvent;
@@ -89,7 +90,7 @@ public class MenuController {
     // ==========================================
     // Management Handlers
     // ==========================================
-    @FXML public void handleStaffManagement(ActionEvent event) { viewModel.openStaffManagement(); }
+    @FXML public void handleUserManagement(ActionEvent event) { setCenterView(UserController.class, "Staff Management"); }
     @FXML public void handleShopManagement(ActionEvent event) { setCenterView(CompanySettingsController.class, "Company Management"); }
     @FXML public void handleSuppliersManagement(ActionEvent event) { setCenterView(SupplierController.class, "Suppliers Management"); }
     @FXML public void handlePosQuickButtons(ActionEvent event) { viewModel.openPosQuickButtons(); }

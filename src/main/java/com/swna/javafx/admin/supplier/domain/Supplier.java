@@ -16,6 +16,7 @@ import javafx.beans.property.StringProperty;
 public class Supplier {
     
     private final LongProperty id = new SimpleLongProperty();
+    private BooleanProperty selected = new SimpleBooleanProperty(false);
     private final StringProperty abbr = new SimpleStringProperty();
     private final StringProperty name = new SimpleStringProperty();
     private final StringProperty company = new SimpleStringProperty();
@@ -48,6 +49,10 @@ public class Supplier {
     public long getId() { return id.get(); }
     public void setId(long value) { id.set(value); }
     public LongProperty idProperty() { return id; }
+
+    public Boolean isSelected() { return selected.get(); }
+    public void setSelected(Boolean selected) { this.selected.set(selected); }
+    public BooleanProperty selectedProperty() { return selected; }
     
     // abbr
     public String getAbbr() { return abbr.get(); }

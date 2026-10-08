@@ -6,6 +6,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import com.swna.javafx.admin.supplier.domain.Supplier;
+
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -338,5 +340,10 @@ public class ButtonColumnBuilder<S> {
 
     private static Image loadIcon(String path) {
         return ICON_CACHE.computeIfAbsent(path, Image::new);
+    }
+
+    public StringColumnBuilder<Supplier> action(Object action2) {
+      // TODO Auto-generated method stub
+      throw new UnsupportedOperationException("Unimplemented method 'action'");
     }
 }

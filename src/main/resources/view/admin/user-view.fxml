@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 
-<BorderPane fx:id="borderPane" prefHeight="694.0" prefWidth="1817.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.admin.supplier.SupplierController">
+<BorderPane fx:id="borderPane" prefHeight="694.0" prefWidth="1817.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.admin.user.UserController">
    <padding>
       <Insets bottom="10" left="10" right="10" top="0" />
    </padding>
