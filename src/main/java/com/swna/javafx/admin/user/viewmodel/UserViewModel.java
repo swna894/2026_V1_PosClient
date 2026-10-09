@@ -1,7 +1,6 @@
 package com.swna.javafx.admin.user.viewmodel;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -10,12 +9,12 @@ import com.swna.javafx.admin.user.domain.User;
 import com.swna.javafx.admin.user.domain.UserRecordDto;
 
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +45,7 @@ public class UserViewModel {
         statusMessage.set("Loading user list...");
 
         userApiClient.getAllUsers()
-                .subscribe(response -> {
+                .subscribe(response -> 
                     // JavaFX Application Thread에서 UI 상태 및 리스트 갱신
                     Platform.runLater(() -> {
                         loading.set(false);
@@ -62,14 +61,14 @@ public class UserViewModel {
                             statusMessage.set("Failed to load user list");
                             log.error("[ViewModel] Failed to load users");
                         }
-                    });
-                }, error -> {
+                    })
+                , error -> 
                     Platform.runLater(() -> {
                         loading.set(false);
                         statusMessage.set("Error occurred while loading user list");
                         log.error("[ViewModel] Error loading users", error);
-                    });
-                });
+                    })
+                );
     }
 
     /**

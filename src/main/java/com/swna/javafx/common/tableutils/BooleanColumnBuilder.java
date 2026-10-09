@@ -18,6 +18,9 @@ public class BooleanColumnBuilder<S> {
     private final String title;
     private final Function<S, BooleanProperty> propertyGetter;
 
+    
+        // 변경 감지용 (dirty 처리 등) Consumer
+    private Consumer<S> dirtyConsumer = null;
     private BiConsumer<S, Boolean> setter = null;
     private boolean editable = true;
     private boolean isVisible = true;
@@ -27,9 +30,6 @@ public class BooleanColumnBuilder<S> {
     private int minWidth = -1;
     private int maxWidth = -1;
     private boolean resizable = true;
-
-    // 변경 감지용 (dirty 처리 등) Consumer
-    private Consumer<S> dirtyConsumer = null;
 
     public BooleanColumnBuilder(TableView<S> tableView, String title, Function<S, BooleanProperty> propertyGetter) {
         this.tableView = tableView;

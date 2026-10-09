@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.backup.BackupEnvironmentController">
+   <children>
+      <!-- 최상위 StackPane 내부에서 BorderPane을 550px 고정 너비로 중앙 정렬 -->
+      <BorderPane maxWidth="550.0" prefWidth="550.0" style="-fx-background-color: #f4f4f4;" StackPane.alignment="CENTER">
+
+         <!-- 상단 (Top) 영역: 타이틀만 표시 -->
+         <top>
+            <VBox alignment="TOP_CENTER" spacing="12.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Label style="-fx-text-fill: #333333; -fx-font-size: 16px; -fx-font-weight: bold;" text="BACKUP ENVIRONMENT" />
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="20.0" right="20.0" top="20.0" />
+               </padding>
+            </VBox>
+         </top>
+
+         <!-- 중앙 (Center) 영역: 입력 폼만 ScrollPane으로 감싸서 세로 스크롤 적용 -->
+         <center>
+            <!-- fitToHeight="true"를 추가하여 ScrollPane 내부 컨텐츠(GridPane)가 뷰포트 높이에 맞춰지도록 설정 -->
+            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" style="-fx-background: #f4f4f4; -fx-background-color: #f4f4f4; -fx-border-color: transparent;">
+               <content>
+                  <GridPane hgap="10.0" style="-fx-background-color: #f4f4f4;" vgap="10.0">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="150.0" minWidth="100.0" prefWidth="130.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="360.0" />
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints minHeight="30.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="30.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="30.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                     </rowConstraints>
+                     <children>
+                        <!-- 1. Basic Folder -->
+                        <Label style="-fx-text-fill: #333333;" text="Backup Folder" />
+                        <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="1">
+                           <children>
+                              <Button fx:id="btnBackupFolder" mnemonicParsing="false" onAction="#handleChooseBackupFolder" style="-fx-background-color: transparent; -fx-text-fill: #d4a017;" text="📁" />
+                              <TextField fx:id="tfBackupFolder" style="-fx-background-color: #ffffff; -fx-text-fill: #333333; -fx-border-color: #cccccc;" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+
+                        <!-- 2. Report Folder -->
+                        <Label style="-fx-text-fill: #333333;" text="Report Folder" GridPane.rowIndex="1" />
+                        <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <children>
+                              <Button fx:id="btnReportFolder" mnemonicParsing="false" onAction="#handleChooseReportFolder" style="-fx-background-color: transparent; -fx-text-fill: #d4a017;" text="📁" />
+                              <TextField fx:id="tfReportFolder" style="-fx-background-color: #ffffff; -fx-text-fill: #333333; -fx-border-color: #cccccc;" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+                        <!-- 3. Backup Exe -->
+                        <Label style="-fx-text-fill: #333333;" text="Backup Exe" GridPane.rowIndex="2" />
+                        <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                           <children>
+                              <Button fx:id="btnBackExe" mnemonicParsing="false" onAction="#handleBackExeFolder" style="-fx-background-color: transparent; -fx-text-fill: #d4a017;" text="📁" />
+                              <TextField fx:id="tfBackExe" style="-fx-background-color: #ffffff; -fx-text-fill: #333333; -fx-border-color: #cccccc;" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+                     </children>
+                     <padding>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="5.0" />
+                     </padding>
+                  </GridPane>
+               </content>
+            </ScrollPane>
+         </center>
+
+         <!-- 하단 (Bottom) 영역: SAVE / CLOSE 두 버튼이 가로 폭을 50%씩 가득 채움 -->
+         <bottom>
+            <HBox alignment="CENTER" spacing="10.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Button fx:id="btnSave" maxWidth="Infinity" minHeight="36.0" mnemonicParsing="false" onAction="#handleSave" prefHeight="36.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="SAVE" HBox.hgrow="ALWAYS">
+                     <graphic>
+                        <ImageView fitHeight="16" fitWidth="16" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../images/save_24px.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button fx:id="btnClose" maxWidth="Infinity" minHeight="36.0" mnemonicParsing="false" onAction="#handleClose" prefHeight="36.0" style="-fx-background-color: #e0e0e0; -fx-text-fill: #333333; -fx-border-color: #cccccc;" text="CLOSE" HBox.hgrow="ALWAYS" />
+               </children>
+               <padding>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
+               </padding>
+            </HBox>
+         </bottom>
+      </BorderPane>
+   </children>
+</StackPane>

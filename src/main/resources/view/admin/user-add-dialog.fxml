@@ -25,7 +25,7 @@
          <top>
             <VBox alignment="TOP_CENTER" spacing="12.0" BorderPane.alignment="CENTER">
                <children>
-                  <Label style="-fx-text-fill: #333333; -fx-font-size: 16px; -fx-font-weight: bold;" text="NEW USER" />
+                  <Label style="-fx-text-fill: #333333; -fx-font-size: 16px; -fx-font-weight: bold;" text="NEW STAFF" />
                   <Label fx:id="lblError" managed="false" visible="false" wrapText="true" maxWidth="Infinity" style="-fx-text-fill: #c0392b; -fx-font-size: 12px;" />
                </children>
                <padding>

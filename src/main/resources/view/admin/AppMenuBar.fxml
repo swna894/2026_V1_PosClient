@@ -13,7 +13,7 @@
       <!-- Sales & Reports -->
       <Menu text="Sales &amp; Reports">
          <items>
-            <MenuItem fx:id="dailySalesMenuItem" text="Daily Sales" onAction="#handleDailySales" />
+            <MenuItem fx:id="dailySalesMenuItem" text="Daily Sales" onAction="#handleDailySales" visible="false" managed="${dailySalesMenuItem.visible}" />
             <MenuItem fx:id="salesHistoryMenuItem" text="Sales History*"
                onAction="#handleSalesHistory" />
             <MenuItem fx:id="productSalesRankingMenuItem" text="Product Sales Ranking"
@@ -24,7 +24,7 @@
                onAction="#handleAnnualReport" />
             <SeparatorMenuItem />
             <MenuItem fx:id="dailyCashReconciliationMenuItem" text="Daily Cash Reconciliation"
-               onAction="#handleDailyCashReconciliation" />
+               onAction="#handleDailyCashReconciliation" visible="false" managed="${dailyCashReconciliationMenuItem.visible}" />
             <MenuItem fx:id="deletedItemLogsMenuItem" text="Deleted Item Logs"
                onAction="#handleDeletedItemLogs" />
          </items>
@@ -55,11 +55,11 @@
                onAction="#handleShopManagement" />
             <MenuItem fx:id="supplierManagementMenuItem" text="Suppliers Management*"
                onAction="#handleSuppliersManagement" />
-            <MenuItem fx:id="staffManagementMenuItem" text="Staff Management"
+            <MenuItem fx:id="staffManagementMenuItem" text="Staff Management*"
                onAction="#handleUserManagement" />
             <SeparatorMenuItem />
-            <MenuItem fx:id="posQuickButtonsMenuItem" text="POS Quick Buttons"
-               onAction="#handlePosQuickButtons" />
+            <MenuItem fx:id="databaseBackupMenuItem" text="Database Backup"
+               onAction="#handleDatabaseBackup" />
             <MenuItem fx:id="excelTemplatesMenuItem" text="Excel Templates"
                onAction="#handleExcelTemplates" />
          </items>
@@ -70,39 +70,34 @@
          <items>
             <MenuItem fx:id="generateBarcodeMenuItem" text="Generate Barcode*"
                onAction="#handleGenerateBarcode" />
+            <MenuItem fx:id="posQuickButtonsMenuItem" text="POS Quick Buttons"
+               onAction="#handlePosQuickButtons" />
             <MenuItem fx:id="printerSettingsMenuItem" text="Printer Settings"
-               onAction="#handlePrinterSettings" />
+               onAction="#handlePrinterSettings" visible="false" managed="${printerSettingsMenuItem.visible}" />
             <MenuItem fx:id="uiThemeSettingsMenuItem" text="UI Theme Settings"
-               onAction="#handleUiThemeSettings" />
+               onAction="#handleUiThemeSettings" visible="false" managed="${uiThemeSettingsMenuItem.visible}" />
             <SeparatorMenuItem />
-            <Menu text="EFTPOS Integration">
+            <Menu fx:id="eftposIntegrationMenu" text="EFTPOS Integration"
+               visible="false" managed="${eftposIntegrationMenu.visible}">
                <items>
                   <MenuItem fx:id="vaultConnectionMenuItem" text="Vault Connection"
-                     onAction="#handleVaultConnection" />
+                     onAction="#handleVaultConnection" visible="false" managed="${vaultConnectionMenuItem.visible}" />
                   <MenuItem fx:id="vxLinkConnectionMenuItem" text="VxLink Connection"
-                     onAction="#handleVxLinkConnection" />
+                     onAction="#handleVxLinkConnection" visible="false" managed="${vxLinkConnectionMenuItem.visible}" />
                   <MenuItem fx:id="eftposDisconnectMenuItem" text="Disconnect"
-                     onAction="#handleEftposDisconnect" />
+                     onAction="#handleEftposDisconnect" visible="false" managed="${eftposDisconnectMenuItem.visible}" />
                   <MenuItem fx:id="resetNetworkMenuItem" text="Reset Network"
-                     onAction="#handleResetNetwork" />
+                     onAction="#handleResetNetwork" visible="false" managed="${resetNetworkMenuItem.visible}" />
                </items>
             </Menu>
-            <Menu text="Backup Schedule">
-               <items>
-                  <MenuItem fx:id="backupDailyMenuItem" text="Daily" onAction="#handleBackupDaily" />
-                  <MenuItem fx:id="backupWeeklyMenuItem" text="Weekly"
-                     onAction="#handleBackupWeekly" />
-                  <MenuItem fx:id="backupMonthlyMenuItem" text="Monthly"
-                     onAction="#handleBackupMonthly" />
-               </items>
-            </Menu>
+            <MenuItem fx:id="backupEnvironmentMenuItem" text="Backup Environment" onAction="#handleBackupEnv" />
             <SeparatorMenuItem />
             <MenuItem fx:id="terminalIpSetupMenuItem" text="Terminal IP Setup"
-               onAction="#handleTerminalIpSetup" />
+               onAction="#handleTerminalIpSetup" visible="false" managed="${terminalIpSetupMenuItem.visible}" />
             <MenuItem fx:id="backupFilePathMenuItem" text="Backup File Path"
-               onAction="#handleBackupFilePath" />
+               onAction="#handleBackupFilePath" visible="false" managed="${backupFilePathMenuItem.visible}" />
             <MenuItem fx:id="receiptMessageSetupMenuItem" text="Receipt Message Setup"
-               onAction="#handleReceiptMessageSetup" />
+               onAction="#handleReceiptMessageSetup" visible="false" managed="${receiptMessageSetupMenuItem.visible}" />
             <MenuItem fx:id="emailNotificationSettingsMenuItem" text="Email Notification Settings"
                onAction="#handleEmailNotificationSettings" />
          </items>
@@ -113,8 +108,7 @@
          <items>
             <MenuItem fx:id="changePasswordMenuItem" text="Change Password"
                onAction="#handleChangePassword" />
-            <MenuItem fx:id="databaseBackupMenuItem" text="Database Backup"
-               onAction="#handleDatabaseBackup" />
+
             <SeparatorMenuItem />
             <Menu text="License Information">
                <items>

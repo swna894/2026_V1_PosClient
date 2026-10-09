@@ -1,20 +1,24 @@
 package com.swna.javafx.admin.user;
 
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.admin.supplier.SupplierAddDialogController;
 import com.swna.javafx.admin.user.domain.User;
 import com.swna.javafx.admin.user.factory.UserTableFactory;
 import com.swna.javafx.admin.user.viewmodel.UserViewModel;
 import com.swna.javafx.common.navigation.NavigationService;
+import com.swna.javafx.common.util.AlertDialog;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
@@ -99,12 +103,29 @@ public class UserController implements Initializable {
      * 행 삭제 버튼 클릭 시 동작
      */
     private void handleDeleteUser(User user) {
-        viewModel.deleteUser(user.getId()).subscribe(success -> {
-            if (Boolean.TRUE.equals(success)) {
-                log.info("[Controller] User successfully deleted: ID={}", user.getId());
-            } else {
-                log.error("[Controller] Failed to delete user: ID={}", user.getId());
-            }
-        });
+        // 1. JavaFX 표준 Alert 객체 생성 (CONFIRMATION)
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Deletion");
+        alert.setHeaderText(null);
+        alert.setContentText("Are you sure you want to delete this user? \n (Email: " + user.getEmail() + ")");
+
+        // 2. 다이얼로그를 띄우고 사용자의 응답 대기
+        Optional<ButtonType> result = alert.showAndWait();
+
+        // 3. 사용자가 'OK'를 누른 경우에만 삭제 진행
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            log.info("[Controller] User deletion requested: ID={}", user.getId());
+            
+            viewModel.deleteUser(user.getId()).subscribe(success -> {
+                if (Boolean.TRUE.equals(success)) {
+                    log.info("[Controller] User successfully deleted: ID={}", user.getId());
+                    // 필요 시 UI 갱신 로직 추가 (예: 테이블뷰에서 해당 아이템 제거 등)
+                } else {
+                    log.error("[Controller] Failed to delete user: ID={}", user.getId());
+                }
+            });
+        } else {
+            log.info("[Controller] User deletion cancelled: ID={}", user.getId());
+        }
     }
 }

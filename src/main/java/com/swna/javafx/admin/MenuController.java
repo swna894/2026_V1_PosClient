@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.swna.javafx.admin.inventory.InventoryController;
 import com.swna.javafx.admin.sale.SalesController;
-import com.swna.javafx.admin.shop.CompanySettingsController;
+import com.swna.javafx.admin.shop.ShopSettingsController;
 import com.swna.javafx.admin.supplier.SupplierController;
 import com.swna.javafx.admin.unpacking.UnPackingController;
 import com.swna.javafx.admin.user.UserController;
@@ -91,7 +91,7 @@ public class MenuController {
     // Management Handlers
     // ==========================================
     @FXML public void handleUserManagement(ActionEvent event) { setCenterView(UserController.class, "Staff Management"); }
-    @FXML public void handleShopManagement(ActionEvent event) { setCenterView(CompanySettingsController.class, "Company Management"); }
+    @FXML public void handleShopManagement(ActionEvent event) { setCenterView(ShopSettingsController.class, "Company Management"); }
     @FXML public void handleSuppliersManagement(ActionEvent event) { setCenterView(SupplierController.class, "Suppliers Management"); }
     @FXML public void handlePosQuickButtons(ActionEvent event) { viewModel.openPosQuickButtons(); }
     @FXML public void handleExcelTemplates(ActionEvent event) { viewModel.openExcelTemplates(); }
@@ -106,9 +106,7 @@ public class MenuController {
     @FXML public void handleVxLinkConnection(ActionEvent event) { viewModel.openVxLinkConnection(); }
     @FXML public void handleEftposDisconnect(ActionEvent event) { viewModel.disconnectEftpos(); }
     @FXML public void handleResetNetwork(ActionEvent event) { viewModel.resetNetwork(); }
-    @FXML public void handleBackupDaily(ActionEvent event) { viewModel.setBackupDaily(); }
-    @FXML public void handleBackupWeekly(ActionEvent event) { viewModel.setBackupWeekly(); }
-    @FXML public void handleBackupMonthly(ActionEvent event) { viewModel.setBackupMonthly(); }
+    @FXML public void handleBackupEnv(ActionEvent event) { viewModel.setBackupDaily(); }
     @FXML public void handleTerminalIpSetup(ActionEvent event) { viewModel.openTerminalIpSetup(); }
     @FXML public void handleBackupFilePath(ActionEvent event) { viewModel.openBackupFilePath(); }
     @FXML public void handleReceiptMessageSetup(ActionEvent event) { viewModel.openReceiptMessageSetup(); }

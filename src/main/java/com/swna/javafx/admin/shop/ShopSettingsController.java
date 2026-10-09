@@ -5,9 +5,10 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
-import com.swna.javafx.admin.shop.api.ShopApiClient;
 import com.swna.javafx.admin.shop.dto.Shop;
+import com.swna.javafx.admin.shop.viewmodel.ShopViewModel;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -19,16 +20,17 @@ import javafx.stage.DirectoryChooser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 @FxmlView("/view/admin/shop-view.fxml")
-public class CompanySettingsController {
+public class ShopSettingsController {
 
-    private final ShopApiClient shopApiClient;
+    private final ShopViewModel shopViewModel;
 
-    private Long currentShopId; 
+    private Long currentShopId;
 
     // 이메일 유효성 검증을 위한 표준 정규식 패턴
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
@@ -53,47 +55,44 @@ public class CompanySettingsController {
     @FXML private TextField tfSurburb;
     @FXML private TextField tfCity;
     @FXML private TextField tfComment;
-    @FXML private TextField tfBackupFolder;   
-    @FXML private TextField tfReportFolder;  
+    @FXML private TextField tfBackupFolder;
+    @FXML private TextField tfReportFolder;
 
     // --- 폴더 선택 버튼 ---
-    @FXML private Button btnBackupFolder;    
-    @FXML private Button btnReportFolder;    
+    @FXML private Button btnBackupFolder;
+    @FXML private Button btnReportFolder;
 
     /**
-     * 초기화 메서드 (FXML이 로드된 후 자동으로 호출됨)
+     * FXML 로드 후 자동 호출
      */
     @FXML
     public void initialize() {
         setupEnterKeyFocusTraversal();
-        loadFirstShopData(); 
+        loadShopData(shopViewModel.getShop()); // 캐시 우선
     }
 
-    /**
-     * 서버에서 첫 번째 매장 데이터를 가져와 폼에 채워 넣는 메서드
-     */
-    private void loadFirstShopData() {
-        log.info("Fetching the first shop information from the server...");
-        
-        shopApiClient.fetchShop()
-            .subscribe(
-                shop -> {
-                    javafx.application.Platform.runLater(() -> setShopToFields(shop));
-                },
-                error -> log.error("Failed to fetch shop information: {}", error.getMessage())
-            );
-    }
+    // ==========================================
+    // Load
+    // ==========================================
 
     /**
-     * Shop 객체의 데이터를 TextField에 매핑 및 현재 ID 기억
+     * 주어진 Mono<Shop>을 구독하여 폼에 채워 넣는다.
      */
+    private void loadShopData(Mono<Shop> source) {
+        log.info("Fetching shop information...");
+        source.subscribe(
+            shop -> Platform.runLater(() -> setShopToFields(shop)),
+            error -> log.error("Failed to fetch shop information: {}", error.getMessage())
+        );
+    }
+
     private void setShopToFields(Shop shop) {
         if (shop == null) {
             log.warn("No shop data retrieved.");
             return;
         }
 
-        currentShopId = shop.getId(); 
+        currentShopId = shop.getId();
 
         tfCompany.setText(shop.getCompany());
         tfBusinessNo.setText(shop.getBusinessNo());
@@ -113,8 +112,12 @@ public class CompanySettingsController {
         log.info("Shop information successfully loaded into the form. (ID: {})", currentShopId);
     }
 
+    // ==========================================
+    // Button handlers
+    // ==========================================
+
     /**
-     * SAVE 버튼 클릭 이벤트 - 서버로 수정 내역 전송 (이메일 검증 및 Alert 알림 포함)
+     * SAVE 버튼 - 이메일 검증 후 서버로 수정 내역 전송
      */
     @FXML
     private void handleSave(ActionEvent event) {
@@ -124,7 +127,6 @@ public class CompanySettingsController {
             return;
         }
 
-        // 이메일 형식 검증
         String emailText = tfEmail.getText() != null ? tfEmail.getText().trim() : "";
         if (!emailText.isEmpty() && !EMAIL_PATTERN.matcher(emailText).matches()) {
             log.warn("Invalid email format entered: {}", emailText);
@@ -133,7 +135,6 @@ public class CompanySettingsController {
             return;
         }
 
-        // 입력된 필드 값들로 Shop 객체 생성
         Shop updatedShop = Shop.create(
             tfCompany.getText(),
             tfBusinessNo.getText(),
@@ -150,37 +151,58 @@ public class CompanySettingsController {
             tfBackupFolder.getText(),
             tfReportFolder.getText()
         );
-
         updatedShop.setId(currentShopId);
+
         log.info("Starting update request for shop ID: {}", currentShopId);
 
-        // 서버로 비동기 업데이트 요청 전송
-        shopApiClient.updateShop(currentShopId, updatedShop)
-                    .subscribe(
-                        unused -> {
-                            // onNext: Not called for Mono<Void>
-                        },
-                        error -> {
-                            // onError: Triggered when API fails or exception occurs
-                            javafx.application.Platform.runLater(() -> {
-                                String errorMsg = error.getMessage() != null ? error.getMessage() : "Please try again.";
-                                log.error("Failed to save shop information: {}", errorMsg);
-                                showAlert(AlertType.ERROR, "Save Failed", "Failed to save shop information: " + errorMsg);
-                            });
-                        },
-                        () -> {
-                            // onComplete: Triggered when the update successfully completes
-                            javafx.application.Platform.runLater(() -> {
-                                log.info("Shop information saved successfully.");
-                                showAlert(AlertType.INFORMATION, "Success", "Shop information has been saved successfully.");
-                            });
-                        }
-                    );
-            }
+        shopViewModel.saveShop(currentShopId, updatedShop)
+            .subscribe(
+                saved -> Platform.runLater(() -> {
+                    log.info("Shop information saved successfully.");
+                    showAlert(AlertType.INFORMATION, "Success", "Shop information has been saved successfully.");
+                }),
+                error -> Platform.runLater(() -> {
+                    String msg = error.getMessage() != null ? error.getMessage() : "Please try again.";
+                    log.error("Failed to save shop information: {}", msg);
+                    showAlert(AlertType.ERROR, "Save Failed", "Failed to save shop information: " + msg);
+                })
+            );
+    }
 
     /**
-     * 사용자에게 팝업 알림을 보여주는 공통 메서드
+     * RELOAD 버튼 - 캐시를 무시하고 서버에서 다시 조회
      */
+    @FXML
+    private void handleReload(ActionEvent event) {
+        log.info("Reloading data...");
+        loadShopData(shopViewModel.reload());
+    }
+
+    /**
+     * CLEAN 버튼 - 입력 필드 초기화
+     */
+    @FXML
+    private void handleClean(ActionEvent event) {
+        for (TextField field : allFields()) {
+            field.clear();
+        }
+        log.info("Input fields cleared.");
+    }
+
+    @FXML
+    private void handleChooseBackupFolder(ActionEvent event) {
+        chooseDirectory(tfBackupFolder);
+    }
+
+    @FXML
+    private void handleChooseReportFolder(ActionEvent event) {
+        chooseDirectory(tfReportFolder);
+    }
+
+    // ==========================================
+    // Helpers
+    // ==========================================
+
     private void showAlert(AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
@@ -189,97 +211,43 @@ public class CompanySettingsController {
         alert.showAndWait();
     }
 
-    /**
-     * RLOAD 버튼 클릭 이벤트
-     */
-    @FXML
-    private void handleReload(ActionEvent event) {
-        log.info("Reloading data...");
-        loadFirstShopData(); 
-    }
-
-    /**
-     * CLEAN 버튼 클릭 이벤트
-     */
-    @FXML
-    private void handleClean(ActionEvent event) {
-        tfCompany.clear();
-        tfBusinessNo.clear();
-        tfName.clear();
-        tfEmail.clear();
-        pfPassword.clear();
-        tfCcEmail.clear();
-        tfmobilePhone.clear();
-        tfPhone.clear();
-        tfStreet.clear();
-        tfSurburb.clear();
-        tfCity.clear();
-        tfComment.clear();
-        tfBackupFolder.clear();
-        tfReportFolder.clear();
-        log.info("Input fields cleared.");
-    }
-
-    /**
-     * Basic Folder 폴더 선택 버튼 이벤트
-     */
-    @FXML
-    private void handleChooseBackupFolder(ActionEvent event) {
-        chooseDirectory(tfBackupFolder);
-    }
-
-    /**
-     * Report Folder 폴더 선택 버튼 이벤트
-     */
-    @FXML
-    private void handleChooseReportFolder(ActionEvent event) {
-        chooseDirectory(tfReportFolder);
-    }
-
-    /**
-     * 공통 디렉토리 선택 다이얼로그 메서드
-     */
     private void chooseDirectory(TextField targetTextField) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select Directory");
-        
-        if (!targetTextField.getText().isEmpty()) {
-            File initialDir = new File(targetTextField.getText());
+
+        String current = targetTextField.getText();
+        if (current != null && !current.isEmpty()) {
+            File initialDir = new File(current);
             if (initialDir.exists()) {
                 directoryChooser.setInitialDirectory(initialDir);
             }
         }
-        
-        File selectedDirectory = directoryChooser.showDialog(targetTextField.getScene().getWindow());
-        if (selectedDirectory != null) {
-            targetTextField.setText(selectedDirectory.getAbsolutePath());
+
+        File selected = directoryChooser.showDialog(targetTextField.getScene().getWindow());
+        if (selected != null) {
+            targetTextField.setText(selected.getAbsolutePath());
         }
     }
 
     /**
-     * TextField 및 PasswordField에서 Enter 키 입력 시 포커스 이동
+     * Enter 키 입력 시 다음 필드로 포커스 이동
      */
     private void setupEnterKeyFocusTraversal() {
-        TextField[] fields = {
-            tfCompany,      
-            tfBusinessNo,   
-            tfName,         
-            tfEmail,        
-            pfPassword,     
-            tfCcEmail,      
-            tfmobilePhone,  
-            tfPhone,        
-            tfStreet,       
-            tfSurburb,      
-            tfCity,         
-            tfComment,      
-            tfBackupFolder, 
-            tfReportFolder  
-        };
-
+        TextField[] fields = allFields();
         for (int i = 0; i < fields.length - 1; i++) {
-            final int nextIndex = i + 1;
-            fields[i].setOnAction(event -> fields[nextIndex].requestFocus());
+            final TextField next = fields[i + 1];
+            fields[i].setOnAction(e -> next.requestFocus());
         }
+    }
+
+    /**
+     * 폼 입력 필드 목록 (순서 = 포커스 이동 순서)
+     */
+    private TextField[] allFields() {
+        return new TextField[] {
+            tfCompany, tfBusinessNo, tfName, tfEmail, pfPassword, tfCcEmail,
+            tfmobilePhone, tfPhone, tfStreet, tfSurburb, tfCity, tfComment,
+            tfBackupFolder, tfReportFolder
+        };
     }
 }

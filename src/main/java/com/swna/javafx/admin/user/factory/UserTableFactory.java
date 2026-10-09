@@ -3,22 +3,21 @@ package com.swna.javafx.admin.user.factory;
 import static com.swna.javafx.common.tableutils.TableColumnUtils.buttonColumn;
 import static com.swna.javafx.common.tableutils.TableColumnUtils.stringColumn;
 
+import java.util.function.Consumer;
+
+import org.springframework.stereotype.Component;
+
 import com.swna.javafx.admin.user.domain.Role;
 import com.swna.javafx.admin.user.domain.User;
 import com.swna.javafx.admin.user.viewmodel.UserViewModel; // UserViewModel 패키지에 맞게 수정
 import com.swna.javafx.common.constant.IconPaths;
-import com.swna.javafx.common.tableutils.TableColumnUtils;
 import com.swna.javafx.common.tableutils.TableUtil;
-import com.swna.javafx.common.ui.table.TableColumnUtil;
 
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-import java.util.function.Consumer;
 
 @Getter
 @Slf4j
@@ -110,15 +109,6 @@ public class UserTableFactory {
       //           .width(100)
       //           .build();
 
-        // // 5. 우편번호 컬럼 (편집 가능)
-        // this.zipcodeColumn = stringColumn(tableView, "ZIPCODE", User::zipcodeProperty)
-        //         .setter(User::setZipcode)
-        //         .dirtyConsumer(viewModel::markAsDirty)
-        //         .editable(true)
-        //         .visible(true)
-        //         .alignment(TableUtil.CENTER)
-        //         .fixedWidth(90)
-        //         .build();
 
         // 6. 도시 컬럼 (편집 가능)
         this.cityColumn = stringColumn(tableView, "CITY", User::cityProperty)

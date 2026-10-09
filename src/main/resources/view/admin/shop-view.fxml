@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.admin.shop.CompanySettingsController">
+<StackPane style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.swna.javafx.admin.shop.ShopSettingsController">
    <children>
       <!-- 최상위 StackPane 내부에서 BorderPane을 550px 고정 너비로 중앙 정렬 -->
       <BorderPane maxWidth="550.0" prefWidth="550.0" style="-fx-background-color: #f4f4f4;" StackPane.alignment="CENTER">
