@@ -31,11 +31,31 @@ public class SalesTransactionTableFactory {
 
     private void createColumns() {
         TableUtil.createNumberColumn(table, "NO", 55);
-        this.colDate = stringColumn(table, "DATE / PERIOD", SalesTransactionDate::dateProperty).alignment(TableUtil.CENTER).fixedWidth(120).build();
 
-        // 2. 람다식 및 .asObject() 적용
-        this.colQty = numberColumn(table, "QTY SOLD", item -> item.countProperty().asObject()).alignment(TableUtil.RIGHT).fixedWidth(120).build();
+        // fixedWidth() 제거 → 폭은 아래에서 직접 지정
+        this.colDate = stringColumn(table, "DATE / PERIOD", SalesTransactionDate::dateProperty)
+                .alignment(TableUtil.CENTER)
+                .build();
+
+        this.colQty = numberColumn(table, "QTY SOLD", item -> item.countProperty().asObject())
+                .alignment(TableUtil.RIGHT)
+                .build();
 
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        // 테이블 폭에 비례해서 컬럼 폭이 변하도록 설정
+        bindColumnWidth(colDate, 0.5);
+        bindColumnWidth(colQty, 0.5);
+    }
+
+    /**
+     * 컬럼 폭을 (테이블 폭 - NO 컬럼 폭 - 여백) × ratio 로 바인딩
+     */
+    private void bindColumnWidth(TableColumn<SalesTransactionDate, ?> column, double ratio) {
+        column.setMinWidth(60);
+        column.setMaxWidth(Double.MAX_VALUE);
+        column.prefWidthProperty().bind(
+                table.widthProperty().subtract(55 + 20).multiply(ratio)   // 55: NO 컬럼, 20: 스크롤바/여백
+        );
     }
 }

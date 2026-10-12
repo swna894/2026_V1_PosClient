@@ -37,8 +37,6 @@ public class Shop {
     private String suburb;
     private String city;
     private String comment;
-    private String backupFolder;
-    private String reportFolder;
     @JsonIgnore
     private String address; 
 
@@ -59,9 +57,7 @@ public class Shop {
             String street,
             String suburb,
             String city,
-            String comment,
-            String backupFolder,
-            String reportFolder
+            String comment
     ) {
         Shop shop = new Shop();
         shop.company = company;
@@ -76,8 +72,6 @@ public class Shop {
         shop.suburb = suburb;
         shop.city = city;
         shop.comment = comment;
-        shop.backupFolder = backupFolder;
-        shop.reportFolder = reportFolder;
         shop.active = true;
 
         return shop;
@@ -130,9 +124,7 @@ public class Shop {
             "Default Street",      // street
             "Default Suburb",      // suburb
             "Default City",        // city
-            "Initial setup shop",  // comment
-            "/backup",             // backupFolder
-            "/report"              // reportFolder
+            "Initial setup shop"  // comment
         );
     }
 }

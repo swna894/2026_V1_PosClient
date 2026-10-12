@@ -5,10 +5,13 @@ import org.springframework.stereotype.Component;
 import com.swna.javafx.admin.inventory.InventoryController;
 import com.swna.javafx.admin.sale.SalesController;
 import com.swna.javafx.admin.shop.ShopSettingsController;
+import com.swna.javafx.admin.supplier.SupplierAddDialogController;
 import com.swna.javafx.admin.supplier.SupplierController;
 import com.swna.javafx.admin.unpacking.UnPackingController;
 import com.swna.javafx.admin.user.UserController;
+import com.swna.javafx.backup.BackupEnvController;
 import com.swna.javafx.barcode.LabelController;
+import com.swna.javafx.common.navigation.NavigationService;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -26,6 +29,7 @@ import net.rgielen.fxweaver.core.FxmlView;
 @FxmlView("/view/admin/Management.fxml")
 public class MenuController {
 
+    private final NavigationService navigationService;
     private final MenuViewModel viewModel;
     private final FxWeaver fxWeaver; // 👈 FxWeaver 주입받기
 
@@ -106,7 +110,7 @@ public class MenuController {
     @FXML public void handleVxLinkConnection(ActionEvent event) { viewModel.openVxLinkConnection(); }
     @FXML public void handleEftposDisconnect(ActionEvent event) { viewModel.disconnectEftpos(); }
     @FXML public void handleResetNetwork(ActionEvent event) { viewModel.resetNetwork(); }
-    @FXML public void handleBackupEnv(ActionEvent event) { viewModel.setBackupDaily(); }
+    @FXML public void handleBackupEnv(ActionEvent event) {  navigationService.openModalWindow(BackupEnvController.class, "Backup Environment"); } 
     @FXML public void handleTerminalIpSetup(ActionEvent event) { viewModel.openTerminalIpSetup(); }
     @FXML public void handleBackupFilePath(ActionEvent event) { viewModel.openBackupFilePath(); }
     @FXML public void handleReceiptMessageSetup(ActionEvent event) { viewModel.openReceiptMessageSetup(); }

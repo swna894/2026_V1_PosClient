@@ -55,12 +55,6 @@ public class ShopSettingsController {
     @FXML private TextField tfSurburb;
     @FXML private TextField tfCity;
     @FXML private TextField tfComment;
-    @FXML private TextField tfBackupFolder;
-    @FXML private TextField tfReportFolder;
-
-    // --- 폴더 선택 버튼 ---
-    @FXML private Button btnBackupFolder;
-    @FXML private Button btnReportFolder;
 
     /**
      * FXML 로드 후 자동 호출
@@ -106,8 +100,6 @@ public class ShopSettingsController {
         tfSurburb.setText(shop.getSuburb());
         tfCity.setText(shop.getCity());
         tfComment.setText(shop.getComment());
-        tfBackupFolder.setText(shop.getBackupFolder());
-        tfReportFolder.setText(shop.getReportFolder());
 
         log.info("Shop information successfully loaded into the form. (ID: {})", currentShopId);
     }
@@ -147,9 +139,7 @@ public class ShopSettingsController {
             tfStreet.getText(),
             tfSurburb.getText(),
             tfCity.getText(),
-            tfComment.getText(),
-            tfBackupFolder.getText(),
-            tfReportFolder.getText()
+            tfComment.getText()
         );
         updatedShop.setId(currentShopId);
 
@@ -189,15 +179,6 @@ public class ShopSettingsController {
         log.info("Input fields cleared.");
     }
 
-    @FXML
-    private void handleChooseBackupFolder(ActionEvent event) {
-        chooseDirectory(tfBackupFolder);
-    }
-
-    @FXML
-    private void handleChooseReportFolder(ActionEvent event) {
-        chooseDirectory(tfReportFolder);
-    }
 
     // ==========================================
     // Helpers
@@ -211,23 +192,6 @@ public class ShopSettingsController {
         alert.showAndWait();
     }
 
-    private void chooseDirectory(TextField targetTextField) {
-        DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Select Directory");
-
-        String current = targetTextField.getText();
-        if (current != null && !current.isEmpty()) {
-            File initialDir = new File(current);
-            if (initialDir.exists()) {
-                directoryChooser.setInitialDirectory(initialDir);
-            }
-        }
-
-        File selected = directoryChooser.showDialog(targetTextField.getScene().getWindow());
-        if (selected != null) {
-            targetTextField.setText(selected.getAbsolutePath());
-        }
-    }
 
     /**
      * Enter 키 입력 시 다음 필드로 포커스 이동
@@ -246,8 +210,8 @@ public class ShopSettingsController {
     private TextField[] allFields() {
         return new TextField[] {
             tfCompany, tfBusinessNo, tfName, tfEmail, pfPassword, tfCcEmail,
-            tfmobilePhone, tfPhone, tfStreet, tfSurburb, tfCity, tfComment,
-            tfBackupFolder, tfReportFolder
+            tfmobilePhone, tfPhone, tfStreet, tfSurburb, tfCity, tfComment
+
         };
     }
 }

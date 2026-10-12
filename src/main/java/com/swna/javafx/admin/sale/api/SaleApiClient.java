@@ -55,8 +55,8 @@ public class SaleApiClient {
         log.debug("[Sale API] Fetching sale items for saleId: {} from: {}", saleId, url);
         
         return webClientCommon.get(url, TypeReferences.list(SaleItemResponse.class))
-            .timeout(Duration.ofSeconds(API_TIMEOUT_SECONDS))
-            .retry(RETRY_COUNT)
+            //.timeout(Duration.ofSeconds(API_TIMEOUT_SECONDS))
+            //.retry(RETRY_COUNT)
             .subscribeOn(Schedulers.boundedElastic())
             .flatMap(response -> unwrapListResponse(response, "sale items"))
             .onErrorResume(e -> {
