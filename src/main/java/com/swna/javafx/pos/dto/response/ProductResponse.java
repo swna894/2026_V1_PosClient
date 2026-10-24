@@ -5,6 +5,6 @@ public record ProductResponse(
         String barcode,
         String description,
         double sellingPrice,
-        double originalPrice,
+        double price,
         int stock
 ) {}

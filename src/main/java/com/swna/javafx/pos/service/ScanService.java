@@ -2,6 +2,7 @@ package com.swna.javafx.pos.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -124,7 +125,7 @@ public class ScanService {
         item.setDescription(p.description());
 
         // Pricing logic[cite: 2]
-        double original = safe(p.originalPrice(), p.sellingPrice());
+        double original = safe(p.price(), p.sellingPrice());
         double selling  = safe(p.sellingPrice(), original);
 
         item.setOriginalPrice(original);
@@ -138,7 +139,7 @@ public class ScanService {
         item.applyDiscount(0, 0);
 
         // Timestamp[cite: 2]
-        item.setUpdated(LocalDateTime.now());
+        item.setUpdated(LocalDateTime.now(ZoneId.systemDefault()));
 
         return item;
     }
