@@ -1,10 +1,12 @@
 package com.swna.javafx.pos.service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 
@@ -16,137 +18,137 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
-@Slf4j 
+/**
+ * 바코드 스캔 서비스.
+ *
+ * 핵심 원칙:
+ *  - 캐시에는 "서버 응답(ProductResponse, 불변 record)"만 보관한다.
+ *  - 스캔할 때마다 새 PosItem 을 만들어 반환한다. (qty=0, 할인=0)
+ *    → 장바구니, 보류(Hold), 이전 거래와 객체를 공유하지 않으므로 수량 오염이 생기지 않는다.
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ScanService {
 
-    private final ProductApiService productApi;
-    
-    // API 호출 타임아웃 (초)
     private static final int API_TIMEOUT_SECONDS = 10;
-    
-    // 재시도 횟수
     private static final int RETRY_COUNT = 2;
-    
-    // 간단한 인메모리 캐시 (선택사항)
-    private final Map<String, PosItem> itemCache = new ConcurrentHashMap<>();
-    private static final int CACHE_MAX_SIZE = 300;
 
-  // =========================
-    // 메인 스캔 메서드 (타입 안전)
+    private static final int CACHE_MAX_SIZE = 300;
+    /** 가격/재고가 오래된 값으로 남지 않도록 만료 시간을 둔다. */
+    private static final Duration CACHE_TTL = Duration.ofMinutes(5);
+
+    private final ProductApiService productApi;
+
+    /** 캐시 항목: 응답 + 저장 시각 */
+    private record CachedProduct(ProductResponse response, Instant cachedAt) {
+        boolean isExpired() {
+            return cachedAt.plus(CACHE_TTL).isBefore(Instant.now());
+        }
+    }
+
+    /** access-order LinkedHashMap 으로 진짜 LRU 구현 (동기화 래핑) */
+    private final Map<String, CachedProduct> cache = Collections.synchronizedMap(
+            new LinkedHashMap<>(64, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, CachedProduct> eldest) {
+                    boolean evict = size() > CACHE_MAX_SIZE;
+                    if (evict) {
+                        log.debug("[Cache] Evicted eldest: {}", eldest.getKey());
+                    }
+                    return evict;
+                }
+            });
+
     // =========================
-    
+    // 스캔
+    // =========================
+
     /**
-     * 바코드로 상품 스캔 (타입 안전한 버전)
-     * 
-     * @param barcode 스캔할 바코드
-     * @return PosItem Mono (존재하지 않으면 empty)
+     * 바코드로 상품 조회. 호출할 때마다 새로운 PosItem(qty=0)을 반환한다.
      */
     public Mono<PosItem> scan(String barcode) {
-        // 입력 검증
         if (barcode == null || barcode.isBlank()) {
             log.warn("[Scan] Barcode is null or empty");
             return Mono.empty();
         }
-        
-        // 1. 캐시 확인 (선택사항)
-        PosItem cached = itemCache.get(barcode);
+
+        final String key = barcode.trim();
+
+        ProductResponse cached = getFromCache(key);
         if (cached != null) {
-            log.debug("[Scan] Cache hit for barcode: {}", barcode);
-            return Mono.just(cached);
+            log.debug("[Scan] Cache hit: {}", key);
+            return Mono.just(toPosItem(cached));
         }
-        
-        // 2. API 호출 (getForData 사용 - 자동 언래핑)
-        return productApi.getProductByBarcode(barcode)
+
+        return productApi.getProductByBarcode(key)
                 .timeout(Duration.ofSeconds(API_TIMEOUT_SECONDS))
                 .retry(RETRY_COUNT)
-                .map(this::toPosItemWithCache)
-                .onErrorResume(e -> {
-                    log.error("Scan failed for barcode: {}", barcode);
-                    return Mono.error(e);
-                });
+                .doOnNext(response -> putToCache(key, response))
+                .map(this::toPosItem)
+                .doOnError(e -> log.error("[Scan] Failed for barcode: {}", key, e));
     }
 
     // =========================
-    // 캐시 관리 메서드
+    // 캐시 관리
     // =========================
-    
-    /**
-     * 캐시에 아이템 저장
-     */
-    private PosItem toPosItemWithCache(ProductResponse response) {
-        PosItem item = toPosItem(response);
-        String barcode = response.barcode();
-        
-        // 캐시 크기 제한
-        if (itemCache.size() >= CACHE_MAX_SIZE) {
-            // 간단한 LRU: 가장 오래된 항목 제거
-            String firstKey = itemCache.keySet().iterator().next();
-            itemCache.remove(firstKey);
-            log.debug("[Cache] Removed oldest item: {}", firstKey);
+
+    private ProductResponse getFromCache(String key) {
+        CachedProduct entry = cache.get(key);
+        if (entry == null) {
+            return null;
         }
-        
-        itemCache.put(barcode, item);
-        log.debug("[Cache] Added item for barcode: {}", barcode);
-        
-        return item;
+        if (entry.isExpired()) {
+            cache.remove(key);
+            log.debug("[Cache] Expired: {}", key);
+            return null;
+        }
+        return entry.response();
     }
-    
-    /**
-     * 캐시 초기화
-     */
+
+    private void putToCache(String key, ProductResponse response) {
+        // 스캔에 사용한 바코드를 키로 사용 (response.barcode() 와 다를 경우에도 hit 보장)
+        cache.put(key, new CachedProduct(response, Instant.now()));
+        log.debug("[Cache] Stored: {}", key);
+    }
+
+    /** 전체 캐시 초기화 (가격/재고 갱신이 필요할 때) */
     public void clearCache() {
-        itemCache.clear();
-        log.info("[Cache] Cleared all cached items");
+        cache.clear();
+        log.info("[Cache] Cleared all cached products");
     }
-    
-    /**
-     * 특정 바코드 캐시 제거
-     */
+
+    /** 특정 바코드 캐시 제거 */
     public void evictCache(String barcode) {
-        PosItem removed = itemCache.remove(barcode);
-        if (removed != null) {
-            log.debug("[Cache] Evicted item for barcode: {}", barcode);
+        if (barcode != null && cache.remove(barcode.trim()) != null) {
+            log.debug("[Cache] Evicted: {}", barcode);
         }
     }
 
     // =========================
-    // DTO → PosItem Conversion
+    // ProductResponse → PosItem (매번 새 객체)
     // =========================
+
     private PosItem toPosItem(ProductResponse p) {
-        log.trace("Converting ProductResponse to PosItem for code: {}", p.code());
-        
         PosItem item = new PosItem();
 
-        // Basic Information[cite: 2]
         item.setCode(p.code());
         item.setBarcode(p.barcode());
         item.setDescription(p.description());
 
-        // Pricing logic[cite: 2]
         double original = safe(p.price(), p.sellingPrice());
-        double selling  = safe(p.sellingPrice(), original);
-
+        double selling = safe(p.sellingPrice(), original);
         item.setOriginalPrice(original);
         item.setSellingPrice(selling);
 
-        // Inventory / Quantity[cite: 2]
         item.setStock(p.stock());
-        item.setQty(0); 
-
-        // Initialize discounts[cite: 2]
+        item.setQty(0);
         item.applyDiscount(0, 0);
 
-        // Timestamp[cite: 2]
         item.setUpdated(LocalDateTime.now(ZoneId.systemDefault()));
-
         return item;
     }
 
-    // =========================
-    // null-safe utility[cite: 2]
-    // =========================
     private double safe(Double value, Double fallback) {
         if (value != null) return value;
         return (fallback != null) ? fallback : 0.0;

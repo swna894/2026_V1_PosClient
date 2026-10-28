@@ -46,6 +46,8 @@ public class PosViewModel {
     private final PosProcessor posProcessor;
     private final PosDialogManager posDialogManager;
     private final PrinterService printerService;
+    // 필드 추가
+    private final ScanService scanService;
     
     // ========== UI 상태 ==========
     private final StringProperty scannedCode = new SimpleStringProperty("");
@@ -55,7 +57,7 @@ public class PosViewModel {
                         ScanService posService, 
                         PosApiService posApiService, 
                         PosDialogManager posDialogManager, 
-                        PrinterService printerService) {
+                        PrinterService printerService, ScanService scanService) {
         this.eventPublisher = eventPublisher;
         this.cartManager = new CartManager();
         this.discountManager = new DiscountManager(cartManager);
@@ -64,6 +66,7 @@ public class PosViewModel {
         this.scanHandler = new ScanHandler(posService, cartManager, posDialogManager);
         this.posProcessor = new PosProcessor(cartManager, posApiService);
         this.printerService = printerService;
+        this.scanService = scanService;
         
         setupScanCallbacks();
     }
@@ -116,6 +119,7 @@ public class PosViewModel {
     public void clear() { 
         cartManager.clear();
         scannedCode.set("");
+        scanService.clearCache();  
     }
     
     public boolean hasItems() { 
