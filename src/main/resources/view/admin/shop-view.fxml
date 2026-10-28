@@ -96,7 +96,7 @@
                         <TextField fx:id="tfCompany" style="-fx-background-color: #ffffff; -fx-text-fill: #333333; -fx-border-color: #cccccc;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
                         <!-- 2. BUSINESS NO -->
-                        <Label style="-fx-text-fill: #333333;" text="BUSINESS NO" GridPane.rowIndex="1" />
+                        <Label style="-fx-text-fill: #333333;" text="GST NO" GridPane.rowIndex="1" />
                         <TextField fx:id="tfBusinessNo" style="-fx-background-color: #ffffff; -fx-text-fill: #333333; -fx-border-color: #cccccc;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                         <!-- 3. NAME -->
