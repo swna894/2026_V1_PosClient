@@ -12,10 +12,13 @@ import com.swna.javafx.admin.unpacking.model.Unpack;
 import com.swna.javafx.admin.unpacking.model.UnpackItem;
 import com.swna.javafx.common.navigation.NavigationService;
 import com.swna.javafx.common.ui.table.TableColumnUtil;
+import com.swna.javafx.common.util.AlertDialog;
 import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
 import com.swna.javafx.pos.manager.BarcodeScannerManager;
+import com.swna.javafx.pos.manager.BarcodeScannerManager.ScanHandle;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -34,6 +37,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
@@ -44,13 +49,17 @@ import net.rgielen.fxweaver.core.FxmlView;
 @RequiredArgsConstructor
 public class UnPackingController {
 
-    // PseudoClass 상수 정의
     private static final PseudoClass NEW_ITEM_PSEUDO = PseudoClass.getPseudoClass("new-item");
-    
+    private static final Pattern PRICE_PATTERN = Pattern.compile("^\\d*(\\.\\d*)?$");
+
     private final NavigationService navigationService;
     private final UnpackingViewModel viewModel;
     private final SafeBarcodeScanner safeBarcodeScanner;
     private final BarcodeScannerManager scannerManager;
+    private final AlertDialog alertDialog;
+
+    /** 스캔 일시 정지/재개 제어용 (initialize에서 설정) */
+    private ScanHandle scanHandle;
 
     @FXML private BorderPane borderPane;
     @FXML private ToolBar mainToolBar;
@@ -150,12 +159,10 @@ public class UnPackingController {
         configureUnpackTable();
         configureItemsTable();
 
-        // 5. 바코드 스캐너 설정
-        scannerManager.setup(tableViewItems, safeBarcodeScanner, this::handleBarcode);
+        // 바코드 스캐너 설정 — 반환된 핸들로 알림 중 일시 정지/재개를 제어
+        scanHandle = scannerManager.setup(tableViewItems, safeBarcodeScanner, this::handleBarcode);
         Platform.runLater(() -> tableViewItems.requestFocus());
     }
-
-    private static final Pattern PRICE_PATTERN = Pattern.compile("^\\d*(\\.\\d*)?$");
 
     private void wireControls() {
         datePickerStart.setValue(viewModel.startDateProperty().get());
@@ -165,17 +172,10 @@ public class UnPackingController {
         datePickerStart.setOnAction(e -> viewModel.reload());
         datePickerEnd.setOnAction(e -> viewModel.reload());
 
-        // 2. textFieldPriceMultiplier 양방향 바인딩
+        // 숫자 및 소수점만 입력 허용 (예: 2, 2.3, 0.5)
         textFieldPriceMultiplier.textProperty().bindBidirectional(viewModel.priceMultiplierProperty());
-        // 3. 숫자 및 소수점만 입력 허용하는 TextFormatter 적용
-        textFieldPriceMultiplier.setTextFormatter(new TextFormatter<>(change -> {
-            String newText = change.getControlNewText();
-            // 빈 값("") 또는 소수점을 포함한 숫자 패턴만 허용 (예: 2, 2.3, 0.5)
-              if (newText.isEmpty() || PRICE_PATTERN.matcher(newText).matches()) {
-            return change;
-        }
-            return null; // 조건에 맞지 않는 입력(문자 등)은 무시
-        }));
+        textFieldPriceMultiplier.setTextFormatter(new TextFormatter<>(change ->
+                PRICE_PATTERN.matcher(change.getControlNewText()).matches() ? change : null));
 
         labelUnpacksSummary.textProperty().bind(viewModel.inspectionSummaryProperty());
         labelItemsSummary.textProperty().bind(viewModel.productSummaryProperty());
@@ -188,10 +188,20 @@ public class UnPackingController {
 
         comboBoxConfirmFilter.setItems(viewModel.getConfirmFilterOptions());
         comboBoxConfirmFilter.getSelectionModel().selectFirst();
-        comboBoxConfirmFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
-            List<UnpackItem> filtered = viewModel.filterByConfirmStatus(newValue);
-            tableViewItems.setItems(FXCollections.observableArrayList(filtered));
-        });
+        comboBoxConfirmFilter.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldValue, newValue) -> applyConfirmFilter());
+    }
+
+    /**
+     * 현재 선택된 confirm 필터를 테이블에 적용.
+     * 필터 결과는 복사본 리스트이므로, 원본이 바뀌면(스캔 등) 다시 호출해야 화면과 맞습니다.
+     */
+    private void applyConfirmFilter() {
+        String option = comboBoxConfirmFilter.getSelectionModel().getSelectedItem();
+        if (option == null) return;
+
+        List<UnpackItem> filtered = viewModel.filterByConfirmStatus(option);
+        tableViewItems.setItems(FXCollections.observableArrayList(filtered));
     }
 
     private ListCell<Supplier> supplierListCell() {
@@ -204,32 +214,71 @@ public class UnPackingController {
         };
     }
 
-        // ========== Handler Methods ==========
-    
+    // ---------------- Barcode Handling ----------------
+
     private void handleBarcode(String code) {
         if (code == null || code.isBlank()) return;
-        Platform.runLater(() -> log.info("Barcode scanned: {}", code)); 
+
         Platform.runLater(() -> {
-            // 1. ViewModel에서 스캔 로직 수행 (confirm=true 적용 및 리스트 맨 위로 이동)
+            // 알림 표시 중 큐에 이미 쌓여 있던 스캔도 여기서 차단
+            if (scanHandle != null && scanHandle.isPaused()) {
+                log.debug("Scan ignored while paused: {}", code);
+                return;
+            }
+
+            log.info("Barcode scanned: {}", code);
             UnpackItem targetItem = viewModel.processScannedCode(code);
 
-            // 2. 일치하는 항목을 찾았으면 TableView UI 업데이트
-            if (targetItem != null) {
-                // TableView 항목 새로고침 (필요 시)
-                tableViewItems.refresh();
-
-                // 첫 번째 행(인덱스 0) 선택
-                tableViewItems.getSelectionModel().clearAndSelect(0);
-
-                // 첫 번째 행이 보이도록 스크롤 이동
-                tableViewItems.scrollTo(0);
-                
-                // Focus 유지
-                tableViewItems.requestFocus();
-            } else {
+            if (targetItem == null) {
                 log.warn("Scanned code not found in item list: {}", code);
+                showNoBarcodeAlert(code);
+                return;
             }
+            revealScannedItem(targetItem);
         });
+    }
+
+    /**
+     * 스캔된 항목을 테이블에서 선택하고 스크롤.
+     * confirm 필터로 복사본 리스트를 보고 있다면 먼저 다시 적용해 원본 변경을 반영합니다.
+     */
+    private void revealScannedItem(UnpackItem target) {
+        if (tableViewItems.getItems() != viewModel.getUnpackItems()) {
+            applyConfirmFilter();
+        }
+        tableViewItems.refresh();
+
+        int index = tableViewItems.getItems().indexOf(target);
+        if (index >= 0) {
+            tableViewItems.getSelectionModel().clearAndSelect(index);
+            tableViewItems.scrollTo(index);
+        } else {
+            log.info("Scanned item is hidden by the current confirm filter: {}", target.getBarcode());
+        }
+        tableViewItems.requestFocus();
+    }
+
+    /**
+     * 미등록 바코드 알림. 표시 동안 스캔을 정지하고, 닫히면 재개 + 포커스 복원.
+     */
+    private void showNoBarcodeAlert(String code) {
+        if (scanHandle != null) {
+            scanHandle.pause();
+        }
+        alertDialog.dialogString(
+                "No barcode matched\nCode : " + code,
+                ownerStage(),
+                () -> {
+                    if (scanHandle != null) {
+                        scanHandle.resume();   // 스캔 재개 + tableViewItems 포커스 복원
+                    }
+                });
+    }
+
+    private Stage ownerStage() {
+        if (tableViewItems.getScene() == null) return null;
+        Window window = tableViewItems.getScene().getWindow();
+        return (window instanceof Stage stage) ? stage : null;
     }
 
     // ---------------- Table Configurations ----------------
@@ -251,49 +300,7 @@ public class UnPackingController {
     private void configureItemsTable() {
         tableViewItems.setTableMenuButtonVisible(true);
         tableViewItems.setItems(viewModel.getUnpackItems());
-
-        // isNew가 true인 경우 글자색을 붉은색으로 표시
-        // PseudoClass 기반 및 클릭 이벤트가 추가된 RowFactory
-            tableViewItems.setRowFactory(tv -> {
-                TableRow<UnpackItem> row = new TableRow<>() {
-                    private final javafx.beans.value.ChangeListener<Boolean> isNewListener = 
-                            (obs, oldVal, newVal) -> updatePseudoState(newVal);
-
-                    @Override
-                    protected void updateItem(UnpackItem item, boolean empty) {
-                        UnpackItem prevItem = getItem();
-                        if (prevItem != null) {
-                            prevItem.isNewProperty().removeListener(isNewListener);
-                        }
-
-                        super.updateItem(item, empty);
-
-                        if (empty || item == null) {
-                            updatePseudoState(false);
-                        } else {
-                            item.isNewProperty().addListener(isNewListener);
-                            updatePseudoState(item.getIsNew());
-                        }
-                    }
-
-                    private void updatePseudoState(Boolean isNew) {
-                        pseudoClassStateChanged(NEW_ITEM_PSEUDO, Boolean.TRUE.equals(isNew));
-                    }
-                };
-
-                // 행(Row) 클릭 이벤트 핸들러 추가
-                row.setOnMouseClicked(event -> {
-                    if (!row.isEmpty() && row.getItem() != null) {
-                        // 클릭 시 confirmProperty를 true로 변경
-                        row.getItem().setConfirm(true);
-                        // (선택 사항) 만약 토글(toggle) 동작을 원하시면 아래 주석 해제 후 적용:
-                        // UnpackItem item = row.getItem();
-                        // item.confirmProperty().set(!item.confirmProperty().get());
-                    }
-                });
-
-                return row;
-            });
+        tableViewItems.setRowFactory(tv -> createItemRow());
 
         TableColumnUtil.createNumberColumn(tableViewItems, colItemNo, 50);
         TableColumnUtil.createCheckBoxHeaderColumn(tableViewItems, colItemConfirm, UnpackItem::confirmProperty, "", 60);
@@ -315,5 +322,43 @@ public class UnPackingController {
         if (colItemCategory != null) {
             colItemCategory.setOnEditCommit(event -> event.getRowValue().setCategory(event.getNewValue()));
         }
+    }
+
+    /**
+     * isNew 상태를 PseudoClass(new-item)로 표시하고, 행 클릭 시 confirm=true 처리하는 Row.
+     */
+    private TableRow<UnpackItem> createItemRow() {
+        TableRow<UnpackItem> row = new TableRow<>() {
+            private final ChangeListener<Boolean> isNewListener =
+                    (obs, oldVal, newVal) -> updatePseudoState(newVal);
+
+            @Override
+            protected void updateItem(UnpackItem item, boolean empty) {
+                UnpackItem prevItem = getItem();
+                if (prevItem != null) {
+                    prevItem.isNewProperty().removeListener(isNewListener);
+                }
+
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    updatePseudoState(false);
+                } else {
+                    item.isNewProperty().addListener(isNewListener);
+                    updatePseudoState(item.getIsNew());
+                }
+            }
+
+            private void updatePseudoState(Boolean isNew) {
+                pseudoClassStateChanged(NEW_ITEM_PSEUDO, Boolean.TRUE.equals(isNew));
+            }
+        };
+
+        row.setOnMouseClicked(event -> {
+            if (!row.isEmpty() && row.getItem() != null) {
+                row.getItem().setConfirm(true);
+            }
+        });
+        return row;
     }
 }
