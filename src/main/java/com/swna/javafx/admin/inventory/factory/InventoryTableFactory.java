@@ -55,7 +55,7 @@ public class InventoryTableFactory {
     }
 
     private void createColumns() {
-        TableUtil.createNumberColumn(table, "NO", 55);
+        TableUtil.createNumberColumn(table, "NO", 80);
         TableUtil.createCheckBoxHeaderColumn(table, Inventory::selectedProperty, "", 50);
 
         this.colBarcode = stringColumn(table, "BARCODE", Inventory::barcodeProperty).visible(true).alignment(TableUtil.CENTER).fixedWidth(200).build();

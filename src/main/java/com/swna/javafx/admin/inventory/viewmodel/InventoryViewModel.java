@@ -16,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -113,9 +115,17 @@ public class InventoryViewModel {
                         return;
                     }
 
+                    
                     List<Supplier> supplierList = response.data().stream()
                             .map(Supplier::from)
-                            .toList();
+                            .collect(Collectors.toCollection(ArrayList::new));
+
+                    Supplier allSupplier = new Supplier();
+                    allSupplier.setAbbr("ALL");
+                    allSupplier.setName("All");
+                    allSupplier.setCompany("All Suppliers");
+
+                    supplierList.add(0, allSupplier);
 
                     // The WebClient callback runs on a different thread —
                     // JavaFX UI updates must happen on the FX Application Thread.

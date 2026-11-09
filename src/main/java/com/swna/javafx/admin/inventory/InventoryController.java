@@ -4,7 +4,9 @@ import com.swna.javafx.admin.inventory.factory.InventoryTableFactory;
 import com.swna.javafx.admin.inventory.model.Inventory;
 import com.swna.javafx.admin.inventory.viewmodel.InventoryViewModel;
 import com.swna.javafx.admin.supplier.domain.Supplier;
+import com.swna.javafx.infrastructure.scanner.SafeBarcodeScanner;
 
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -25,6 +27,7 @@ public class InventoryController {
 
     private final InventoryViewModel viewModel;
     private final InventoryTableFactory tableFactory;
+    private final SafeBarcodeScanner barcodeScanner;
 
     @FXML private BorderPane borderPane;
     @FXML private ToolBar mainToolBar;
@@ -50,8 +53,45 @@ public class InventoryController {
         bindProperties();
         bindButtonActions();
 
+        // 🔥 SafeBarcodeScanner 연동 설정
+        initSafeBarcodeScanner();
         // Load initial data (supplier list is fetched from the API here)
         viewModel.initializeData();
+    }
+
+    /**
+     * SafeBarcodeScanner를 Scene에 등록하고 스캔된 바코드를 확실하게 단일 값으로 처리
+     */
+    private void initSafeBarcodeScanner() {
+        // Scene이 로드된 이후에 등록하기 위해 borderPane 또는 scene 속성 이용
+        borderPane.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                barcodeScanner.register(newScene);
+            }
+        });
+
+        // 바코드가 완성되어 들어올 때 호출되는 Consumer 설정
+        barcodeScanner.setBarcodeConsumer(scannedBarcode -> {
+            Platform.runLater(() -> {
+                if (scannedBarcode != null && !scannedBarcode.isBlank()) {
+                    String trimmed = scannedBarcode.trim();
+                    
+                    //log.info("Scanned Barcode Received: {}", trimmed);
+                    
+                    // 1. 텍스트필드를 먼저 완전히 비우고 새 값 세팅
+                    textFieldSearch.clear();
+                    textFieldSearch.setText(trimmed);
+                    
+                    // 2. 뷰모델의 검색어 상태를 새 바코드 값으로 설정 (기존 내역 덮어쓰기)
+                    viewModel.getSearchText().set(trimmed);
+                    
+                    // 3. 포커스 및 전체 선택 유지
+                    textFieldSearch.requestFocus();
+                    textFieldSearch.selectAll();
+                    tableView.requestFocus();
+                }
+            });
+        });
     }
 
     // ---------------- Setup: TableView ----------------
@@ -90,13 +130,8 @@ public class InventoryController {
             return;
         }
 
-        comboBoxSupplier.getItems().stream()
-                .filter(s -> s.getCompany() != null && !s.getCompany().contains("@"))
-                .findFirst()
-                .ifPresentOrElse(
-                        comboBoxSupplier.getSelectionModel()::select,
-                        () -> comboBoxSupplier.getSelectionModel().selectFirst()
-                );
+        // 🔥 목록의 첫 번째 항목("All")을 기본 선택
+        comboBoxSupplier.getSelectionModel().selectFirst();
     }
 
     /**
@@ -106,7 +141,14 @@ public class InventoryController {
         return new StringConverter<>() {
             @Override
             public String toString(Supplier supplier) {
-                return supplier != null ? supplier.getCompany() : "";
+                if (supplier == null) {
+                    return "";
+                }
+                // "All" 항목인 경우 company 또는 toString 결과 반환
+                if ("ALL".equalsIgnoreCase(supplier.getAbbr())) {
+                    return supplier.getCompany() != null ? supplier.getCompany() : "All";
+                }
+                return supplier.getCompany() != null ? supplier.getCompany() : "";
             }
 
             @Override
@@ -118,7 +160,8 @@ public class InventoryController {
 
     private Supplier findSupplierByCompany(String company) {
         return comboBoxSupplier.getItems().stream()
-                .filter(s -> Objects.equals(s.getCompany(), company))
+                .filter(s -> Objects.equals(s.getCompany(), company) || 
+                             (s.getCompany() != null && s.getCompany().equals(company)))
                 .findFirst()
                 .orElse(null);
     }
@@ -127,7 +170,10 @@ public class InventoryController {
     // ---------------- Setup: Property Bindings ----------------
 
     private void bindProperties() {
-        textFieldSearch.textProperty().bindBidirectional(viewModel.getSearchText());
+        // ❌ 기존 양방향 바인딩 제거 (누적 현상의 주원인)
+        textFieldSearch.textProperty().bindBidirectional(viewModel.getSearchText()); 
+     
+
         labelInformStock.textProperty().bind(viewModel.getInformStockMessage());
     }
 

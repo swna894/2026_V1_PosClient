@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @Scope("prototype")
-public class SafeBarcodeScanner {
+public class SafeBarcodeScanner { 
 
     // =========================
     // Constants
