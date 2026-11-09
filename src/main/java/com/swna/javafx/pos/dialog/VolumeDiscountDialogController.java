@@ -129,9 +129,9 @@ public class VolumeDiscountDialogController extends BasePosDialog {
                     .setScale(2, RoundingMode.HALF_UP);
 
                 // 유효성 검사: 최종 금액은 0보다 커야 하며, 기존 총액보다 작아야 함(할인이 발생해야 하므로)
-                if (finalAmount.compareTo(BigDecimal.ZERO) <= 0 || finalAmount.compareTo(totalAmount) >= 0) {
+                if (finalAmount.compareTo(BigDecimal.ZERO) <= 0 || finalAmount.compareTo(totalAmount) > 0) {
                     log.warn("[VolumeDiscountDialog] Invalid final amount: {}", finalAmount);
-                    showValidationError("Invalid final amount. Must be less than original total.");
+                    showValidationError("Invalid final amount.\nMust be less than original total.");
                     return;
                 }
 
